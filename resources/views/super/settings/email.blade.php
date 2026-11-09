@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
-@section('title', 'Email Setting')
+@section('title', __( 'ui.common.email_settings' ))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Settings</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Email Setting</li>
+            <li class="breadcrumb-item"><a href="#">{{ __('ui.common.settings') }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ __('ui.common.email_settings') }}</li>
         </ol>
     </nav>
 @endsection
@@ -15,7 +15,7 @@
     <div class="row">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <h4 class="page-title mb-1">Email Setting</h4>
+                <h4 class="page-title mb-1">{{ __('ui.common.email_settings') }}</h4>
                 <span class="text-muted">Atur konfigurasi email untuk pengiriman notifikasi sistem ERP.</span>
             </div>
         </div>

@@ -45,13 +45,13 @@ class UnitController extends Controller
                 ->take(10)
                 ->implode(' | ');
 
-            return back()->withErrors(['file' => $message ?: 'Data satuan pada file tidak valid.']);
+            return back()->withErrors(['file' => $message ?: __('ui.master.invalid_import', ['type' => __('ui.common.unit')])]);
         } catch (\Throwable $exception) {
             report($exception);
             return back()->withErrors(['file' => 'Import gagal. Pastikan kode satuan tidak duplikat dan format file sesuai template.']);
         }
 
-        return redirect()->route('super.units.index')->with('unit_import_success', 'Data satuan berhasil diimpor.');
+        return redirect()->route('super.units.index')->with('unit_import_success', __('ui.master.imported', ['type' => __('ui.common.unit')]));
     }
 
     public function dt(UnitTableQuery $q)
@@ -60,8 +60,8 @@ class UnitController extends Controller
 
             ->addColumn('status', function (Unit $unit) {
                 return $unit->is_active
-                    ? 'Active'
-                    : 'Not Active';
+                    ? __('ui.master.status_active')
+                    : __('ui.master.status_inactive');
             })
 
             ->addColumn('actions', function (Unit $unit) {
@@ -69,7 +69,7 @@ class UnitController extends Controller
                 $actions = [
                     [
                         'type' => 'edit',
-                        'label' => 'Edit',
+                        'label' => __('ui.common.edit'),
                         'icon' => 'edit-2',
 
                         'update_url' => route(
@@ -93,9 +93,9 @@ class UnitController extends Controller
                             'super.units.destroy',
                             $unit->getRouteKey()
                         ),
-                        'label' => 'Delete',
+                        'label' => __('ui.common.delete'),
                         'icon' => 'trash-2',
-                        'confirm' => "Hapus satuan {$unit->name}?",
+                        'confirm' => __('ui.master.delete_confirmation', ['type' => __('ui.common.unit'), 'name' => $unit->name]),
                         'disabled' => false,
                     ],
                 ];
@@ -160,7 +160,7 @@ class UnitController extends Controller
         if ($unit->products()->exists()) {
             return response()->json([
                 'message' =>
-                'Unit cannot be deleted because it is already used by a product.',
+                __('ui.master.in_use_cannot_delete', ['type' => __('ui.common.unit')]),
             ], 422);
         }
 

@@ -53,7 +53,7 @@
                         </label>
 
                         <select class="form-select" id="module">
-                            <option value="">Semua Module</option>
+                            <option value="">{{ __('ui.common.all_modules') }}</option>
                             <option value="AUTH">AUTH</option>
                             <option value="OUTLET">OUTLET</option>
                             <option value="USER">USER</option>
@@ -68,9 +68,7 @@
 
                     {{-- Action --}}
                     <div class="col-md-2">
-                        <label for="action" class="form-label">
-                            Action
-                        </label>
+                        <label for="action" class="form-label">{{ __('ui.common.action') }}</label>
 
                         <select class="form-select" id="action">
                             <option value="">Semua Action</option>
@@ -104,9 +102,7 @@
                             </button>
 
                             <button type="button" class="btn btn-success" id="btn-export">
-                                <i class="fas fa-file-excel me-1"></i>
-                                Export Excel
-                            </button>
+                                <i class="fas fa-file-excel me-1"></i>{{ __('ui.common.export_excel') }}</button>
 
                         </div>
                     </div>
@@ -142,9 +138,7 @@
                                     Module
                                 </th>
 
-                                <th width="120">
-                                    Action
-                                </th>
+                                <th width="120">{{ __('ui.common.action') }}</th>
 
                                 <th width="180">
                                     Object

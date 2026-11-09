@@ -26,16 +26,16 @@
                     <table id="companiesTable" class="table table-bordered table-hover align-middle w-100">
                         <thead>
                             <tr>
-                                <th width="50">No</th>
-                                <th width="80">Logo</th>
-                                <th>Kode</th>
-                                <th>Nama</th>
-                                <th>Email</th>
-                                <th>Telepon</th>
-                                <th>Kota</th>
-                                <th>Currency</th>
-                                <th>Status</th>
-                                <th width="120">Aksi</th>
+                                <th width="50">{{ __('ui.common.no') }}</th>
+                                <th width="80">{{ __('ui.common.logo') }}</th>
+                                <th>{{ __('ui.common.code') }}</th>
+                                <th>{{ __('ui.common.name') }}</th>
+                                <th>{{ __('ui.common.email') }}</th>
+                                <th>{{ __('ui.common.phone') }}</th>
+                                <th>{{ __('ui.common.city') }}</th>
+                                <th>{{ __('ui.common.currency') }}</th>
+                                <th>{{ __('ui.common.status') }}</th>
+                                <th width="120">{{ __('ui.common.actions') }}</th>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -63,7 +63,7 @@
                         <div class="row g-3">
 
                             <div class="col-md-4">
-                                <label class="form-label">Kode <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('ui.common.code') }}<span class="text-danger">*</span></label>
                                 <input type="text" name="code" id="code" class="form-control" required>
                             </div>
 
@@ -73,12 +73,12 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label class="form-label">Email</label>
+                                <label class="form-label">{{ __('ui.common.email') }}</label>
                                 <input type="email" name="email" id="email" class="form-control">
                             </div>
 
                             <div class="col-md-4">
-                                <label class="form-label">Telepon</label>
+                                <label class="form-label">{{ __('ui.common.phone') }}</label>
                                 <input type="text" name="phone" id="phone" class="form-control">
                             </div>
 
@@ -93,19 +93,19 @@
                             </div>
 
                             <div class="col-md-6">
-                                <label class="form-label">Logo</label>
+                                <label class="form-label">{{ __('ui.common.logo') }}</label>
                                 <input type="file" name="logo" id="logo" class="form-control"
                                     accept=".jpg,.jpeg,.png,.webp">
                                 <small class="text-muted">Maksimal 2 MB.</small>
                             </div>
 
                             <div class="col-12">
-                                <label class="form-label">Alamat</label>
+                                <label class="form-label">{{ __('ui.common.address') }}</label>
                                 <textarea name="address" id="address" class="form-control" rows="3"></textarea>
                             </div>
 
                             <div class="col-md-4">
-                                <label class="form-label">Kota</label>
+                                <label class="form-label">{{ __('ui.common.city') }}</label>
                                 <input type="text" name="city" id="city" class="form-control">
                             </div>
 
@@ -120,7 +120,7 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label class="form-label">Currency</label>
+                                <label class="form-label">{{ __('ui.common.currency') }}</label>
                                 <input type="text" name="currency" id="currency" class="form-control"
                                     value="IDR" required>
                             </div>
@@ -172,8 +172,8 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary" id="btnSaveCompany">Simpan</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('ui.common.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary" id="btnSaveCompany">{{ __('ui.common.save') }}</button>
                     </div>
                 </form>
             </div>

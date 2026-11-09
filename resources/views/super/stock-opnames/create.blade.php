@@ -1,40 +1,40 @@
 @extends('layouts.admin')
 
-@section('title', 'Buat Stock Opname')
+@section('title', __( 'ui.common.create_stock_count' ))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb"><ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="{{ route('super.stock-opnames.index') }}">Stock Opname</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Buat Opname</li>
+        <li class="breadcrumb-item"><a href="{{ route('super.stock-opnames.index') }}">{{ __('ui.common.stock_opname') }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ __('ui.common.create_opname') }}</li>
     </ol></nav>
 @endsection
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <div><h4 class="page-title mb-1">Buat Stock Opname</h4><span class="text-muted">Pilih barang yang akan dihitung. Saldo sistem disimpan sebagai snapshot saat dokumen dibuat.</span></div>
-        <a href="{{ route('super.stock-opnames.index') }}" class="btn btn-outline-secondary btn-sm"><i data-feather="arrow-left" class="icon-sm me-1"></i>Kembali</a>
+        <div><h4 class="page-title mb-1">{{ __('ui.common.create_stock_count') }}</h4><span class="text-muted">{{ __('ui.workflow.select_item_prompt') }}</span></div>
+        <a href="{{ route('super.stock-opnames.index') }}" class="btn btn-outline-secondary btn-sm"><i data-feather="arrow-left" class="icon-sm me-1"></i>{{ __('ui.common.back') }}</a>
     </div>
 
     <form id="createStockOpnameForm">
         @csrf
         <div class="card mb-3"><div class="card-header d-flex justify-content-between align-items-center">
-            <h6 class="mb-0">Barang yang Dihitung</h6>
-            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#selectProductsModal"><i data-feather="search" class="icon-sm me-1"></i>Pilih Barang</button>
+            <h6 class="mb-0">{{ __('ui.workflow.items_counted') }}</h6>
+            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#selectProductsModal"><i data-feather="search" class="icon-sm me-1"></i>{{ __('ui.common.choose_item') }}</button>
         </div><div class="card-body">
             <div class="table-responsive"><table class="table table-sm table-bordered align-middle">
-                <thead><tr><th>Kode</th><th>Nama Barang</th><th>Satuan</th><th class="text-center" style="width:80px">Action</th></tr></thead>
-                <tbody id="selectedProducts"><tr><td colspan="4" class="text-center text-muted">Belum ada barang yang dipilih.</td></tr></tbody>
+                <thead><tr><th>{{ __('ui.common.code') }}</th><th>{{ __('ui.common.item_name') }}</th><th>{{ __('ui.common.unit') }}</th><th class="text-center" style="width:80px">{{ __('ui.common.action') }}</th></tr></thead>
+                <tbody id="selectedProducts"><tr><td colspan="4" class="text-center text-muted">{{ __('ui.common.no_selected_items') }}</td></tr></tbody>
             </table></div>
-            <div class="mb-3"><label class="form-label" for="notes">Catatan</label><textarea id="notes" class="form-control" rows="2" maxlength="5000" placeholder="Contoh: Opname gudang utama September"></textarea></div>
+            <div class="mb-3"><label class="form-label" for="notes">{{ __('ui.common.notes') }}</label><textarea id="notes" class="form-control" rows="2" maxlength="5000" placeholder="{{ __('ui.workflow.stocktake_notes_example') }}"></textarea></div>
         </div></div>
-        <div class="d-flex justify-content-end gap-2"><a href="{{ route('super.stock-opnames.index') }}" class="btn btn-outline-secondary btn-sm">Batal</a><button type="submit" id="submitStockOpname" class="btn btn-primary btn-sm" disabled><i data-feather="check" class="icon-sm me-1"></i>Buat Dokumen Opname</button></div>
+        <div class="d-flex justify-content-end gap-2"><a href="{{ route('super.stock-opnames.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('ui.common.cancel') }}</a><button type="submit" id="submitStockOpname" class="btn btn-primary btn-sm" disabled><i data-feather="check" class="icon-sm me-1"></i>{{ __('ui.workflow.stocktake_document') }}</button></div>
     </form>
 
     <div class="modal fade" id="selectProductsModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title">Pilih Barang Stok</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+            <div class="modal-header"><h5 class="modal-title">{{ __('ui.workflow.choose_stock_item') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div>
             <div class="modal-body"><div class="table-responsive"><table id="stockOpnameProductsTable" class="table table-bordered table-hover align-middle w-100">
-                <thead><tr><th>No</th><th>Kode</th><th>Nama Barang</th><th>Satuan</th><th>Action</th></tr></thead>
+                <thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.common.code') }}</th><th>{{ __('ui.common.item_name') }}</th><th>{{ __('ui.common.unit') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead>
             </table></div></div>
         </div></div>
     </div>
@@ -49,11 +49,11 @@
 
             function renderSelected() {
                 if (!selected.size) {
-                    $('#selectedProducts').html('<tr><td colspan="4" class="text-center text-muted">Belum ada barang yang dipilih.</td></tr>');
+                    $('#selectedProducts').html('<tr><td colspan="4" class="text-center text-muted">{{ __('ui.common.no_selected_items') }}</td></tr>');
                     $('#submitStockOpname').prop('disabled', true);
                     return;
                 }
-                const rows = [...selected.values()].map(product => `<tr><td>${safe(product.code)}</td><td>${safe(product.name)}</td><td>${safe(product.unit || '—')}</td><td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger btn-remove-opname-product" data-id="${product.id}" title="Hapus"><i data-feather="x" class="icon-sm"></i></button></td></tr>`).join('');
+                const rows = [...selected.values()].map(product => `<tr><td>${safe(product.code)}</td><td>${safe(product.name)}</td><td>${safe(product.unit || '—')}</td><td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger btn-remove-opname-product" data-id="${product.id}" title="{{ __('ui.workflow.remove') }}"><i data-feather="x" class="icon-sm"></i></button></td></tr>`).join('');
                 $('#selectedProducts').html(rows);
                 $('#submitStockOpname').prop('disabled', false);
                 if (window.feather) feather.replace();
@@ -77,8 +77,8 @@
                         button.toggleClass('btn-primary', isSelected)
                             .toggleClass('btn-outline-primary', !isSelected)
                             .html(isSelected
-                                ? '<i data-feather="check" class="icon-sm me-1"></i>Dipilih'
-                                : '<i data-feather="plus" class="icon-sm me-1"></i>Pilih');
+                                ? '<i data-feather="check" class="icon-sm me-1"></i>{{ __('ui.workflow.selected') }}'
+                                : '<i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.workflow.select') }}');
                     });
                     if (window.feather) feather.replace();
                 }
@@ -89,10 +89,10 @@
                 const id = Number(button.data('id'));
                 if (selected.has(id)) {
                     selected.delete(id);
-                    button.removeClass('btn-primary').addClass('btn-outline-primary').html('<i data-feather="plus" class="icon-sm me-1"></i>Pilih');
+                    button.removeClass('btn-primary').addClass('btn-outline-primary').html('<i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.workflow.select') }}');
                 } else {
                     selected.set(id, { id, code: button.data('code'), name: button.data('name'), unit: button.data('unit') });
-                    button.removeClass('btn-outline-primary').addClass('btn-primary').html('<i data-feather="check" class="icon-sm me-1"></i>Dipilih');
+                    button.removeClass('btn-outline-primary').addClass('btn-primary').html('<i data-feather="check" class="icon-sm me-1"></i>{{ __('ui.workflow.selected') }}');
                 }
                 renderSelected();
                 if (window.feather) feather.replace();
@@ -111,11 +111,11 @@
                     url: @json(route('super.stock-opnames.store')),
                     method: 'POST',
                     data: { _token: @json(csrf_token()), product_ids: [...selected.keys()], notes: $('#notes').val() },
-                    success: response => Swal.fire({ icon: 'success', title: 'Berhasil', text: response.message }).then(() => window.location.href = response.url),
+                    success: response => Swal.fire({ icon: 'success', title: '{{ __('ui.workflow.success') }}', text: response.message }).then(() => window.location.href = response.url),
                     error: xhr => {
                         const errors = xhr.responseJSON?.errors;
-                        const message = errors ? Object.values(errors).flat().join('\n') : (xhr.responseJSON?.message || 'Stock Opname gagal dibuat.');
-                        Swal.fire({ icon: 'error', title: 'Gagal', text: message });
+                        const message = errors ? Object.values(errors).flat().join('\n') : (xhr.responseJSON?.message || '{{ __('ui.workflow.stocktake_create_failed') }}');
+                        Swal.fire({ icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: message });
                         $('#submitStockOpname').prop('disabled', false);
                     }
                 });

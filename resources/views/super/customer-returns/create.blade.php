@@ -5,8 +5,8 @@
 @section('breadcrumb')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ route('super.customer-returns.index') }}">Customer Return</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Catat Retur</li>
+            <li class="breadcrumb-item"><a href="{{ route('super.customer-returns.index') }}">{{ __('ui.common.customer_return') }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ __('ui.common.record_return') }}</li>
         </ol>
     </nav>
 @endsection
@@ -18,14 +18,14 @@
                 Nilai refund dibayar dari akun kas/bank yang dipilih.</span>
         </div>
         <a href="{{ route('super.customer-returns.index') }}" class="btn btn-outline-secondary btn-sm"><i
-                data-feather="arrow-left" class="icon-sm me-1"></i>Kembali</a>
+                data-feather="arrow-left" class="icon-sm me-1"></i>{{ __('ui.common.back') }}</a>
     </div>
 
     <form id="customerReturnForm">
         @csrf
         <div class="card mb-3">
             <div class="card-header d-flex justify-content-between align-items-center">
-                <h6 class="mb-0">Invoice Asal</h6>
+                <h6 class="mb-0">{{ __('ui.common.source_invoice') }}</h6>
                 <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal"
                     data-bs-target="#selectInvoiceModal"><i data-feather="search" class="icon-sm me-1"></i>Cari
                     Invoice</button>
@@ -33,11 +33,11 @@
             <div class="card-body">
                 <input type="hidden" name="sales_invoice_id" id="sales_invoice_id">
                 <div class="row">
-                    <div class="col-md-4 mb-3"><label class="form-label">Nomor Invoice</label><input
-                            id="selected_invoice_number" class="form-control" readonly placeholder="Pilih invoice terbit">
+                    <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.common.invoice_number') }}</label><input
+                            id="selected_invoice_number" class="form-control" readonly placeholder="{{ __('ui.common.choose_posted_invoice') }}">
                     </div>
-                    <div class="col-md-4 mb-3"><label class="form-label">Customer</label><input id="selected_customer"
-                            class="form-control" readonly placeholder="Otomatis dari invoice"></div>
+                    <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.common.customer') }}</label><input id="selected_customer"
+                            class="form-control" readonly placeholder="{{ __('ui.common.automatic_from_invoice') }}"></div>
                     <div class="col-md-4 mb-3"><label class="form-label" for="cash_bank_account_id">Bayarkan Refund
                             Dari</label><select name="cash_bank_account_id" id="cash_bank_account_id" class="form-select"
                             required>
@@ -47,7 +47,7 @@
                                     ({{ strtoupper($account->type) }})</option>
                             @endforeach
                         </select></div>
-                    <div class="col-md-4 mb-3"><label class="form-label" for="returned_at">Tanggal Retur</label><input
+                    <div class="col-md-4 mb-3"><label class="form-label" for="returned_at">{{ __('ui.common.returned_date') }}</label><input
                             type="datetime-local" name="returned_at" id="returned_at" class="form-control"
                             value="{{ now()->format('Y-m-d\TH:i') }}" required></div>
                 </div>
@@ -56,18 +56,18 @@
 
         <div class="card mb-3">
             <div class="card-header">
-                <h6 class="mb-0">Barang yang Diretur</h6>
+                <h6 class="mb-0">{{ __('ui.common.returned_items') }}</h6>
             </div>
             <div class="card-body">
                 <div class="table-responsive">
                     <table class="table table-bordered align-middle">
                         <thead>
                             <tr>
-                                <th>Barang</th>
+                                <th>{{ __('ui.common.item') }}</th>
                                 <th class="text-end">Terjual</th>
-                                <th class="text-end">Sudah Diretur</th>
-                                <th class="text-end">Sisa Dapat Diretur</th>
-                                <th style="width:180px">Diretur Sekarang</th>
+                                <th class="text-end">{{ __('ui.common.already_returned') }}</th>
+                                <th class="text-end">{{ __('ui.common.returnable_remaining') }}</th>
+                                <th style="width:180px">{{ __('ui.common.return_now') }}</th>
                             </tr>
                         </thead>
                         <tbody id="returnItems">
@@ -79,13 +79,13 @@
                     </table>
                 </div>
                 <div class="row align-items-start">
-                    <div class="col-md-6 mb-3"><label class="form-label" for="reason">Alasan Retur</label>
+                    <div class="col-md-6 mb-3"><label class="form-label" for="reason">{{ __('ui.common.return_reason') }}</label>
                         <textarea name="reason" id="reason" class="form-control" rows="2" maxlength="2000" required
                             placeholder="Contoh: barang rusak atau tidak sesuai pesanan"></textarea>
                     </div>
-                    <div class="col-md-6 mb-3"><label class="form-label" for="notes">Catatan</label>
+                    <div class="col-md-6 mb-3"><label class="form-label" for="notes">{{ __('ui.common.notes') }}</label>
                         <textarea name="notes" id="notes" class="form-control" rows="2" maxlength="5000"
-                            placeholder="Catatan tambahan"></textarea>
+                            placeholder="{{ __('ui.common.additional_notes') }}"></textarea>
                     </div>
                     <div class="col-md-6 ms-auto">
                         <div class="border rounded p-3 text-end">
@@ -97,7 +97,7 @@
             </div>
         </div>
         <div class="d-flex justify-content-end gap-2"><a href="{{ route('super.customer-returns.index') }}"
-                class="btn btn-outline-secondary btn-sm">Batal</a><button type="submit" id="submitReturn"
+                class="btn btn-outline-secondary btn-sm">{{ __('ui.common.cancel') }}</a><button type="submit" id="submitReturn"
                 class="btn btn-primary btn-sm" disabled><i data-feather="corner-down-left" class="icon-sm me-1"></i>Simpan
                 dan Bayar Refund</button></div>
     </form>
@@ -107,19 +107,19 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">Pilih Sales Invoice</h5><button type="button" class="btn-close"
-                        data-bs-dismiss="modal" aria-label="Tutup"></button>
+                        data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button>
                 </div>
                 <div class="modal-body">
                     <div class="table-responsive">
                         <table id="eligibleInvoicesTable" class="table table-bordered table-hover align-middle w-100">
                             <thead>
                                 <tr>
-                                    <th>No</th>
-                                    <th>Nomor Invoice</th>
-                                    <th>Customer</th>
-                                    <th>Tanggal Invoice</th>
-                                    <th>Jumlah Baris</th>
-                                    <th>Action</th>
+                                    <th>{{ __('ui.common.no') }}</th>
+                                    <th>{{ __('ui.common.invoice_number') }}</th>
+                                    <th>{{ __('ui.common.customer') }}</th>
+                                    <th>{{ __('ui.common.invoice_date') }}</th>
+                                    <th>{{ __('ui.common.row_count') }}</th>
+                                    <th>{{ __('ui.common.action') }}</th>
                                 </tr>
                             </thead>
                         </table>
@@ -210,14 +210,14 @@
                     selectedItems = invoice.items;
                     const rows = invoice.items.map((item, index) => `
                         <tr>
-                            <td>${safe(item.code)} — ${safe(item.name)}${item.track_stock ? '' : '<div class="small text-muted">Barang non-stok</div>'}</td>
+                            <td>${safe(item.code)} — ${safe(item.name)}${item.track_stock ? '' : '<div class="small text-muted">{{ __('ui.common.non_stock_item') }}</div>'}</td>
                             <td class="text-end">${item.sold} ${safe(item.unit)}</td>
                             <td class="text-end">${item.returned} ${safe(item.unit)}</td>
                             <td class="text-end">${item.available} ${safe(item.unit)}</td>
                             <td><input type="hidden" name="items[${index}][sales_invoice_item_id]" value="${item.id}"><input type="number" class="form-control form-control-sm text-end return-quantity" name="items[${index}][quantity]" min="0" max="${item.available}" step="0.0001" value="0"><div class="small text-muted mt-1">Maks. ${item.available}</div></td>
                         </tr>`).join('');
                     $('#returnItems').html(rows ||
-                        '<tr><td colspan="5" class="text-center text-muted">Tidak ada barang yang masih dapat diretur.</td></tr>'
+                        '<tr><td colspan="5" class="text-center text-muted">{{ __('ui.common.no_returnable_items') }}</td></tr>'
                         );
                     $('#submitReturn').prop('disabled', !rows);
                     updateEstimate();

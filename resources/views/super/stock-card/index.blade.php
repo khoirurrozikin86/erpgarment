@@ -1,55 +1,55 @@
 @extends('layouts.admin')
 
-@section('title', 'Stock Card')
+@section('title', __( 'ui.common.stock_card' ))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb"><ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="#">Inventory</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Stock Card</li>
+        <li class="breadcrumb-item"><a href="#">{{ __('ui.common.inventory') }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ __('ui.common.stock_card') }}</li>
     </ol></nav>
 @endsection
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <div><h4 class="page-title mb-1">Stock Card</h4><span class="text-muted">Telusuri stok masuk dan keluar beserta saldo berjalan per barang.</span></div>
+        <div><h4 class="page-title mb-1">{{ __('ui.common.stock_card') }}</h4><span class="text-muted">{{ __('ui.workflow.stock_card_subtitle') }}</span></div>
     </div>
 
     <div class="card mb-3"><div class="card-body">
         <div class="row align-items-end g-2">
             <div class="col-md-7">
-                <label class="form-label mb-1" for="selected_product">Barang</label>
+                <label class="form-label mb-1" for="selected_product">{{ __('ui.common.item') }}</label>
                 <div class="input-group input-group-sm">
                     <input type="hidden" id="product_id">
-                    <input type="text" id="selected_product" class="form-control" readonly placeholder="Pilih barang untuk melihat kartu stok">
-                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#selectProductModal"><i data-feather="search" class="icon-sm me-1"></i>Pilih Barang</button>
+                    <input type="text" id="selected_product" class="form-control" readonly placeholder="{{ __('ui.workflow.choose_product_stock_card') }}">
+                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#selectProductModal"><i data-feather="search" class="icon-sm me-1"></i>{{ __('ui.common.choose_item') }}</button>
                 </div>
             </div>
             <div class="col-md-5 d-flex justify-content-md-end align-items-end">
-                <a href="#" id="exportStockCard" class="btn btn-sm btn-outline-success disabled" aria-disabled="true"><i data-feather="download" class="icon-sm me-1"></i>Export Excel</a>
+                <a href="#" id="exportStockCard" class="btn btn-sm btn-outline-success disabled" aria-disabled="true"><i data-feather="download" class="icon-sm me-1"></i>{{ __('ui.common.export_excel') }}</a>
             </div>
         </div>
     </div></div>
 
     <div class="row g-3 mb-3 d-none" id="stockSummary">
-        <div class="col-sm-6 col-xl-3"><div class="card"><div class="card-body"><div class="text-muted small">Saldo Awal Periode</div><div class="h4 mb-0" id="openingBalance">0</div></div></div></div>
-        <div class="col-sm-6 col-xl-3"><div class="card"><div class="card-body"><div class="text-muted small">Total Masuk</div><div class="h4 mb-0 text-success" id="periodIn">0</div></div></div></div>
-        <div class="col-sm-6 col-xl-3"><div class="card"><div class="card-body"><div class="text-muted small">Total Keluar</div><div class="h4 mb-0 text-danger" id="periodOut">0</div></div></div></div>
-        <div class="col-sm-6 col-xl-3"><div class="card"><div class="card-body"><div class="text-muted small">Saldo Saat Ini</div><div class="h4 mb-0" id="currentBalance">0</div></div></div></div>
+        <div class="col-sm-6 col-xl-3"><div class="card"><div class="card-body"><div class="text-muted small">{{ __('ui.common.opening_period_balance') }}</div><div class="h4 mb-0" id="openingBalance">0</div></div></div></div>
+        <div class="col-sm-6 col-xl-3"><div class="card"><div class="card-body"><div class="text-muted small">{{ __('ui.workflow.total_in') }}</div><div class="h4 mb-0 text-success" id="periodIn">0</div></div></div></div>
+        <div class="col-sm-6 col-xl-3"><div class="card"><div class="card-body"><div class="text-muted small">{{ __('ui.workflow.total_out') }}</div><div class="h4 mb-0 text-danger" id="periodOut">0</div></div></div></div>
+        <div class="col-sm-6 col-xl-3"><div class="card"><div class="card-body"><div class="text-muted small">{{ __('ui.workflow.current_balance') }}</div><div class="h4 mb-0" id="currentBalance">0</div></div></div></div>
     </div>
 
     @include('super.purchasing.date-filter')
 
     <div class="card"><div class="card-body"><div class="table-responsive">
         <table id="stock-card-table" class="table table-bordered table-hover align-middle w-100">
-            <thead><tr><th>No</th><th>Waktu Pencatatan</th><th>No. Dokumen</th><th>Tipe</th><th class="text-end">Masuk</th><th class="text-end">Keluar</th><th class="text-end">Saldo</th><th>Satuan</th><th>Catatan</th></tr></thead>
+            <thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.workflow.recorded_at') }}</th><th>{{ __('ui.workflow.document_number') }}</th><th>{{ __('ui.common.type') }}</th><th class="text-end">{{ __('ui.common.enter') }}</th><th class="text-end">{{ __('ui.common.exit') }}</th><th class="text-end">{{ __('ui.common.balance') }}</th><th>{{ __('ui.common.unit') }}</th><th>{{ __('ui.common.notes') }}</th></tr></thead>
         </table>
     </div></div></div>
 
     <div class="modal fade" id="selectProductModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title">Pilih Barang</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+            <div class="modal-header"><h5 class="modal-title">{{ __('ui.common.choose_item') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div>
             <div class="modal-body"><div class="table-responsive"><table id="stockProductsTable" class="table table-bordered table-hover align-middle w-100">
-                <thead><tr><th>No</th><th>Kode</th><th>Nama Barang</th><th>Satuan</th><th>Action</th></tr></thead>
+                <thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.common.code') }}</th><th>{{ __('ui.common.item_name') }}</th><th>{{ __('ui.common.unit') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead>
             </table></div></div>
         </div></div>
     </div>
@@ -118,7 +118,7 @@
                     $('#periodOut').html(`${number(summary.quantity_out)}${unit}`);
                     $('#currentBalance').html(`${number(summary.current_balance)}${unit}`);
                     $('#stockSummary').removeClass('d-none');
-                }).fail(() => Swal.fire({ icon: 'error', title: 'Gagal', text: 'Ringkasan saldo stok tidak dapat dimuat.' }));
+                }).fail(() => Swal.fire({ icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: '{{ __('ui.workflow.stock_summary_load_failed') }}' }));
             }
 
             function updateExportLink() {

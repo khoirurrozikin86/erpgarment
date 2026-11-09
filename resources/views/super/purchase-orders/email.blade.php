@@ -13,7 +13,7 @@
     </p>
 
     <p>Mohon konfirmasi penerimaan pesanan dan perkiraan waktu pengiriman.</p>
-    <p>Terima kasih.</p>
+    <p>{{ __('ui.common.thank_you') }}</p>
 
     <p style="color:#667085">
         {{ $company?->name ?: 'Tim Purchasing' }}<br>

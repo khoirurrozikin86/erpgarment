@@ -1,14 +1,14 @@
 @extends('layouts.admin')
 
 
-@section('title', 'units')
+@section('title', __('ui.master.unit_title'))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
 
             <li class="breadcrumb-item">
-                <a href="#">Master</a>
+                <a href="#">{{ __('ui.common.master') }}</a>
             </li>
 
             <li class="breadcrumb-item active" aria-current="page">
@@ -28,25 +28,24 @@
             <div>
                 <h4 class="mb-1">Unit</h4>
                 <p class="text-muted mb-0">
-                    Kelola satuan barang.
+                    {{ __('ui.master.unit_subtitle') }}
                 </p>
             </div>
 
             <div class="d-flex gap-2">
                 @can('units.view')
                     <a href="{{ route('super.units.template') }}" class="btn btn-outline-secondary">
-                        <i data-feather="file-text" class="icon-sm me-1"></i> Template
+                        <i data-feather="file-text" class="icon-sm me-1"></i> {{ __('ui.master.template') }}
                     </a>
                     <a href="{{ route('super.units.export') }}" class="btn btn-success">
-                        <i data-feather="download" class="icon-sm me-1"></i> Export Excel
-                    </a>
+                        <i data-feather="download" class="icon-sm me-1"></i>{{ __('ui.common.export_excel') }}</a>
                 @endcan
                 @can('units.create')
                     <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#unitImportModal">
-                        <i data-feather="upload" class="icon-sm me-1"></i> Import Excel
+                        <i data-feather="upload" class="icon-sm me-1"></i> {{ __('ui.master.import_excel') }}
                     </button>
                     <button type="button" class="btn btn-primary" id="btn-add-unit">
-                        <i data-feather="plus" class="icon-sm me-1"></i> Tambah Satuan
+                        <i data-feather="plus" class="icon-sm me-1"></i> {{ __('ui.master.add_unit') }}
                     </button>
                 @endcan
             </div>
@@ -61,13 +60,13 @@
 
                         <thead>
                             <tr>
-                                <th width="50">No</th>
-                                <th>Kode</th>
-                                <th>Nama</th>
-                                <th>Simbol</th>
-                                <th>Deskripsi</th>
-                                <th>Status</th>
-                                <th width="80">Action</th>
+                                <th width="50">{{ __('ui.common.no') }}</th>
+                                <th>{{ __('ui.common.code') }}</th>
+                                <th>{{ __('ui.common.name') }}</th>
+                                <th>{{ __('ui.master.symbol') }}</th>
+                                <th>{{ __('ui.master.description') }}</th>
+                                <th>{{ __('ui.common.status') }}</th>
+                                <th width="80">{{ __('ui.common.action') }}</th>
                             </tr>
                         </thead>
 
@@ -86,9 +85,9 @@
             document.addEventListener('DOMContentLoaded', function() {
                 Swal.fire({
                     icon: 'success',
-                    title: 'Berhasil',
+                    title: '{{ __('ui.master.success') }}',
                     text: @json(session('unit_import_success')),
-                    confirmButtonText: 'OK'
+                    confirmButtonText: '{{ __('ui.master.ok') }}'
                 });
             });
         </script>
@@ -100,18 +99,18 @@
             <form action="{{ route('super.units.import') }}" method="POST" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-header"><div>
-                    <h5 class="modal-title">Import Satuan</h5>
-                    <small class="text-muted">Isi file menggunakan template satuan.</small>
-                </div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+                    <h5 class="modal-title">{{ __('ui.common.import') }}</h5>
+                    <small class="text-muted">{{ __('ui.master.import_template_help', ['name' => __('ui.master.unit')]) }}</small>
+                </div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div>
                 <div class="modal-body">
                     @error('file')<div class="alert alert-danger">{{ $message }}</div>@enderror
-                    <label for="unit-import-file" class="form-label">File Excel atau CSV</label>
+                    <label for="unit-import-file" class="form-label">{{ __('ui.common.file_excel_csv') }}</label>
                     <input type="file" id="unit-import-file" name="file" class="form-control" accept=".xlsx,.xls,.csv" required>
-                    <div class="form-text">Format XLSX, XLS, atau CSV. Maksimal 10 MB. Kode satuan harus unik.</div>
+                    <div class="form-text">{{ __('ui.master.import_file_help', ['name' => __('ui.master.unit')]) }}</div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary"><i data-feather="upload" class="icon-sm me-1"></i> Import Satuan</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('ui.common.cancel') }}</button>
+                    <button type="submit" class="btn btn-primary"><i data-feather="upload" class="icon-sm me-1"></i>{{ __('ui.common.import') }}</button>
                 </div>
             </form>
         </div></div>
@@ -127,7 +126,7 @@
                 <div class="modal-header">
 
                     <h5 class="modal-title" id="unitModalTitle">
-                        Tambah Satuan
+                        {{ __('ui.master.add_unit') }}
                     </h5>
 
                     <button type="button" class="btn-close" data-bs-dismiss="modal">
@@ -145,9 +144,7 @@
 
                             <div class="col-md-6 mb-3">
 
-                                <label class="form-label">
-                                    Kode
-                                    <span class="text-danger">*</span>
+                                <label class="form-label">{{ __('ui.common.code') }}<span class="text-danger">*</span>
                                 </label>
 
                                 <input type="text" class="form-control" id="unit-code" name="code" required>
@@ -157,9 +154,7 @@
 
                             <div class="col-md-6 mb-3">
 
-                                <label class="form-label">
-                                    Nama
-                                    <span class="text-danger">*</span>
+                                <label class="form-label">{{ __('ui.common.name') }}<span class="text-danger">*</span>
                                 </label>
 
                                 <input type="text" class="form-control" id="unit-name" name="name" required>
@@ -170,7 +165,7 @@
                             <div class="col-md-6 mb-3">
 
                                 <label class="form-label">
-                                    Simbol
+                                    {{ __('ui.master.symbol') }}
                                 </label>
 
                                 <input type="text" class="form-control" id="unit-symbol" name="symbol"
@@ -181,9 +176,7 @@
 
                             <div class="col-md-6 mb-3">
 
-                                <label class="form-label">
-                                    Status
-                                </label>
+                                <label class="form-label">{{ __('ui.common.status') }}</label>
 
                                 <div class="form-check form-switch mt-2">
 
@@ -191,7 +184,7 @@
                                         value="1" checked>
 
                                     <label class="form-check-label" for="unit-active">
-                                        Active
+                                        {{ __('ui.master.status_active') }}
                                     </label>
 
                                 </div>
@@ -202,7 +195,7 @@
                             <div class="col-12 mb-3">
 
                                 <label class="form-label">
-                                    Deskripsi
+                                    {{ __('ui.master.description') }}
                                 </label>
 
                                 <textarea class="form-control" id="unit-description" name="description" rows="3"></textarea>
@@ -216,13 +209,9 @@
 
                     <div class="modal-footer">
 
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                            Batal
-                        </button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('ui.common.cancel') }}</button>
 
-                        <button type="submit" class="btn btn-primary" id="btn-save-unit">
-                            Simpan
-                        </button>
+                        <button type="submit" class="btn btn-primary" id="btn-save-unit">{{ __('ui.common.save') }}</button>
 
                     </div>
 
@@ -331,17 +320,17 @@
 
                         render: function(data) {
 
-                            if (data === 'Active') {
+                            if (data === @json(__('ui.master.status_active'))) {
                                 return `
                             <span class="badge bg-success">
-                                Active
+                                {{ __('ui.master.status_active') }}
                             </span>
                         `;
                             }
 
                             return `
                         <span class="badge bg-secondary">
-                            Not Active
+                            {{ __('ui.master.status_inactive') }}
                         </span>
                     `;
                         }
@@ -388,7 +377,7 @@
                     .prop('checked', true);
 
                 $('#unitModalTitle')
-                    .text('Tambah Satuan');
+                    .text('{{ __('ui.master.add_unit') }}');
 
                 $form
                     .data('mode', 'create')
@@ -441,7 +430,7 @@
                         );
 
                     $('#unitModalTitle')
-                        .text('Edit Satuan');
+                        .text('{{ __('ui.common.edit') }} {{ __('ui.common.unit') }}');
 
                     $('#unit-form')
                         .data('mode', 'edit')
@@ -498,7 +487,7 @@
 
                     $button
                         .prop('disabled', true)
-                        .text('Menyimpan...');
+                        .text('{{ __('ui.workflow.saving') }}');
 
 
                     $.ajax({
@@ -521,9 +510,9 @@
 
                             Swal.fire({
                                 icon: 'success',
-                                title: 'Berhasil',
+                                title: '{{ __('ui.master.success') }}',
                                 text: response.message ||
-                                    'Data berhasil disimpan.',
+                                    '{{ __('ui.master.created', ['type' => __('ui.common.unit')]) }}',
                                 timer: 1500,
                                 showConfirmButton: false
                             });
@@ -533,7 +522,7 @@
                         error: function(xhr) {
 
                             let message =
-                                'Terjadi kesalahan.';
+                                '{{ __('ui.master.failure') }}';
 
                             if (
                                 xhr.responseJSON &&
@@ -560,7 +549,7 @@
 
                             Swal.fire({
                                 icon: 'error',
-                                title: 'Gagal',
+                                title: '{{ __('ui.master.failure') }}',
                                 html: message
                             });
 
@@ -570,7 +559,7 @@
 
                             $button
                                 .prop('disabled', false)
-                                .text('Simpan');
+                                .text('{{ __('ui.common.save') }}');
 
                         }
 
@@ -598,22 +587,22 @@
 
                     const confirmText =
                         $button.data('confirm') ||
-                        'Apakah Anda yakin ingin menghapus data ini?';
+                        '{{ __('ui.master.record_delete_confirmation') }}';
 
 
                     Swal.fire({
 
                         icon: 'warning',
 
-                        title: 'Konfirmasi',
+                        title: '{{ __('ui.master.confirmation') }}',
 
                         text: confirmText,
 
                         showCancelButton: true,
 
-                        confirmButtonText: 'Ya, Hapus',
+                        confirmButtonText: '{{ __('ui.master.confirm_delete') }}',
 
-                        cancelButtonText: 'Batal',
+                        cancelButtonText: '{{ __('ui.common.cancel') }}',
 
                         reverseButtons: true
 
@@ -643,9 +632,9 @@
 
                                 Swal.fire({
                                     icon: 'success',
-                                    title: 'Berhasil',
+                                    title: '{{ __('ui.master.success') }}',
                                     text: response.message ||
-                                        'Data berhasil dihapus.',
+                                        '{{ __('ui.master.record_deleted') }}',
                                     timer: 1500,
                                     showConfirmButton: false
                                 });
@@ -655,7 +644,7 @@
                             error: function(xhr) {
 
                                 let message =
-                                    'Data gagal dihapus.';
+                                    '{{ __('ui.master.record_delete_failed') }}';
 
                                 if (
                                     xhr.responseJSON &&
@@ -667,7 +656,7 @@
 
                                 Swal.fire({
                                     icon: 'error',
-                                    title: 'Tidak dapat menghapus',
+                                    title: '{{ __('ui.master.cannot_delete') }}',
                                     text: message
                                 });
 

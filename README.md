@@ -1,57 +1,36 @@
-# ERP POS
+# ERP Garment — IT Inventory
 
-Aplikasi ERP untuk mengelola data operasional, persediaan, pembelian, penjualan, kas/bank, dan akuntansi dalam satu sistem.
+Aplikasi ERP untuk pencatatan persediaan garment, pembelian, bahan, dan operasional perusahaan. Fondasi saat ini mencakup master barang garment, Material Request, Purchase Request, Purchase Order, penerimaan barang, stok, dan akuntansi.
 
 ## Modul
 
-- **Master data:** perusahaan, kategori, satuan, produk, supplier, customer, dan daftar harga.
-- **Pembelian:** permintaan pembelian, purchase order, penerimaan barang, dan retur pembelian.
+- **Master data:** perusahaan, kategori, satuan, bahan, produk garment per model/warna/ukuran, supplier, dan HS Code.
+- **Pembelian:** Material Request, Purchase Request, Purchase Order, penerimaan barang, dan retur pembelian.
 - **Persediaan:** stok, kartu stok, stock opname, serta laporan persediaan.
 - **Penjualan:** quotation, sales order, pengiriman, invoice, customer return, dan piutang.
-- **POS:** sesi kasir, riwayat transaksi, cetak/cetak ulang nota, void dengan refund, pengurangan stok, dan pencatatan biaya pokok.
-- **Laporan:** penjualan invoice dan POS, pembelian, persediaan, kas/bank, serta laba rugi.
+- **Laporan:** pembelian, persediaan, kas/bank, penjualan invoice, serta laba rugi.
 - **Keuangan dan akuntansi:** kas/bank, utang, akun, jurnal, dan laporan laba rugi.
 - **Administrasi:** dashboard, pengaturan, pengguna, role, permission, dan audit log.
 
-## Flow Operasional Pembelian hingga POS
+## Alur Operasional Persediaan
 
-### 1. Siapkan master barang
+### 1. Siapkan master bahan dan barang
 
-Buat produk dan lengkapi nama, kategori, satuan, harga jual, serta harga beli. Pastikan produk aktif dan pengaturan penjualannya sesuai.
+Daftarkan fabric, aksesori, kemasan, WIP, dan barang jadi. Untuk varian pakaian, gunakan SKU terpisah per model, warna, dan ukuran.
 
-### 2. Buat purchase order
+### 2. Ajukan kebutuhan pembelian
 
-Pilih supplier, masukkan produk dan kuantitas yang akan dibeli, lalu simpan PO.
+Ajukan kebutuhan melalui Material Request, lanjutkan ke Purchase Request, lalu buat Purchase Order untuk supplier.
 
 ### 3. Catat penerimaan barang
 
-Dari PO, masukkan kuantitas barang yang benar-benar diterima. Setelah penerimaan dicatat, sistem menambah stok dan memperbarui biaya rata-rata persediaan (`average_unit_cost`).
+Masukkan kuantitas yang benar-benar diterima dari PO. Penerimaan akan menambah stok dan memperbarui biaya persediaan. Pencatatan lot, karton, dan dokumen kepabeanan menjadi tahap pengembangan berikutnya.
 
-### 4. Jual melalui POS
+### 4. Siapkan alur produksi garment
 
-Setelah stok tersedia, lakukan transaksi di POS. Sistem memvalidasi ketersediaan stok dan biaya persediaan, lalu mencatat penjualan, mengurangi stok, dan menghitung biaya pokok penjualan.
+Target alurnya adalah BOM dan order produksi, pemakaian bahan, WIP cutting/sewing/finishing, hasil barang jadi, dan packing per karton. Modul produksi serta pelacakan lot sedang disiapkan.
 
-> Jika POS menampilkan pesan bahwa biaya persediaan belum tersedia, periksa harga beli produk dan pastikan penerimaan barang sudah dicatat. Stok tanpa biaya yang valid tidak dapat digunakan untuk transaksi POS.
-
-### 5. Proses Customer Return
-
-Customer Return dibuat dari Sales Invoice yang sudah diterbitkan. Sistem membatasi kuantitas retur sesuai jumlah yang belum pernah diretur, mengembalikan barang ke stok dengan biaya pokok pengiriman asal, membuat jurnal retur dan pajak, serta mencatat refund keluar dari akun kas/bank yang dipilih.
-
-### 6. Void transaksi POS
-
-Riwayat di halaman kasir menampilkan transaksi milik kasir, termasuk transaksi dari sesi sebelumnya untuk cetak ulang nota. Setelah checkout, nota thermal otomatis dibuka untuk dicetak; popup browser perlu diizinkan. Void memerlukan alasan dan hanya dapat dilakukan oleh kasir pemilik transaksi selama sesi masih terbuka. Setelah sesi ditutup, transaksi tidak dapat di-void. Sistem tidak menghapus struk: status, pelaku, waktu, dan alasan void disimpan; stok serta biaya pokok dipulihkan; refund keluar dicatat ke akun pembayaran asal; dan jurnal penjualan dibalik. Transaksi void tetap terlihat di laporan, tetapi tidak masuk total penjualan.
-
-```text
-Master Barang
-    ↓
-Purchase Order
-    ↓
-Penerimaan Barang
-    ↓
-Stok dan biaya persediaan tersedia
-    ↓
-Penjualan melalui POS
-```
+Sistem ini belum menyatakan kepatuhan atau persetujuan Bea Cukai. Format laporan dan akses IT Inventory perlu disesuaikan dengan fasilitas kepabeanan serta kantor pengawas perusahaan.
 
 ## Teknologi
 
@@ -94,19 +73,28 @@ Penjualan melalui POS
 
    Untuk MySQL, atur `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, dan `DB_PASSWORD` sesuai database lokal.
 
-4. Jalankan migrasi dan siapkan data pengguna serta permission:
+4. Jalankan migrasi:
 
    ```bash
    php artisan migrate
-   php artisan db:seed --class=UsersAndPermissionsSeeder
-   php artisan db:seed --class=DocumentNumberingSeeder
-   php artisan db:seed --class=CustomerReturnsAccessSeeder
-   php artisan db:seed --class=PosVoidAccessSeeder
    ```
 
-   Seeder data awal lain tersedia di `database/seeders`; jalankan seeder yang dibutuhkan sesuai lingkungan.
+   Email dan password super admin bisa diatur di `.env`:
 
-   Untuk database yang sudah berjalan, `CustomerReturnsAccessSeeder` dan `PosVoidAccessSeeder` menambahkan permission modul tanpa mengubah akun atau password yang sudah ada.
+   ```dotenv
+   SEED_ADMIN_EMAIL=
+   SEED_ADMIN_PASSWORD=
+   ```
+
+   Jika email dibiarkan kosong, seeder memakai `superadmin@localhost.test`. Jika password dibiarkan kosong, seeder membuat password acak dan menampilkannya satu kali. Seeder tidak mengganti password jika akun tersebut sudah ada. Jalankan seeder setup user dan permission:
+
+   ```bash
+   php artisan db:seed --class=UsersAndPermissionsSeeder
+   ```
+
+   Seeder data awal ERP lainnya dijalankan sesuai kebutuhan lingkungan.
+
+   Seeder tidak mengubah password akun yang sudah ada. Seeder dasar hanya menyiapkan role, permission, perusahaan, master kategori/satuan/supplier, penomoran dokumen, akun, dan kas/bank.
 
 5. Jalankan aplikasi dan Vite di terminal terpisah:
 
@@ -136,7 +124,7 @@ php artisan test
 
 ## Struktur Direktori
 
-- `app/Domain/` — logika domain untuk pembelian, persediaan, POS, penjualan, akuntansi, dan modul lainnya.
+- `app/Domain/` — logika domain untuk perusahaan, pembelian, persediaan, penjualan, akuntansi, dan modul lainnya.
 - `app/Http/Controllers/` — controller aplikasi.
 - `database/migrations/` — skema database.
 - `database/seeders/` — data awal.

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
 
@@ -369,6 +369,28 @@
     <script src="{{ asset('vendor/nobleui/assets/vendors/datatables.net/jquery.dataTables.js') }}"></script>
 
     <script src="{{ asset('vendor/nobleui/assets/vendors/datatables.net-bs5/dataTables.bootstrap5.js') }}"></script>
+
+    <script>
+        if (window.jQuery && $.fn.dataTable) {
+            $.extend(true, $.fn.dataTable.defaults, {
+                language: {
+                    processing: @json(__('ui.common.data_processing')),
+                    search: @json(__('ui.common.search') . ':'),
+                    lengthMenu: @json(__('ui.common.show_entries')),
+                    info: @json(__('ui.common.showing_entries')),
+                    infoEmpty: @json(__('ui.common.no_data')),
+                    zeroRecords: @json(__('ui.common.no_matching_data')),
+                    emptyTable: @json(__('ui.common.empty_table')),
+                    paginate: {
+                        first: @json(__('ui.common.first')),
+                        last: @json(__('ui.common.last')),
+                        next: '›',
+                        previous: '‹'
+                    }
+                }
+            });
+        }
+    </script>
 
 
     {{-- SweetAlert --}}

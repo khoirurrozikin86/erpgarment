@@ -13,9 +13,7 @@
             </div>
 
             <a href="{{ route('super.audit-logs.index') }}" class="btn btn-secondary">
-                <i class="fas fa-arrow-left me-1"></i>
-                Kembali
-            </a>
+                <i class="fas fa-arrow-left me-1"></i>{{ __('ui.common.back') }}</a>
         </div>
 
         {{-- Audit Information --}}
@@ -54,7 +52,7 @@
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Action</label>
+                        <label class="form-label fw-bold">{{ __('ui.common.action') }}</label>
                         <div>
                             <span class="badge bg-info text-dark">
                                 {{ $auditLog->action }}

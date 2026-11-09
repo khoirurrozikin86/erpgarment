@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
-@section('title', 'Buat Purchase Order')
+@section('title', __('ui.workflow.create_purchase_order'))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb"><ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="#">Purchasing</a></li>
-        <li class="breadcrumb-item"><a href="{{ route('super.purchase-orders.index') }}">Purchase Order</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Buat</li>
+        <li class="breadcrumb-item"><a href="#">{{ __('ui.common.purchasing') }}</a></li>
+        <li class="breadcrumb-item"><a href="{{ route('super.purchase-orders.index') }}">{{ __('ui.common.purchase_order') }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ __('ui.common.create') }}</li>
     </ol></nav>
 @endsection
 
@@ -14,57 +14,57 @@
     <div class="row">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <h4 class="page-title mb-1">Buat Purchase Order</h4>
-                <span class="text-muted">PO dibuat dari Purchase Request yang sudah disetujui.</span>
+                <h4 class="page-title mb-1">{{ __('ui.common.create_purchase_order') }}</h4>
+                <span class="text-muted">{{ __('ui.workflow.po_subtitle') }}</span>
             </div>
-            <a href="{{ route('super.purchase-orders.index') }}" class="btn btn-outline-secondary btn-sm"><i data-feather="arrow-left" class="icon-sm me-1"></i> Kembali</a>
+            <a href="{{ route('super.purchase-orders.index') }}" class="btn btn-outline-secondary btn-sm"><i data-feather="arrow-left" class="icon-sm me-1"></i>{{ __('ui.common.back') }}</a>
         </div>
 
         <div class="col-12 col-xxl-10">
             <div class="card">
-                <div class="card-header"><h6 class="card-title mb-0">Detail Pesanan</h6></div>
+                <div class="card-header"><h6 class="card-title mb-0">{{ __('ui.workflow.order_details') }}</h6></div>
                 <form id="purchaseOrderForm">
                     @csrf
                     <div class="card-body">
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Purchase Request <span class="text-danger">*</span></label>
+                                <label class="form-label">{{ __('ui.common.purchase_request') }}<span class="text-danger">*</span></label>
                                 <div class="input-group">
                                     <input type="hidden" id="po_purchase_request_id" name="purchase_request_id" value="{{ $initialPurchaseRequest?->id }}">
-                                    <input type="text" class="form-control" id="po_purchase_request_number" placeholder="Pilih Purchase Request" value="{{ $initialPurchaseRequest?->number }}" readonly required>
-                                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#purchaseRequestPicker"><i data-feather="search" class="icon-sm me-1"></i> Cari PR</button>
+                                    <input type="text" class="form-control" id="po_purchase_request_number" placeholder="{{ __('ui.common.choose_purchase_request') }}" value="{{ $initialPurchaseRequest?->number }}" readonly required>
+                                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#purchaseRequestPicker"><i data-feather="search" class="icon-sm me-1"></i>{{ __('ui.workflow.search_pr') }}</button>
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Supplier</label>
-                                <input type="text" class="form-control" id="po_supplier" value="" readonly placeholder="Terisi dari Purchase Request">
+                                <label class="form-label">{{ __('ui.common.supplier') }}</label>
+                                <input type="text" class="form-control" id="po_supplier" value="" readonly placeholder="{{ __('ui.common.filled_from_request') }}">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="po_expected_delivery" class="form-label">Perkiraan Tanggal Pengiriman</label>
+                                <label for="po_expected_delivery" class="form-label">{{ __('ui.workflow.expected_delivery_date') }}</label>
                                 <input type="date" class="form-control" id="po_expected_delivery" name="expected_delivery_at" min="{{ now()->toDateString() }}">
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label for="po_payment_terms" class="form-label">Syarat Pembayaran</label>
-                                <input type="text" class="form-control" id="po_payment_terms" name="payment_terms" maxlength="2000" placeholder="Contoh: Net 30 hari / COD">
+                                <label for="po_payment_terms" class="form-label">{{ __('ui.common.payment_terms') }}</label>
+                                <input type="text" class="form-control" id="po_payment_terms" name="payment_terms" maxlength="2000" placeholder="{{ __('ui.workflow.payment_example') }}">
                             </div>
                         </div>
 
-                        <div class="alert alert-info py-2">Barang, jumlah, dan harga disalin dari PR yang disetujui agar nilai PO tetap sesuai approval.</div>
+                        <div class="alert alert-info py-2">{{ __('ui.workflow.po_source_guidance') }}</div>
                         <div class="table-responsive mb-3">
                             <table class="table table-sm table-bordered align-middle">
-                                <thead><tr><th>Barang</th><th class="text-end">Jumlah</th><th class="text-end">Harga Satuan</th><th class="text-end">Subtotal</th></tr></thead>
-                                <tbody id="purchase-order-items"><tr><td colspan="4" class="text-center text-muted py-4">Pilih Purchase Request untuk memuat rincian barang.</td></tr></tbody>
-                                <tfoot><tr><th colspan="3" class="text-end">Total Pesanan</th><th class="text-end" id="purchase-order-total">Rp 0</th></tr></tfoot>
+                                <thead><tr><th>{{ __('ui.common.item') }}</th><th class="text-end">{{ __('ui.common.quantity') }}</th><th class="text-end">{{ __('ui.common.unit_price') }}</th><th class="text-end">{{ __('ui.common.subtotal') }}</th></tr></thead>
+                                <tbody id="purchase-order-items"><tr><td colspan="4" class="text-center text-muted py-4">{{ __('ui.workflow.load_pr_items_prompt') }}</td></tr></tbody>
+                                <tfoot><tr><th colspan="3" class="text-end">{{ __('ui.common.order_total') }}</th><th class="text-end" id="purchase-order-total">Rp 0</th></tr></tfoot>
                             </table>
                         </div>
                         <div class="mb-0">
-                            <label for="po_notes" class="form-label">Catatan</label>
-                            <textarea class="form-control" id="po_notes" name="notes" rows="3" maxlength="5000" placeholder="Catatan untuk supplier atau internal"></textarea>
+                            <label for="po_notes" class="form-label">{{ __('ui.common.notes') }}</label>
+                            <textarea class="form-control" id="po_notes" name="notes" rows="3" maxlength="5000" placeholder="{{ __('ui.common.notes_for_supplier') }}"></textarea>
                         </div>
                     </div>
                     <div class="card-footer d-flex justify-content-between">
-                        <a href="{{ route('super.purchase-orders.index') }}" class="btn btn-outline-secondary btn-sm">Batal</a>
-                        <button type="submit" class="btn btn-primary btn-sm" id="submitPurchaseOrder" disabled><i data-feather="save" class="icon-sm me-1"></i> Simpan sebagai Draft</button>
+                        <a href="{{ route('super.purchase-orders.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('ui.common.cancel') }}</a>
+                        <button type="submit" class="btn btn-primary btn-sm" id="submitPurchaseOrder" disabled><i data-feather="save" class="icon-sm me-1"></i>{{ __('ui.workflow.save_as_draft') }}</button>
                     </div>
                 </form>
             </div>
@@ -74,15 +74,15 @@
     <div class="modal fade" id="purchaseRequestPicker" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content">
             <div class="modal-header">
-                <div><h5 class="modal-title">Pilih Purchase Request</h5><small class="text-muted">Hanya PR yang disetujui dan belum memiliki PO.</small></div>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                <div><h5 class="modal-title">{{ __('ui.common.choose_purchase_request') }}</h5><small class="text-muted">{{ __('ui.workflow.approved_pr_without_po') }}</small></div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button>
             </div>
             <div class="modal-body"><div class="table-responsive">
                 <table id="eligible-purchase-requests" class="table table-bordered table-hover align-middle w-100">
-                    <thead><tr><th>Nomor PR</th><th>Supplier</th><th>Pemohon</th><th>Jumlah Baris</th><th>Total</th><th width="90">Action</th></tr></thead>
+                    <thead><tr><th>{{ __('ui.common.pr_number') }}</th><th>{{ __('ui.common.supplier') }}</th><th>{{ __('ui.common.requester') }}</th><th>{{ __('ui.common.row_count') }}</th><th>{{ __('ui.common.total') }}</th><th width="90">{{ __('ui.common.action') }}</th></tr></thead>
                 </table>
             </div></div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button></div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ __('ui.common.close') }}</button></div>
         </div></div>
     </div>
 @endsection
@@ -112,7 +112,7 @@
                 $('#po_purchase_request_id').val(id);
                 $('#po_purchase_request_number').val(number);
                 $('#submitPurchaseOrder').prop('disabled', true);
-                $('#purchase-order-items').html('<tr><td colspan="4" class="text-center text-muted">Memuat rincian PR...</td></tr>');
+                $('#purchase-order-items').html('<tr><td colspan="4" class="text-center text-muted">{{ __('ui.workflow.loading_pr_details') }}</td></tr>');
                 const sourceUrl = @json(route('super.purchase-orders.source', ['purchaseRequestId' => '__ID__']));
                 $.get(sourceUrl.replace('__ID__', encodeURIComponent(id)))
                     .done(function(source) {
@@ -131,8 +131,8 @@
                     })
                     .fail(xhr => {
                         $('#po_supplier').val('');
-                        $('#purchase-order-items').html('<tr><td colspan="4" class="text-center text-danger">Purchase Request tidak tersedia.</td></tr>');
-                        Swal.fire({ icon: 'error', title: 'Gagal', text: xhr.responseJSON?.message || 'Purchase Request tidak lagi dapat dibuatkan PO.' });
+                        $('#purchase-order-items').html('<tr><td colspan="4" class="text-center text-danger">{{ __('ui.workflow.pr_unavailable') }}</td></tr>');
+                        Swal.fire({ icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: xhr.responseJSON?.message || '{{ __('ui.workflow.pr_cannot_make_po') }}' });
                     });
             }
 
@@ -145,22 +145,22 @@
                 e.preventDefault();
                 if (!$('#po_purchase_request_id').val()) return;
                 const button = $('#submitPurchaseOrder');
-                button.prop('disabled', true).text('Menyimpan...');
+                button.prop('disabled', true).text('{{ __('ui.workflow.saving') }}');
                 $.ajax({
                     url: @json(route('super.purchase-orders.store')),
                     method: 'POST',
                     data: $(this).serialize(),
-                    success: response => Swal.fire({ icon: 'success', title: 'Berhasil', text: response.message }).then(() => {
+                    success: response => Swal.fire({ icon: 'success', title: '{{ __('ui.workflow.success') }}', text: response.message }).then(() => {
                         window.location.href = @json(route('super.purchase-orders.index'));
                     }),
                     error: function(xhr) {
                         const errors = xhr.responseJSON?.errors;
-                        const message = errors ? Object.values(errors).flat().join('\n') : (xhr.responseJSON?.message || 'Purchase Order gagal disimpan.');
-                        Swal.fire({ icon: 'error', title: 'Gagal', text: message });
+                        const message = errors ? Object.values(errors).flat().join('\n') : (xhr.responseJSON?.message || '{{ __('ui.workflow.po_save_failed') }}');
+                        Swal.fire({ icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: message });
                     },
                     complete: function() {
                         button.prop('disabled', !$('#po_purchase_request_id').val())
-                            .html('<i data-feather="save" class="icon-sm me-1"></i> Simpan sebagai Draft');
+                            .html('<i data-feather="save" class="icon-sm me-1"></i> ' + @json(__('ui.workflow.save_as_draft')));
                         if (window.feather) feather.replace();
                     }
                 });

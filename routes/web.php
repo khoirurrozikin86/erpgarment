@@ -5,6 +5,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\Super\{RoleController, PermissionController, UserManageController};
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\LocaleController;
 
 
 use App\Http\Controllers\Public\{HomeController, PageController, ContactController};
@@ -13,6 +14,8 @@ use App\Http\Controllers\Public\{HomeController, PageController, ContactControll
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::post('/locale', [LocaleController::class, 'update'])->name('locale.update');
 
 
 

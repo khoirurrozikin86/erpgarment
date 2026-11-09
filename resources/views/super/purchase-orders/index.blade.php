@@ -1,20 +1,20 @@
 @extends('layouts.admin')
 
-@section('title', 'Purchase Order')
+@section('title', __('ui.common.purchase_order'))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb"><ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="#">Purchasing</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Purchase Order</li>
+        <li class="breadcrumb-item"><a href="#">{{ __('ui.common.purchasing') }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ __('ui.common.purchase_order') }}</li>
     </ol></nav>
 @endsection
 
 @section('content')
     <div class="row">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <div><h4 class="page-title mb-1">Purchase Order</h4><span class="text-muted">Buat dan terbitkan pesanan supplier dari PR yang sudah disetujui.</span></div>
+            <div><h4 class="page-title mb-1">{{ __('ui.common.purchase_order') }}</h4><span class="text-muted">{{ __('ui.workflow.po_list_subtitle') }}</span></div>
             @can('purchase-orders.create')
-                <a href="{{ route('super.purchase-orders.create') }}" class="btn btn-primary btn-sm"><i data-feather="plus" class="icon-sm me-1"></i> Buat Purchase Order</a>
+                <a href="{{ route('super.purchase-orders.create') }}" class="btn btn-primary btn-sm"><i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.common.create_purchase_order') }}</a>
             @endcan
         </div>
 
@@ -23,8 +23,8 @@
             <div class="card"><div class="card-body"><div class="table-responsive">
             <table id="purchase-orders-table" class="table table-bordered table-hover align-middle w-100">
                 <thead><tr>
-                    <th width="50">No</th><th>Nomor PO</th><th>Nomor PR</th><th>Supplier</th>
-                    <th>Tanggal PO</th><th>Perkiraan Tiba</th><th>Total</th><th>Status</th><th width="170">Action</th>
+                    <th width="50">{{ __('ui.common.no') }}</th><th>{{ __('ui.common.po_number') }}</th><th>{{ __('ui.common.pr_number') }}</th><th>{{ __('ui.common.supplier') }}</th>
+                    <th>{{ __('ui.common.po_date') }}</th><th>{{ __('ui.common.expected_arrival') }}</th><th>{{ __('ui.common.total') }}</th><th>{{ __('ui.common.status') }}</th><th width="170">{{ __('ui.common.action') }}</th>
                 </tr></thead>
             </table>
             </div></div></div>
@@ -33,22 +33,22 @@
 
     <div class="modal fade" id="viewPurchaseOrderModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title" id="viewPurchaseOrderTitle">Detail Purchase Order</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+            <div class="modal-header"><h5 class="modal-title" id="viewPurchaseOrderTitle">{{ __('ui.workflow.po_detail') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div>
             <div class="modal-body" id="viewPurchaseOrderBody"></div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button></div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ __('ui.common.close') }}</button></div>
         </div></div>
     </div>
 
     <div class="modal fade" id="purchaseOrderEmailHistoryModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title" id="purchaseOrderEmailHistoryTitle">Riwayat Email Purchase Order</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+            <div class="modal-header"><h5 class="modal-title" id="purchaseOrderEmailHistoryTitle">{{ __('ui.workflow.po_email_history') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div>
             <div class="modal-body">
                 <div class="table-responsive"><table class="table table-sm table-bordered align-middle">
-                    <thead><tr><th>Tanggal Kirim</th><th>Penerima</th><th>Subjek</th><th>Dikirim Oleh</th></tr></thead>
-                    <tbody id="purchaseOrderEmailHistoryRows"><tr><td colspan="4" class="text-center text-muted">Memuat riwayat...</td></tr></tbody>
+                    <thead><tr><th>{{ __('ui.common.sent_date') }}</th><th>{{ __('ui.common.recipient') }}</th><th>{{ __('ui.common.subject') }}</th><th>{{ __('ui.common.sent_by') }}</th></tr></thead>
+                    <tbody id="purchaseOrderEmailHistoryRows"><tr><td colspan="4" class="text-center text-muted">{{ __('ui.common.loading_history') }}</td></tr></tbody>
                 </table></div>
             </div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button></div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ __('ui.common.close') }}</button></div>
         </div></div>
     </div>
 @endsection
@@ -90,54 +90,54 @@
 
             $(document).on('click', '.btn-view-purchase-order', function() {
                 $.get($(this).data('url')).done(function(order) {
-                    const status = { draft: 'Draft', issued: 'Diterbitkan', partially_received: 'Diterima Sebagian', received: 'Selesai Diterima', cancelled: 'Dibatalkan' }[order.status];
+                    const status = { draft: '{{ __('ui.workflow.draft') }}', issued: '{{ __('ui.workflow.issued') }}', partially_received: '{{ __('ui.workflow.receive_partial') }}', received: '{{ __('ui.workflow.received_complete') }}', cancelled: '{{ __('ui.common.cancelled') }}' }[order.status];
                     const rows = order.items.map(item => `<tr><td>${safe(item.code)} — ${safe(item.product)}</td><td class="text-end">${item.quantity} ${safe(item.unit)}</td><td class="text-end">${money(item.unit_price)}</td><td class="text-end">${money(item.line_total)}</td></tr>`).join('');
                     $('#viewPurchaseOrderTitle').text(`Purchase Order ${order.number}`);
                     $('#viewPurchaseOrderBody').html(`
-                        <dl class="row mb-3"><dt class="col-sm-3">Purchase Request</dt><dd class="col-sm-9">${safe(order.purchase_request_number)}</dd>
-                        <dt class="col-sm-3">Supplier</dt><dd class="col-sm-9">${safe(order.supplier)}</dd>
-                        <dt class="col-sm-3">Dibuat Oleh</dt><dd class="col-sm-9">${safe(order.creator)}</dd>
-                        <dt class="col-sm-3">Tanggal PO</dt><dd class="col-sm-9">${safe(order.order_date)}</dd>
-                        <dt class="col-sm-3">Perkiraan Tiba</dt><dd class="col-sm-9">${safe(order.expected_delivery_at)}</dd>
-                        <dt class="col-sm-3">Status</dt><dd class="col-sm-9">${status}</dd>
-                        <dt class="col-sm-3">Diterbitkan</dt><dd class="col-sm-9">${safe(order.issued_at)}</dd>
-                        <dt class="col-sm-3">Syarat Pembayaran</dt><dd class="col-sm-9">${safe(order.payment_terms)}</dd>
-                        <dt class="col-sm-3">Catatan</dt><dd class="col-sm-9 text-break">${safe(order.notes)}</dd></dl>
-                        <div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>Barang</th><th class="text-end">Jumlah</th><th class="text-end">Harga Satuan</th><th class="text-end">Subtotal</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><th colspan="3" class="text-end">Total PO</th><th class="text-end">${money(order.total_amount)}</th></tr></tfoot></table></div>`);
+                        <dl class="row mb-3"><dt class="col-sm-3">{{ __('ui.common.purchase_request') }}</dt><dd class="col-sm-9">${safe(order.purchase_request_number)}</dd>
+                        <dt class="col-sm-3">{{ __('ui.common.supplier') }}</dt><dd class="col-sm-9">${safe(order.supplier)}</dd>
+                        <dt class="col-sm-3">{{ __('ui.common.created_by') }}</dt><dd class="col-sm-9">${safe(order.creator)}</dd>
+                        <dt class="col-sm-3">{{ __('ui.common.po_date') }}</dt><dd class="col-sm-9">${safe(order.order_date)}</dd>
+                        <dt class="col-sm-3">{{ __('ui.common.expected_arrival') }}</dt><dd class="col-sm-9">${safe(order.expected_delivery_at)}</dd>
+                        <dt class="col-sm-3">{{ __('ui.common.status') }}</dt><dd class="col-sm-9">${status}</dd>
+                        <dt class="col-sm-3">{{ __('ui.common.issued') }}</dt><dd class="col-sm-9">${safe(order.issued_at)}</dd>
+                        <dt class="col-sm-3">{{ __('ui.common.payment_terms') }}</dt><dd class="col-sm-9">${safe(order.payment_terms)}</dd>
+                        <dt class="col-sm-3">{{ __('ui.common.notes') }}</dt><dd class="col-sm-9 text-break">${safe(order.notes)}</dd></dl>
+                        <div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>{{ __('ui.common.item') }}</th><th class="text-end">{{ __('ui.common.quantity') }}</th><th class="text-end">{{ __('ui.common.unit_price') }}</th><th class="text-end">{{ __('ui.common.subtotal') }}</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><th colspan="3" class="text-end">{{ __('ui.workflow.po_total') }}</th><th class="text-end">${money(order.total_amount)}</th></tr></tfoot></table></div>`);
                     modal.show();
-                }).fail(() => Swal.fire({ icon: 'error', title: 'Gagal', text: 'Detail Purchase Order tidak dapat dimuat.' }));
+                }).fail(() => Swal.fire({ icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: '{{ __('ui.workflow.po_detail_load_failed') }}' }));
             });
 
             $(document).on('click', '.btn-email-history', function() {
                 const button = $(this);
-                $('#purchaseOrderEmailHistoryRows').html('<tr><td colspan="4" class="text-center text-muted">Memuat riwayat...</td></tr>');
+                $('#purchaseOrderEmailHistoryRows').html('<tr><td colspan="4" class="text-center text-muted">{{ __('ui.common.loading_history') }}</td></tr>');
                 emailHistoryModal.show();
                 $.get(button.data('url')).done(function(response) {
                     $('#purchaseOrderEmailHistoryTitle').text(`Riwayat Email ${response.number}`);
                     if (!response.emails.length) {
-                        $('#purchaseOrderEmailHistoryRows').html('<tr><td colspan="4" class="text-center text-muted">Belum ada email yang berhasil dikirim.</td></tr>');
+                        $('#purchaseOrderEmailHistoryRows').html('<tr><td colspan="4" class="text-center text-muted">{{ __('ui.common.empty_history') }}</td></tr>');
                         return;
                     }
                     const rows = response.emails.map(item => `<tr><td>${safe(item.sent_at)}</td><td>${safe(item.recipient)}</td><td>${safe(item.subject)}</td><td>${safe(item.sender)}</td></tr>`).join('');
                     $('#purchaseOrderEmailHistoryRows').html(rows);
                 }).fail(() => {
-                    $('#purchaseOrderEmailHistoryRows').html('<tr><td colspan="4" class="text-center text-danger">Riwayat email gagal dimuat.</td></tr>');
+                    $('#purchaseOrderEmailHistoryRows').html('<tr><td colspan="4" class="text-center text-danger">{{ __('ui.common.history_failed') }}</td></tr>');
                 });
             });
 
             $(document).on('click', '.btn-issue-purchase-order', function() {
                 const button = $(this);
                 Swal.fire({
-                    icon: 'question', title: 'Terbitkan Purchase Order?',
-                    text: 'Setelah diterbitkan, dokumen PO siap dikirim ke supplier.',
-                    showCancelButton: true, confirmButtonText: 'Terbitkan', cancelButtonText: 'Batal'
+                    icon: 'question', title: '{{ __('ui.workflow.issue_po_prompt') }}',
+                    text: '{{ __('ui.workflow.po_issued_confirmation') }}',
+                    showCancelButton: true, confirmButtonText: '{{ __('ui.workflow.issue_po') }}', cancelButtonText: '{{ __('ui.common.cancel') }}'
                 }).then(result => {
                     if (!result.isConfirmed) return;
                     $.ajax({
                         url: button.data('url'), method: 'POST',
                         data: { _token: @json(csrf_token()), _method: 'PUT' },
-                        success: response => { Swal.fire({ icon: 'success', title: 'Berhasil', text: response.message }); table.ajax.reload(null, false); },
-                        error: xhr => Swal.fire({ icon: 'error', title: 'Gagal', text: xhr.responseJSON?.message || 'Purchase Order gagal diterbitkan.' })
+                        success: response => { Swal.fire({ icon: 'success', title: '{{ __('ui.workflow.success') }}', text: response.message }); table.ajax.reload(null, false); },
+                        error: xhr => Swal.fire({ icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: xhr.responseJSON?.message || '{{ __('ui.workflow.po_issue_failed') }}' })
                     });
                 });
             });
@@ -146,27 +146,27 @@
                 const button = $(this);
                 Swal.fire({
                     icon: 'question',
-                    title: 'Kirim Purchase Order?',
-                    text: 'PDF PO akan dikirim sebagai lampiran menggunakan Email Setting perusahaan.',
+                    title: '{{ __('ui.workflow.send_po_prompt') }}',
+                    text: '{{ __('ui.workflow.email_pdf_info') }}',
                     input: 'email',
-                    inputLabel: 'Email supplier',
+                    inputLabel: '{{ __('ui.workflow.supplier_email') }}',
                     inputValue: button.data('email') || '',
                     inputPlaceholder: 'supplier@example.com',
-                    inputValidator: value => !value ? 'Alamat email supplier wajib diisi.' : undefined,
+                    inputValidator: value => !value ? '{{ __('ui.workflow.supplier_email_required') }}' : undefined,
                     showCancelButton: true,
-                    confirmButtonText: 'Kirim Email',
-                    cancelButtonText: 'Batal',
+                    confirmButtonText: '{{ __('ui.workflow.send_email') }}',
+                    cancelButtonText: '{{ __('ui.common.cancel') }}',
                     showLoaderOnConfirm: true,
                     preConfirm: email => $.ajax({
                         url: button.data('url'),
                         method: 'POST',
                         data: { _token: @json(csrf_token()), email }
                     }).catch(xhr => {
-                        Swal.showValidationMessage(xhr.responseJSON?.message || 'Email gagal dikirim.');
+                        Swal.showValidationMessage(xhr.responseJSON?.message || '{{ __('ui.workflow.email_send_failed') }}');
                     })
                 }).then(result => {
                     if (result.isConfirmed && result.value?.message) {
-                        Swal.fire({ icon: 'success', title: 'Berhasil', text: result.value.message });
+                        Swal.fire({ icon: 'success', title: '{{ __('ui.workflow.success') }}', text: result.value.message });
                     }
                 });
             });

@@ -36,22 +36,22 @@
 <body>
     @include('super.documents.partials.company-pdf-header', ['company' => $company, 'companyLogoDataUri' => $companyLogoDataUri])
     <div class="header">
-        <h1>Purchase Order</h1>
+        <h1>{{ __('ui.common.purchase_order') }}</h1>
         <div class="muted">Pesanan pembelian kepada supplier</div>
         <div class="document-no">{{ $purchaseOrder->number }}</div>
     </div>
 
     <table class="meta">
-        <tr><td class="label">Supplier</td><td>{{ $purchaseOrder->supplier?->name ?? 'Supplier dihapus' }}</td><td class="label">Referensi Purchase Request</td><td>{{ $purchaseOrder->purchaseRequest?->number ?? '—' }}</td></tr>
-        <tr><td class="label">Alamat Supplier</td><td>{{ $purchaseOrder->supplier?->address ?: '—' }}</td><td class="label">Tanggal PO</td><td>{{ $purchaseOrder->order_date?->format('d/m/Y') ?? '—' }}</td></tr>
-        <tr><td class="label">Telepon Supplier</td><td>{{ $purchaseOrder->supplier?->phone ?: '—' }}</td><td class="label">Perkiraan Tiba</td><td>{{ $purchaseOrder->expected_delivery_at?->format('d/m/Y') ?? '—' }}</td></tr>
-        <tr><td class="label">Email Supplier</td><td>{{ $purchaseOrder->supplier?->email ?: '—' }}</td><td class="label">Status</td><td>{{ ['draft' => 'Draft', 'issued' => 'Diterbitkan', 'partially_received' => 'Diterima Sebagian', 'received' => 'Selesai Diterima', 'cancelled' => 'Dibatalkan'][$purchaseOrder->status] ?? $purchaseOrder->status }}</td></tr>
-        <tr><td class="label">Syarat Pembayaran</td><td>{{ $purchaseOrder->payment_terms ?: '—' }}</td><td class="label">Tanggal Terbit</td><td>{{ $purchaseOrder->issued_at?->format('d/m/Y H:i') ?? 'Belum diterbitkan' }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.supplier') }}</td><td>{{ $purchaseOrder->supplier?->name ?? 'Supplier dihapus' }}</td><td class="label">Referensi Purchase Request</td><td>{{ $purchaseOrder->purchaseRequest?->number ?? '—' }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.supplier_address') }}</td><td>{{ $purchaseOrder->supplier?->address ?: '—' }}</td><td class="label">{{ __('ui.common.po_date') }}</td><td>{{ $purchaseOrder->order_date?->format('d/m/Y') ?? '—' }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.supplier_phone') }}</td><td>{{ $purchaseOrder->supplier?->phone ?: '—' }}</td><td class="label">{{ __('ui.common.expected_arrival') }}</td><td>{{ $purchaseOrder->expected_delivery_at?->format('d/m/Y') ?? '—' }}</td></tr>
+        <tr><td class="label">{{ __('ui.workflow.supplier_email') }}</td><td>{{ $purchaseOrder->supplier?->email ?: '—' }}</td><td class="label">{{ __('ui.common.status') }}</td><td>{{ ['draft' => __('ui.workflow.draft'), 'issued' => __('ui.workflow.issued'), 'partially_received' => __('ui.workflow.receive_partial'), 'received' => __('ui.workflow.received_complete'), 'cancelled' => __('ui.common.cancelled')][$purchaseOrder->status] ?? $purchaseOrder->status }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.payment_terms') }}</td><td>{{ $purchaseOrder->payment_terms ?: '—' }}</td><td class="label">Tanggal Terbit</td><td>{{ $purchaseOrder->issued_at?->format('d/m/Y H:i') ?? 'Belum diterbitkan' }}</td></tr>
     </table>
 
     <div class="section-title">Rincian Pesanan</div>
     <table class="items">
-        <thead><tr><th class="center" style="width:32px">No</th><th style="width:105px">Kode</th><th>Nama Barang</th><th class="right" style="width:75px">Jumlah</th><th style="width:65px">Satuan</th><th class="right" style="width:105px">Harga Satuan</th><th class="right" style="width:110px">Subtotal</th></tr></thead>
+        <thead><tr><th class="center" style="width:32px">{{ __('ui.common.no') }}</th><th style="width:105px">{{ __('ui.common.code') }}</th><th>{{ __('ui.common.item_name') }}</th><th class="right" style="width:75px">{{ __('ui.common.quantity') }}</th><th style="width:65px">{{ __('ui.common.unit') }}</th><th class="right" style="width:105px">{{ __('ui.common.unit_price') }}</th><th class="right" style="width:110px">{{ __('ui.common.subtotal') }}</th></tr></thead>
         <tbody>
             @forelse ($purchaseOrder->items as $item)
                 <tr>
@@ -64,19 +64,19 @@
                     <td class="right">Rp {{ number_format((float) $item->line_total, 2, ',', '.') }}</td>
                 </tr>
             @empty
-                <tr><td colspan="7" class="center">Tidak ada barang.</td></tr>
+                <tr><td colspan="7" class="center">{{ __('ui.common.no_items') }}</td></tr>
             @endforelse
-            <tr class="total"><td colspan="6" class="right">Total Pesanan</td><td class="right">Rp {{ number_format((float) $purchaseOrder->total_amount, 2, ',', '.') }}</td></tr>
+            <tr class="total"><td colspan="6" class="right">{{ __('ui.common.order_total') }}</td><td class="right">Rp {{ number_format((float) $purchaseOrder->total_amount, 2, ',', '.') }}</td></tr>
         </tbody>
     </table>
 
     @if ($purchaseOrder->notes)
-        <div class="section-title">Catatan</div>
+        <div class="section-title">{{ __('ui.common.notes') }}</div>
         <div class="note">{{ $purchaseOrder->notes }}</div>
     @endif
 
     <table class="signatures">
-        <tr><td>Supplier<div class="sign-line"></div>{{ $purchaseOrder->supplier?->name ?? '—' }}</td><td>Disiapkan Oleh<div class="sign-line"></div>{{ $purchaseOrder->creator?->name ?? '—' }}</td></tr>
+        <tr><td>{{ __('ui.common.supplier') }}<div class="sign-line"></div>{{ $purchaseOrder->supplier?->name ?? '—' }}</td><td>{{ __('ui.common.prepared_by') }}<div class="sign-line"></div>{{ $purchaseOrder->creator?->name ?? '—' }}</td></tr>
     </table>
     <div class="footer">PO {{ $purchaseOrder->number }} · Dicetak pada {{ now()->format('d/m/Y H:i') }}.</div>
 </body>

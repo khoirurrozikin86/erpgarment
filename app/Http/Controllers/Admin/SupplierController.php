@@ -29,8 +29,8 @@ class SupplierController extends Controller
 
             ->addColumn('status', function (Supplier $supplier) {
                 return $supplier->is_active
-                    ? 'Active'
-                    : 'Not Active';
+                    ? __('ui.master.status_active')
+                    : __('ui.master.status_inactive');
             })
 
             ->addColumn('actions', function (Supplier $supplier) {
@@ -38,7 +38,7 @@ class SupplierController extends Controller
                 $actions = [
                     [
                         'type' => 'edit',
-                        'label' => 'Edit',
+                        'label' => __('ui.common.edit'),
                         'icon' => 'edit-2',
 
                         'update_url' => route(
@@ -75,10 +75,10 @@ class SupplierController extends Controller
                             'super.suppliers.destroy',
                             $supplier->getRouteKey()
                         ),
-                        'label' => 'Delete',
+                        'label' => __('ui.common.delete'),
                         'icon' => 'trash-2',
                         'confirm' =>
-                        "Hapus supplier {$supplier->name}?",
+                        __('ui.master.delete_confirmation', ['type' => __('ui.common.supplier'), 'name' => $supplier->name]),
                         'disabled' => false,
                     ],
                 ];
@@ -196,6 +196,6 @@ class SupplierController extends Controller
             return back()->withErrors(['file' => 'Import gagal. Pastikan kode supplier tidak duplikat dan format file sesuai template.']);
         }
 
-        return redirect()->route('super.suppliers.index')->with('supplier_import_success', 'Data supplier berhasil diimpor.');
+        return redirect()->route('super.suppliers.index')->with('supplier_import_success', __('ui.master.imported', ['type' => __('ui.common.supplier')]));
     }
 }

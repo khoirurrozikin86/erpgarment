@@ -1,12 +1,12 @@
 @extends('layouts.admin')
 
-@section('title', 'General Setting')
+@section('title', __( 'ui.common.general_settings' ))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Settings</a></li>
-            <li class="breadcrumb-item active" aria-current="page">General Setting</li>
+            <li class="breadcrumb-item"><a href="#">{{ __('ui.common.settings') }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ __('ui.common.general_settings') }}</li>
         </ol>
     </nav>
 @endsection
@@ -15,7 +15,7 @@
     <div class="row">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <h4 class="page-title mb-1">General Setting</h4>
+                <h4 class="page-title mb-1">{{ __('ui.common.general_settings') }}</h4>
                 <span class="text-muted">Atur preferensi umum yang digunakan dalam sistem ERP.</span>
             </div>
         </div>

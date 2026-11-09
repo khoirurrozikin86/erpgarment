@@ -31,21 +31,21 @@
 </head>
 <body>
     @include('super.documents.partials.company-pdf-header', ['company' => $company, 'companyLogoDataUri' => $companyLogoDataUri])
-    <div class="header"><h1>Sales Quotation</h1><div class="muted">Penawaran harga kepada customer</div><div class="number">{{ $quotation->number }}</div></div>
+    <div class="header"><h1>{{ __('ui.common.quotation') }}</h1><div class="muted">Penawaran harga kepada customer</div><div class="number">{{ $quotation->number }}</div></div>
     <table class="meta">
-        <tr><td class="label">Customer</td><td>{{ $quotation->customer?->name ?? 'Customer dihapus' }}</td><td class="label">Tanggal</td><td>{{ $quotation->quote_date?->format('d/m/Y') }}</td></tr>
-        <tr><td class="label">Alamat</td><td>{{ $quotation->customer?->address ?: '—' }}{{ $quotation->customer?->city ? ', '.$quotation->customer->city : '' }}</td><td class="label">Berlaku Sampai</td><td>{{ $quotation->valid_until?->format('d/m/Y') ?? 'Tidak ditentukan' }}</td></tr>
-        <tr><td class="label">Kontak</td><td>{{ $quotation->customer?->contact_person ?: '—' }} · {{ $quotation->customer?->phone ?: '—' }}</td><td class="label">Status</td><td>{{ ['draft' => 'Draft', 'sent' => 'Diterbitkan', 'accepted' => 'Disetujui', 'rejected' => 'Ditolak'][$quotation->status] ?? $quotation->status }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.customer') }}</td><td>{{ $quotation->customer?->name ?? 'Customer dihapus' }}</td><td class="label">{{ __('ui.common.date') }}</td><td>{{ $quotation->quote_date?->format('d/m/Y') }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.address') }}</td><td>{{ $quotation->customer?->address ?: '—' }}{{ $quotation->customer?->city ? ', '.$quotation->customer->city : '' }}</td><td class="label">{{ __('ui.common.valid_until') }}</td><td>{{ $quotation->valid_until?->format('d/m/Y') ?? 'Tidak ditentukan' }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.contact') }}</td><td>{{ $quotation->customer?->contact_person ?: '—' }} · {{ $quotation->customer?->phone ?: '—' }}</td><td class="label">{{ __('ui.common.status') }}</td><td>{{ ['draft' => 'Draft', 'sent' => '{{ __('ui.common.issued') }}', 'accepted' => 'Disetujui', 'rejected' => 'Ditolak'][$quotation->status] ?? $quotation->status }}</td></tr>
     </table>
-    <table class="items"><thead><tr><th class="center" style="width:28px">No</th><th>Barang</th><th class="right" style="width:58px">Jumlah</th><th class="right" style="width:82px">Harga Satuan</th><th class="right" style="width:74px">Diskon</th><th class="right" style="width:58px">Pajak</th><th class="right" style="width:92px">Total</th></tr></thead><tbody>
+    <table class="items"><thead><tr><th class="center" style="width:28px">{{ __('ui.common.no') }}</th><th>{{ __('ui.common.item') }}</th><th class="right" style="width:58px">{{ __('ui.common.quantity') }}</th><th class="right" style="width:82px">{{ __('ui.common.unit_price') }}</th><th class="right" style="width:74px">{{ __('ui.common.discount') }}</th><th class="right" style="width:58px">{{ __('ui.common.tax') }}</th><th class="right" style="width:92px">{{ __('ui.common.total') }}</th></tr></thead><tbody>
         @forelse($quotation->items as $item)
             <tr><td class="center">{{ $loop->iteration }}</td><td>{{ $item->product?->code ?? '—' }}<br>{{ $item->product?->name ?? 'Barang dihapus' }}</td><td class="right">{{ number_format((float)$item->quantity, 4, ',', '.') }} {{ $item->product?->unit?->symbol ?: $item->product?->unit?->name }}</td><td class="right">Rp {{ number_format((float)$item->unit_price, 2, ',', '.') }}</td><td class="right">Rp {{ number_format((float)$item->discount_amount, 2, ',', '.') }}</td><td class="right">{{ number_format((float)$item->tax_rate, 2, ',', '.') }}%</td><td class="right">Rp {{ number_format((float)$item->line_total, 2, ',', '.') }}</td></tr>
-        @empty<tr><td colspan="7" class="center">Tidak ada barang.</td></tr>@endforelse
-        <tr><th colspan="6" class="right">Subtotal</th><td class="right">Rp {{ number_format((float)$quotation->subtotal, 2, ',', '.') }}</td></tr>
-        <tr><th colspan="6" class="right">Total Pajak</th><td class="right">Rp {{ number_format((float)$quotation->tax_amount, 2, ',', '.') }}</td></tr>
+        @empty<tr><td colspan="7" class="center">{{ __('ui.common.no_items') }}</td></tr>@endforelse
+        <tr><th colspan="6" class="right">{{ __('ui.common.subtotal') }}</th><td class="right">Rp {{ number_format((float)$quotation->subtotal, 2, ',', '.') }}</td></tr>
+        <tr><th colspan="6" class="right">{{ __('ui.common.tax_total') }}</th><td class="right">Rp {{ number_format((float)$quotation->tax_amount, 2, ',', '.') }}</td></tr>
         <tr class="total"><th colspan="6" class="right">Total Penawaran</th><td class="right">Rp {{ number_format((float)$quotation->total_amount, 2, ',', '.') }}</td></tr>
     </tbody></table>
     @if($quotation->notes)<p><strong>Catatan / Syarat:</strong></p><div class="note">{{ $quotation->notes }}</div>@endif
-    <table class="signatures"><tr><td>Customer<div class="sign-line"></div>{{ $quotation->customer?->name ?? '—' }}</td><td>{{ $company?->name ?: 'Perusahaan' }}<div class="sign-line"></div>{{ $quotation->creator?->name ?? '—' }}</td></tr></table>
+    <table class="signatures"><tr><td>{{ __('ui.common.customer') }}<div class="sign-line"></div>{{ $quotation->customer?->name ?? '—' }}</td><td>{{ $company?->name ?: 'Perusahaan' }}<div class="sign-line"></div>{{ $quotation->creator?->name ?? '—' }}</td></tr></table>
     <div class="footer">Quotation {{ $quotation->number }} · Dicetak {{ now()->format('d/m/Y H:i') }}.</div>
 </body></html>

@@ -18,6 +18,8 @@ class SetCompanyContext
         Request $request,
         Closure $next
     ): Response {
+        $this->companyContext->clear();
+
         $company = Company::query()
             ->where('is_active', true)
             ->first();

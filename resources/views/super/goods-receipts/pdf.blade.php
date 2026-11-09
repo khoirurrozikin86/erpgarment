@@ -34,19 +34,19 @@
 <body>
     @include('super.documents.partials.company-pdf-header', ['company' => $company, 'companyLogoDataUri' => $companyLogoDataUri])
     <div class="header">
-        <h1>Penerimaan Barang</h1>
+        <h1>{{ __('ui.common.goods_receipt') }}</h1>
         <div class="muted">Bukti penerimaan barang dari supplier</div>
         <div class="document-no">{{ $receipt->number }}</div>
     </div>
 
     <table class="meta">
-        <tr><td class="label">Nomor Purchase Order</td><td>{{ $receipt->purchaseOrder?->number ?? '—' }}</td><td class="label">Tanggal Penerimaan</td><td>{{ $receipt->received_at?->format('d/m/Y H:i') ?? '—' }}</td></tr>
-        <tr><td class="label">Supplier</td><td>{{ $receipt->supplier?->name ?? 'Supplier dihapus' }}</td><td class="label">Diterima Oleh</td><td>{{ $receipt->receiver?->name ?? 'User dihapus' }}</td></tr>
-        <tr><td class="label">Alamat Supplier</td><td>{{ $receipt->supplier?->address ?: '—' }}</td><td class="label">Telepon Supplier</td><td>{{ $receipt->supplier?->phone ?: '—' }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.purchase_order_number') }}</td><td>{{ $receipt->purchaseOrder?->number ?? '—' }}</td><td class="label">{{ __('ui.common.receipt_date') }}</td><td>{{ $receipt->received_at?->format('d/m/Y H:i') ?? '—' }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.supplier') }}</td><td>{{ $receipt->supplier?->name ?? 'Supplier dihapus' }}</td><td class="label">{{ __('ui.common.received_by') }}</td><td>{{ $receipt->receiver?->name ?? 'User dihapus' }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.supplier_address') }}</td><td>{{ $receipt->supplier?->address ?: '—' }}</td><td class="label">{{ __('ui.common.supplier_phone') }}</td><td>{{ $receipt->supplier?->phone ?: '—' }}</td></tr>
     </table>
 
     <table class="items">
-        <thead><tr><th class="center" style="width:32px">No</th><th style="width:110px">Kode</th><th>Nama Barang</th><th class="right" style="width:100px">Jumlah Diterima</th><th style="width:70px">Satuan</th><th class="right" style="width:110px">Harga Satuan</th><th class="right" style="width:110px">Subtotal</th></tr></thead>
+        <thead><tr><th class="center" style="width:32px">{{ __('ui.common.no') }}</th><th style="width:110px">{{ __('ui.common.code') }}</th><th>{{ __('ui.common.item_name') }}</th><th class="right" style="width:100px">Jumlah Diterima</th><th style="width:70px">{{ __('ui.common.unit') }}</th><th class="right" style="width:110px">{{ __('ui.common.unit_price') }}</th><th class="right" style="width:110px">{{ __('ui.common.subtotal') }}</th></tr></thead>
         <tbody>
             @forelse ($receipt->items as $item)
                 <tr>
@@ -65,13 +65,13 @@
     </table>
 
     @if ($receipt->notes)
-        <p><strong>Catatan</strong></p>
+        <p><strong>{{ __('ui.common.notes') }}</strong></p>
         <div class="note">{{ $receipt->notes }}</div>
     @endif
 
     <table class="signatures"><tr>
-        <td>Supplier<div class="sign-line"></div>{{ $receipt->supplier?->name ?? '—' }}</td>
-        <td>Penerima<div class="sign-line"></div>{{ $receipt->receiver?->name ?? '—' }}</td>
+        <td>{{ __('ui.common.supplier') }}<div class="sign-line"></div>{{ $receipt->supplier?->name ?? '—' }}</td>
+        <td>{{ __('ui.common.recipient') }}<div class="sign-line"></div>{{ $receipt->receiver?->name ?? '—' }}</td>
     </tr></table>
     <div class="footer">GR {{ $receipt->number }} · Dicetak pada {{ now()->format('d/m/Y H:i') }}.</div>
 </body>

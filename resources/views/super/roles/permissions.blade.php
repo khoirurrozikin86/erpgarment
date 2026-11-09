@@ -4,10 +4,10 @@
 @section('breadcrumb')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Access</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('super.roles.index') }}">Roles</a></li>
+            <li class="breadcrumb-item"><a href="#">{{ __('ui.common.access') }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('super.roles.index') }}">{{ __('ui.common.roles') }}</a></li>
             <li class="breadcrumb-item"><a href="{{ route('super.roles.edit', $role) }}">{{ $role->name }}</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Permissions</li>
+            <li class="breadcrumb-item active" aria-current="page">{{ __('ui.common.permissions') }}</li>
         </ol>
     </nav>
 @endsection
@@ -21,7 +21,7 @@
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <h6 class="card-title mb-0">Permissions for: <span class="text-primary">{{ $role->name }}</span>
                         </h6>
-                        <a href="{{ route('super.roles.index') }}" class="btn btn-light btn-sm">Back</a>
+                        <a href="{{ route('super.roles.index') }}" class="btn btn-light btn-sm">{{ __('ui.common.back') }}</a>
                     </div>
 
                     {{-- Alerts --}}
@@ -83,7 +83,7 @@
                         </div>
 
                         <div class="d-flex justify-content-end gap-2 mt-3">
-                            <a href="{{ route('super.roles.index') }}" class="btn btn-outline-secondary btn-sm">Cancel</a>
+                            <a href="{{ route('super.roles.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('ui.common.cancel') }}</a>
                             <button type="submit" class="btn btn-primary btn-sm">Sync</button>
                         </div>
                     </form>

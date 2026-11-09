@@ -17,6 +17,9 @@
         </form> --}}
 
         <ul class="navbar-nav">
+            <li class="nav-item d-flex align-items-center px-2">
+                @include('components.language-switcher')
+            </li>
             {{-- Apps dropdown (static contoh) --}}
             {{-- <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" href="#" id="appsDropdown" role="button"
@@ -47,7 +50,7 @@
                             <a href=""
                                 class="dropdown-item d-flex flex-column align-items-center justify-content-center wd-70 ht-70">
                                 <i data-feather="mail" class="icon-lg mb-1"></i>
-                                <p class="tx-12">Email</p>
+                                <p class="tx-12">{{ __('ui.common.email') }}</p>
                             </a>
                         </div>
                         <div class="col-3 text-center">
@@ -109,7 +112,7 @@
                                 <li class="dropdown-item py-2">
                                     <a href="{{ route('users.switch') }}" class="text-body ms-0">
                                         <i class="me-2 icon-md" data-feather="repeat"></i>
-                                        <span>Switch User</span>
+                                        <span>{{ __('Switch User') }}</span>
                                     </a>
                                 </li>
                             @endcan
@@ -118,7 +121,7 @@
                                     @csrf
                                     <button type="submit" class="btn btn-link text-body ms-0 p-0">
                                         <i class="me-2 icon-md" data-feather="log-out"></i>
-                                        <span>Log Out</span>
+                                        <span>{{ __('ui.common.logout') }}</span>
                                     </button>
                                 </form>
                             </li>
@@ -131,13 +134,13 @@
                 {{-- Jika belum login, tampilkan tombol login/register --}}
                 <li class="nav-item">
                     <a href="{{ route('login') }}" class="nav-link">
-                        <i data-feather="log-in" class="me-1"></i> Login
+                        <i data-feather="log-in" class="me-1"></i> {{ __('ui.common.login') }}
                     </a>
                 </li>
                 @if (Route::has('register'))
                     <li class="nav-item">
                         <a href="{{ route('register') }}" class="nav-link">
-                            <i data-feather="user-plus" class="me-1"></i> Register
+                            <i data-feather="user-plus" class="me-1"></i> {{ __('Register') }}
                         </a>
                     </li>
                 @endif

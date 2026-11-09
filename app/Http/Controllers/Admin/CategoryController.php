@@ -48,13 +48,13 @@ class CategoryController extends Controller
                 ->take(10)
                 ->implode(' | ');
 
-            return back()->withErrors(['file' => $message ?: 'Data kategori pada file tidak valid.']);
+            return back()->withErrors(['file' => $message ?: __('ui.master.invalid_import', ['type' => __('ui.common.category')])]);
         } catch (\Throwable $exception) {
             report($exception);
             return back()->withErrors(['file' => 'Import gagal. Pastikan kode kategori tidak duplikat dan format file sesuai template.']);
         }
 
-        return redirect()->route('super.categories.index')->with('category_import_success', 'Data kategori berhasil diimpor.');
+        return redirect()->route('super.categories.index')->with('category_import_success', __('ui.master.imported', ['type' => __('ui.common.category')]));
     }
 
     public function dt(CategoryTableQuery $q)
@@ -66,8 +66,8 @@ class CategoryController extends Controller
             // =========================
             ->addColumn('status', function (Category $category) {
                 return $category->is_active
-                    ? 'Active'
-                    : 'Not Active';
+                    ? __('ui.master.status_active')
+                    : __('ui.master.status_inactive');
             })
 
             // =========================
@@ -81,7 +81,7 @@ class CategoryController extends Controller
                     [
                         'type' => 'edit',
 
-                        'label' => 'Edit',
+                        'label' => __('ui.common.edit'),
 
                         'icon' => 'edit-2',
 
@@ -108,12 +108,12 @@ class CategoryController extends Controller
                             $category->getRouteKey()
                         ),
 
-                        'label' => 'Delete',
+                        'label' => __('ui.common.delete'),
 
                         'icon' => 'trash-2',
 
                         'confirm' =>
-                        "Hapus kategori {$category->name}?",
+                        __('ui.master.delete_confirmation', ['type' => __('ui.common.category'), 'name' => $category->name]),
 
                         'disabled' => false,
                     ],
@@ -195,7 +195,7 @@ class CategoryController extends Controller
 
             return response()->json([
                 'message' =>
-                'Category cannot be deleted because it is already used by a product.',
+                __('ui.master.in_use_cannot_delete', ['type' => __('ui.common.category')]),
             ], 422);
         }
 

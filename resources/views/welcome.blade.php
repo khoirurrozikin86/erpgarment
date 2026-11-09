@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     <meta charset="UTF-8">
@@ -12,14 +12,14 @@
         |--------------------------------------------------------------------------
         | Nanti nilai ini bisa berasal dari Company Settings / database.
         */
-        $companyName = $company->name ?? config('app.name', 'ERP POS');
+        $companyName = $company->name ?? config('app.name', 'ERP Garment IT Inventory');
         $companyLogo = $company->logo_url ?? null;
         $companyEmail = $company->email ?? null;
         $companyPhone = $company->phone ?? null;
         $companyAddress = $company->address ?? null;
     @endphp
 
-    <title>{{ $companyName }} — ERP & POS</title>
+        <title>{{ $companyName }} — {{ __('ui.welcome.brand') }}</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -862,18 +862,19 @@
 
                     <div class="brand-name">
                         <strong>{{ $companyName }}</strong>
-                        <span>ERP & POS Management System</span>
+                        <span>ERP Garment · IT Inventory</span>
                     </div>
                 </a>
 
                 <div class="nav-links">
-                    <a href="#features">Fitur</a>
-                    <a href="#modules">Modul</a>
-                    <a href="#about">Tentang Sistem</a>
+                    <a href="#features">{{ __('ui.welcome.features') }}</a>
+                    <a href="#modules">{{ __('ui.welcome.modules') }}</a>
+                    <a href="#about">{{ __('ui.welcome.about') }}</a>
+                    @include('components.language-switcher')
 
                     @if (Route::has('login'))
                         <a href="{{ route('login', absolute: false) }}" class="nav-login">
-                            Login
+                            {{ __('ui.welcome.login') }}
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                 <path d="M5 12h14M13 6l6 6-6 6" />
                             </svg>
@@ -895,24 +896,21 @@
 
                     <div class="hero-pill">
                         <span class="hero-pill-dot"></span>
-                        ERP & POS BUSINESS PLATFORM
+                        {{ __('ui.welcome.hero_badge') }}
                     </div>
 
                     <h1>
-                        Kelola bisnis lebih
-                        <span class="accent">mudah.</span>
+                        {{ __('ui.welcome.hero_title') }}
                     </h1>
 
                     <p class="hero-description">
-                        Sistem ERP dan POS terintegrasi untuk membantu bisnis
-                        mengelola penjualan, kasir, inventory, purchasing,
-                        accounting, dan laporan dalam satu platform.
+                        {{ __('ui.welcome.hero_description') }}
                     </p>
 
                     <div class="hero-actions">
                         @if (Route::has('login'))
                             <a href="{{ route('login', absolute: false) }}" class="btn-login">
-                                Login ke Sistem
+                                {{ __('ui.welcome.login_system') }}
                                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
                                     stroke="currentColor">
                                     <path d="M5 12h14M13 6l6 6-6 6" />
@@ -921,7 +919,7 @@
                         @endif
 
                         <a href="#features" class="btn-outline">
-                            Jelajahi Fitur
+                            {{ __('ui.welcome.explore') }}
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor">
                                 <path d="M6 9l6 6 6-6" />
                             </svg>
@@ -939,7 +937,7 @@
                             <span class="window-dot"></span>
                             <span class="window-dot"></span>
                             <span class="window-dot"></span>
-                            <span class="window-title">ERP & POS System</span>
+                            <span class="window-title">ERP Garment · IT Inventory</span>
                         </div>
 
                         <div class="erp-preview">
@@ -1024,8 +1022,8 @@
                     </div>
 
                     <div class="floating-badge">
-                        <small>One Platform</small>
-                        <strong>ERP <span>+</span> POS</strong>
+                        <small>Satu Platform</small>
+                        <strong>Garment <span>+</span>{{ __('ui.common.inventory') }}</strong>
                     </div>
 
                     <div class="floating-payment">
@@ -1037,8 +1035,8 @@
                             </svg>
                         </div>
                         <div>
-                            <small>Integrated Payment</small>
-                            <strong>Cash · QRIS · Bank</strong>
+                            <small>Pelacakan Produksi</small>
+                            <strong>Lot · WIP · Karton</strong>
                         </div>
                     </div>
 
@@ -1052,12 +1050,9 @@
             <section class="features" id="features">
 
                 <div class="section-heading">
-                    <span>Business Solution</span>
-                    <h2>Satu sistem untuk seluruh operasional</h2>
-                    <p>
-                        Dibuat modular agar dapat digunakan oleh berbagai jenis
-                        bisnis dan dapat dikembangkan sesuai kebutuhan perusahaan.
-                    </p>
+                    <span>{{ __('ui.welcome.feature_overview') }}</span>
+                    <h2>{{ __('ui.welcome.feature_title') }}</h2>
+                    <p>{{ __('ui.welcome.feature_description') }}</p>
                 </div>
 
                 <div class="feature-grid">
@@ -1071,8 +1066,8 @@
                                 <path d="M3 4h3l2 11h10l2-8H7" />
                             </svg>
                         </div>
-                        <h3>POS & Kasir</h3>
-                        <p>Transaksi cepat, barcode, discount, berbagai metode pembayaran dan closing kasir.</p>
+                        <h3>{{ __('ui.welcome.inventory_title') }}</h3>
+                        <p>{{ __('ui.welcome.inventory_description') }}</p>
                     </div>
 
                     <div class="feature-card">
@@ -1083,8 +1078,8 @@
                                 <path d="M7 7V4h10v3M7 12h10" />
                             </svg>
                         </div>
-                        <h3>Inventory</h3>
-                        <p>Kontrol stock, stock movement, stock opname, adjustment, transfer dan valuation.</p>
+                        <h3>{{ __('ui.welcome.materials_title') }}</h3>
+                        <p>{{ __('ui.welcome.materials_description') }}</p>
                     </div>
 
                     <div class="feature-card">
@@ -1095,8 +1090,8 @@
                                 <path d="M8 9h8M8 13h6M8 17h4" />
                             </svg>
                         </div>
-                        <h3>Purchasing & Sales</h3>
-                        <p>Kelola pembelian, supplier, sales order, delivery, invoice dan customer return.</p>
+                        <h3>{{ __('ui.welcome.purchasing_title') }}</h3>
+                        <p>{{ __('ui.welcome.purchasing_description') }}</p>
                     </div>
 
                     <div class="feature-card">
@@ -1107,8 +1102,8 @@
                                 <path d="M8 15v-4M12 15V7M16 15V9M20 15V5" />
                             </svg>
                         </div>
-                        <h3>Accounting & Report</h3>
-                        <p>COA, journal, AP, AR, COGS, profit & loss dan laporan bisnis terintegrasi.</p>
+                        <h3>{{ __('ui.welcome.traceability_title') }}</h3>
+                        <p>{{ __('ui.welcome.traceability_description') }}</p>
                     </div>
 
                 </div>
@@ -1120,53 +1115,51 @@
             <section class="features pt-0" id="modules">
 
                 <div class="section-heading">
-                    <span>Integrated Modules</span>
-                    <h2>Modular dan siap berkembang</h2>
-                    <p>
-                        Modul dapat disesuaikan dengan skala dan kebutuhan masing-masing perusahaan.
-                    </p>
+                    <span>{{ __('ui.welcome.modules_overview') }}</span>
+                    <h2>{{ __('ui.welcome.modules_title') }}</h2>
+                    <p>{{ __('ui.welcome.modules_description') }}</p>
                 </div>
 
                 <div class="feature-grid">
 
                     <div class="feature-card">
-                        <h3>Master Data</h3>
-                        <p>Barang, kategori, satuan, supplier, customer, harga, pajak dan payment method.</p>
+                        <h3>{{ __('ui.welcome.master_title') }}</h3>
+                        <p>{{ __('ui.welcome.master_description') }}</p>
                     </div>
 
                     <div class="feature-card">
-                        <h3>Material Request</h3>
-                        <p>Kelola kebutuhan barang dari request hingga proses purchasing.</p>
+                        <h3>{{ __('ui.welcome.bom_title') }}</h3>
+                        <p>{{ __('ui.welcome.bom_description') }}</p>
                     </div>
 
                     <div class="feature-card">
-                        <h3>Purchase Order</h3>
-                        <p>Kelola PO supplier dan proses penerimaan barang secara terstruktur.</p>
+                        <h3>{{ __('ui.welcome.purchase_request_title') }}</h3>
+                        <p>{{ __('ui.welcome.purchase_request_description') }}</p>
                     </div>
 
                     <div class="feature-card">
-                        <h3>POS & Multi Cashier</h3>
-                        <p>Support user kasir berbeda, POS session, payment dan closing kasir.</p>
+                        <h3>{{ __('ui.welcome.production_title') }}</h3>
+                        <p>{{ __('ui.welcome.production_description') }}</p>
                     </div>
 
                     <div class="feature-card">
-                        <h3>Stock Management</h3>
-                        <p>Stock balance, stock card, movement, opname, adjustment dan transfer.</p>
+                        <h3>{{ __('ui.welcome.carton_title') }}</h3>
+                        <p>{{ __('ui.welcome.carton_description') }}</p>
                     </div>
 
                     <div class="feature-card">
-                        <h3>Sales & Invoice</h3>
-                        <p>Sales order, delivery, invoice dan customer return.</p>
+                        <h3>{{ __('ui.welcome.finished_goods_title') }}</h3>
+                        <p>{{ __('ui.welcome.finished_goods_description') }}</p>
                     </div>
 
                     <div class="feature-card">
-                        <h3>Accounting Dasar</h3>
-                        <p>Journal, Cash & Bank, AP, AR, COGS dan Profit & Loss.</p>
+                        <h3>{{ __('ui.welcome.company_config_title') }}</h3>
+                        <p>{{ __('ui.welcome.company_config_description') }}</p>
                     </div>
 
                     <div class="feature-card">
-                        <h3>Automatic Report</h3>
-                        <p>Laporan harian dapat dikirim otomatis melalui email sesuai konfigurasi perusahaan.</p>
+                        <h3>{{ __('ui.welcome.reports_title') }}</h3>
+                        <p>{{ __('ui.welcome.reports_description') }}</p>
                     </div>
 
                 </div>
@@ -1180,24 +1173,19 @@
                     <div class="hero-copy" style="width:100%; max-width:780px;">
                         <div class="hero-pill">
                             <span class="hero-pill-dot"></span>
-                            READY FOR YOUR BUSINESS
+                            {{ __('ui.welcome.about_badge') }}
                         </div>
 
                         <h1 style="font-size:clamp(30px,4vw,48px);">
-                            Satu platform.
-                            <span class="accent">Lebih terkontrol.</span>
+                            {{ __('ui.welcome.about_title') }}
                         </h1>
 
-                        <p class="hero-description">
-                            Sistem dapat dikonfigurasi mengikuti nama perusahaan, logo,
-                            outlet, user, warehouse, numbering, email, footer dokumen,
-                            payment method dan kebutuhan operasional lainnya.
-                        </p>
+                        <p class="hero-description">{{ __('ui.welcome.about_description') }}</p>
 
                         <div class="hero-actions">
                             @if (Route::has('login'))
                                 <a href="{{ route('login', absolute: false) }}" class="btn-login">
-                                    Login ke Sistem
+                                    {{ __('ui.welcome.login_system') }}
                                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none"
                                         stroke="currentColor">
                                         <path d="M5 12h14M13 6l6 6-6 6" />
@@ -1213,7 +1201,7 @@
 
         <footer class="footer">
             <div>
-                {{ $companyName }} · ERP & POS System
+                {{ $companyName }} · {{ __('ui.welcome.footer') }}
                 @if ($companyEmail)
                     · {{ $companyEmail }}
                 @endif

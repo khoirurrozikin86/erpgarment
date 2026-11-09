@@ -39,7 +39,10 @@ return new class extends Migration
                 $table->string('reference_number', 150)->nullable();
                 $table->foreignId('created_by')->nullable()->constrained('users')->nullOnDelete();
                 $table->timestamps();
-                $table->index(['company_id', 'cash_bank_account_id', 'transaction_date']);
+                $table->index(
+                    ['company_id', 'cash_bank_account_id', 'transaction_date'],
+                    'cash_bank_tx_company_account_date_idx'
+                );
             });
         }
     }

@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'Kasir POS')
+@section('title', 'Kasir')
 @section('breadcrumb')@endsection
 @section('content')
     <div class="pos-app">

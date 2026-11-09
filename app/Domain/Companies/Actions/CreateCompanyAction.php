@@ -87,14 +87,6 @@ class CreateCompanyAction
                     'prefix' => 'JRN',
                 ],
                 [
-                    'document_type' => 'pos',
-                    'prefix' => 'POS',
-                ],
-                [
-                    'document_type' => 'pos_session',
-                    'prefix' => 'SHIFT',
-                ],
-                [
                     'document_type' => 'stock_opname',
                     'prefix' => 'STO',
                 ],

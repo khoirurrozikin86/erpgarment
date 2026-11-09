@@ -14,6 +14,17 @@ class UsersAndPermissionsSeeder extends Seeder
     public function run(): void
     {
         $guard = 'web';
+        $adminEmail = config('seed.admin_email') ?: 'superadmin@localhost.test';
+        $adminPassword = config('seed.admin_password');
+
+        if (!filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
+            throw new \RuntimeException('SEED_ADMIN_EMAIL harus berupa alamat email yang valid.');
+        }
+
+        if ($adminPassword !== null && $adminPassword !== '' && (!is_string($adminPassword) || strlen($adminPassword) < 16)) {
+            throw new \RuntimeException('SEED_ADMIN_PASSWORD harus berupa password unik minimal 16 karakter jika diisi.');
+        }
+
         app(PermissionRegistrar::class)->forgetCachedPermissions();
 
         // === 1️⃣ ROLES ===
@@ -49,8 +60,6 @@ class UsersAndPermissionsSeeder extends Seeder
             'customer-returns' => ['view', 'create'],
             'account-receivable' => ['view', 'receive'],
             'account-payable' => ['view', 'pay'],
-            'pos-sessions' => ['view', 'open', 'close'],
-            'pos' => ['view', 'sell', 'void'],
             'cash-bank' => ['view', 'create', 'update', 'delete'],
             'chart-of-accounts' => ['view', 'create', 'update'],
             'journal' => ['view', 'create', 'post', 'delete'],
@@ -89,6 +98,13 @@ class UsersAndPermissionsSeeder extends Seeder
             'ticket-qrcode.create',
             'ticket-qrcode.update',
             'ticket-qrcode.delete',
+            'pos-sessions.view',
+            'pos-sessions.open',
+            'pos-sessions.close',
+            'pos.view',
+            'pos.sell',
+            'pos.void',
+            'pos-sales-report.view',
             'user-outlets.view',
             'user-outlets.create',
             'user-outlets.update',
@@ -225,12 +241,6 @@ class UsersAndPermissionsSeeder extends Seeder
             'account-receivable.receive',
             'account-payable.view',
             'account-payable.pay',
-            'pos-sessions.view',
-            'pos-sessions.open',
-            'pos-sessions.close',
-            'pos.view',
-            'pos.sell',
-            'pos.void',
             'cash-bank.view',
             'cash-bank.create',
             'cash-bank.update',
@@ -261,17 +271,15 @@ class UsersAndPermissionsSeeder extends Seeder
         $roles['super_admin']->syncPermissions(Permission::pluck('name')->all());
 
         // === 4️⃣ USER DEFAULT & ADMIN & SUPER ===
-        $super = User::updateOrCreate(
-            ['email' => 'super@example.com'],
-            ['name' => 'Super Admin Stylus', 'password' => Hash::make('password')]
-        );
+        $super = User::firstOrNew(['email' => $adminEmail]);
+        $generatedPassword = null;
+        if (!$super->exists) {
+            $generatedPassword = $adminPassword ?: bin2hex(random_bytes(32));
+            $super->name = 'Super Admin';
+            $super->password = Hash::make($generatedPassword);
+            $super->save();
+        }
         $super->syncRoles(['super_admin']);
-
-        $admin = User::updateOrCreate(
-            ['email' => 'admin@example.com'],
-            ['name' => 'Admin Stylus', 'password' => Hash::make('password')]
-        );
-        $admin->syncRoles(['admin']);
 
         // === 5️⃣ USER PER LOKASI ===
         // $lokasiUsers = [
@@ -298,6 +306,9 @@ class UsersAndPermissionsSeeder extends Seeder
         // }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
-        $this->command->info('🎉 Semua roles, permissions, dan users berhasil disetup!');
+        $this->command->info("Setup role dan permission selesai. Super admin: {$adminEmail}");
+        if ($generatedPassword !== null && !$adminPassword) {
+            $this->command->warn("Password awal super admin (simpan sekarang): {$generatedPassword}");
+        }
     }
 }

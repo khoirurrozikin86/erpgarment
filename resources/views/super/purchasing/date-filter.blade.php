@@ -2,11 +2,11 @@
     <div class="card-body py-3">
         <div class="row align-items-end g-2">
             <div class="col-sm-5 col-md-3">
-                <label class="form-label mb-1" for="from_date">Dari Tanggal</label>
+                <label class="form-label mb-1" for="from_date">{{ __('ui.common.from_date') }}</label>
                 <input type="date" id="from_date" class="form-control form-control-sm" value="{{ now()->toDateString() }}">
             </div>
             <div class="col-sm-5 col-md-3">
-                <label class="form-label mb-1" for="to_date">Sampai Tanggal</label>
+                <label class="form-label mb-1" for="to_date">{{ __('ui.common.to_date') }}</label>
                 <input type="date" id="to_date" class="form-control form-control-sm" value="{{ now()->toDateString() }}">
             </div>
             <div class="col-sm-2 col-md-auto">

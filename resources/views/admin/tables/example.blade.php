@@ -1,11 +1,11 @@
 @extends('layouts.admin')
-@section('title', 'Roles')
+@section('title', __( 'ui.common.roles' ))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Access</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Roles</li>
+            <li class="breadcrumb-item"><a href="#">{{ __('ui.common.access') }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ __('ui.common.roles') }}</li>
         </ol>
     </nav>
 @endsection
@@ -16,10 +16,8 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex align-items-center justify-content-between mb-3">
-                        <h6 class="card-title mb-0">Roles</h6>
-                        <a href="{{ route('super.roles.create') }}" class="btn btn-primary btn-sm">
-                            + New
-                        </a>
+                        <h6 class="card-title mb-0">{{ __('ui.common.roles') }}</h6>
+                        <a href="{{ route('super.roles.create') }}" class="btn btn-primary btn-sm">{{ __('ui.common.new') }}</a>
                     </div>
 
                     {{-- alert success (opsional) --}}
@@ -33,10 +31,10 @@
                         <table id="roles-table" class="table w-100">
                             <thead>
                                 <tr>
-                                    <th>Name</th>
-                                    <th>Users</th>
-                                    <th>Permissions</th>
-                                    <th>Actions</th>
+                                    <th>{{ __('ui.common.name') }}</th>
+                                    <th>{{ __('ui.common.users') }}</th>
+                                    <th>{{ __('ui.common.permissions') }}</th>
+                                    <th>{{ __('ui.common.actions') }}</th>
                                 </tr>
                             </thead>
                             {{-- DataTables (serverSide) akan mengisi tbody --}}

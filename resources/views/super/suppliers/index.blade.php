@@ -1,13 +1,13 @@
 @extends('layouts.admin')
 
-@section('title', 'suppliers')
+@section('title', __('ui.common.supplier'))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
 
             <li class="breadcrumb-item">
-                <a href="#">Master</a>
+                <a href="#">{{ __('ui.common.master') }}</a>
             </li>
 
             <li class="breadcrumb-item active" aria-current="page">
@@ -26,9 +26,9 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
 
             <div>
-                <h4 class="mb-1">Supplier</h4>
+                <h4 class="mb-1">{{ __('ui.common.supplier') }}</h4>
                 <p class="text-muted mb-0">
-                    Kelola data supplier / pemasok.
+                    {{ __('ui.master.supplier_subtitle') }}
                 </p>
             </div>
 
@@ -37,30 +37,26 @@
                 @can('suppliers.view')
                     <a href="{{ route('super.suppliers.template') }}" class="btn btn-outline-secondary">
                         <i data-feather="file-text" class="icon-sm me-1"></i>
-                        Template
+                        {{ __('ui.master.template') }}
                     </a>
                     <a href="{{ route('super.suppliers.export') }}" class="btn btn-success">
 
                         <i data-feather="download" class="icon-sm me-1">
-                        </i>
-
-                        Export Excel
-
-                    </a>
+                        </i>{{ __('ui.common.export_excel') }}</a>
                 @endcan
 
 
                 @can('suppliers.create')
                     <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#supplierImportModal">
                         <i data-feather="upload" class="icon-sm me-1"></i>
-                        Import Excel
+                        {{ __('ui.master.import_excel') }}
                     </button>
                     <button type="button" class="btn btn-primary" id="btn-add-supplier">
 
                         <i data-feather="plus" class="icon-sm me-1">
                         </i>
 
-                        Tambah Supplier
+                        {{ __('ui.master.add_supplier') }}
 
                     </button>
                 @endcan
@@ -74,9 +70,9 @@
                 document.addEventListener('DOMContentLoaded', function() {
                     Swal.fire({
                         icon: 'success',
-                        title: 'Berhasil',
+                        title: '{{ __('ui.master.success') }}',
                         text: @json(session('supplier_import_success')),
-                        confirmButtonText: 'OK'
+                        confirmButtonText: '{{ __('ui.master.ok') }}'
                     });
                 });
             </script>
@@ -94,15 +90,15 @@
 
                         <thead>
                             <tr>
-                                <th width="50">No</th>
-                                <th>Kode</th>
-                                <th>Nama Supplier</th>
-                                <th>Jenis</th>
-                                <th>Contact Person</th>
-                                <th>Phone</th>
-                                <th>Payment Term</th>
-                                <th>Status</th>
-                                <th width="80">Action</th>
+                                <th width="50">{{ __('ui.common.no') }}</th>
+                                <th>{{ __('ui.common.code') }}</th>
+                                <th>{{ __('ui.master.supplier_name') }}</th>
+                                <th>{{ __('ui.common.type') }}</th>
+                                <th>{{ __('ui.common.contact_person') }}</th>
+                                <th>{{ __('ui.common.phone') }}</th>
+                                <th>{{ __('ui.common.payment_term') }}</th>
+                                <th>{{ __('ui.common.status') }}</th>
+                                <th width="80">{{ __('ui.common.action') }}</th>
                             </tr>
                         </thead>
 
@@ -124,24 +120,24 @@
                     @csrf
                     <div class="modal-header">
                         <div>
-                            <h5 class="modal-title">Import Supplier</h5>
-                            <small class="text-muted">Pilih file yang sudah diisi menggunakan template supplier.</small>
+                            <h5 class="modal-title">{{ __('ui.master.import_supplier') }}</h5>
+                            <small class="text-muted">{{ __('ui.master.import_pick_help', ['name' => __('ui.master.supplier')]) }}</small>
                         </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button>
                     </div>
                     <div class="modal-body">
                         @error('file')
                             <div class="alert alert-danger">{{ $message }}</div>
                         @enderror
-                        <label for="supplier-import-file" class="form-label">File Excel atau CSV</label>
+                        <label for="supplier-import-file" class="form-label">{{ __('ui.common.file_excel_csv') }}</label>
                         <input type="file" id="supplier-import-file" name="file" class="form-control"
                             accept=".xlsx,.xls,.csv" required>
-                        <div class="form-text">Format XLSX, XLS, atau CSV. Maksimal 10 MB. Kode supplier harus unik.</div>
+                        <div class="form-text">{{ __('ui.master.import_file_help', ['name' => __('ui.master.supplier')]) }}</div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('ui.common.cancel') }}</button>
                         <button type="submit" class="btn btn-primary">
-                            <i data-feather="upload" class="icon-sm me-1"></i> Import Supplier
+                            <i data-feather="upload" class="icon-sm me-1"></i> {{ __('ui.master.import_supplier') }}
                         </button>
                     </div>
                 </form>
@@ -164,7 +160,7 @@
 
                     <h5 class="modal-title" id="supplierModalTitle">
 
-                        Tambah Supplier
+                        {{ __('ui.master.add_supplier') }}
 
                     </h5>
 
@@ -186,7 +182,7 @@
                         {{-- ================================================= --}}
 
                         <h6 class="mb-3">
-                            Informasi Supplier
+                            {{ __('ui.master.supplier_info') }}
                         </h6>
 
                         <div class="row">
@@ -195,7 +191,7 @@
                             <div class="col-md-4 mb-3">
 
                                 <label class="form-label">
-                                    Kode Supplier
+                                    {{ __('ui.master.supplier_code') }}
                                     <span class="text-danger">*</span>
                                 </label>
 
@@ -209,12 +205,12 @@
                             <div class="col-md-5 mb-3">
 
                                 <label class="form-label">
-                                    Nama Supplier
+                                    {{ __('ui.master.supplier_name') }}
                                     <span class="text-danger">*</span>
                                 </label>
 
                                 <input type="text" class="form-control" id="supplier-name" name="name"
-                                    placeholder="Nama perusahaan / supplier" required>
+                                    placeholder="{{ __('ui.master.supplier_company_placeholder') }}" required>
 
                             </div>
 
@@ -223,18 +219,18 @@
                             <div class="col-md-3 mb-3">
 
                                 <label class="form-label">
-                                    Jenis Supplier
+                                    {{ __('ui.master.supplier_type') }}
                                     <span class="text-danger">*</span>
                                 </label>
 
                                 <select class="form-select" id="supplier-type" name="supplier_type" required>
 
                                     <option value="company">
-                                        Company
+                                        {{ __('ui.master.company') }}
                                     </option>
 
                                     <option value="individual">
-                                        Individual
+                                        {{ __('ui.master.individual') }}
                                     </option>
 
                                 </select>
@@ -249,12 +245,10 @@
                             {{-- CONTACT PERSON --}}
                             <div class="col-md-4 mb-3">
 
-                                <label class="form-label">
-                                    Contact Person
-                                </label>
+                                <label class="form-label">{{ __('ui.common.contact_person') }}</label>
 
                                 <input type="text" class="form-control" id="supplier-contact-person"
-                                    name="contact_person" placeholder="Nama PIC">
+                                    name="contact_person" placeholder="{{ __('ui.master.contact_name_placeholder') }}">
 
                             </div>
 
@@ -262,9 +256,7 @@
                             {{-- PHONE --}}
                             <div class="col-md-4 mb-3">
 
-                                <label class="form-label">
-                                    Phone
-                                </label>
+                                <label class="form-label">{{ __('ui.common.phone') }}</label>
 
                                 <input type="text" class="form-control" id="supplier-phone" name="phone"
                                     placeholder="08xxxxxxxxxx">
@@ -275,9 +267,7 @@
                             {{-- EMAIL --}}
                             <div class="col-md-4 mb-3">
 
-                                <label class="form-label">
-                                    Email
-                                </label>
+                                <label class="form-label">{{ __('ui.common.email') }}</label>
 
                                 <input type="email" class="form-control" id="supplier-email" name="email"
                                     placeholder="supplier@example.com">
@@ -293,7 +283,7 @@
                             <div class="col-md-4 mb-3">
 
                                 <label class="form-label">
-                                    Website
+                                    {{ __('ui.master.website') }}
                                 </label>
 
                                 <input type="text" class="form-control" id="supplier-website" name="website"
@@ -306,11 +296,11 @@
                             <div class="col-md-4 mb-3">
 
                                 <label class="form-label">
-                                    NPWP / Tax Number
+                                    {{ __('ui.master.tax_number') }}
                                 </label>
 
                                 <input type="text" class="form-control" id="supplier-tax-number" name="tax_number"
-                                    placeholder="Nomor NPWP">
+                                    placeholder="{{ __('ui.master.tax_number_placeholder') }}">
 
                             </div>
 
@@ -318,35 +308,33 @@
                             {{-- PAYMENT TERM --}}
                             <div class="col-md-4 mb-3">
 
-                                <label class="form-label">
-                                    Payment Term
-                                    <span class="text-danger">*</span>
+                                <label class="form-label">{{ __('ui.common.payment_term') }}<span class="text-danger">*</span>
                                 </label>
 
                                 <select class="form-select" id="supplier-payment-term" name="payment_term" required>
 
                                     <option value="COD">
-                                        COD
+                                        {{ __('ui.master.payment_cod') }}
                                     </option>
 
                                     <option value="7 Days">
-                                        7 Days
+                                        {{ __('ui.master.payment_days', ['days' => 7]) }}
                                     </option>
 
                                     <option value="14 Days">
-                                        14 Days
+                                        {{ __('ui.master.payment_days', ['days' => 14]) }}
                                     </option>
 
                                     <option value="30 Days">
-                                        30 Days
+                                        {{ __('ui.master.payment_days', ['days' => 30]) }}
                                     </option>
 
                                     <option value="45 Days">
-                                        45 Days
+                                        {{ __('ui.master.payment_days', ['days' => 45]) }}
                                     </option>
 
                                     <option value="60 Days">
-                                        60 Days
+                                        {{ __('ui.master.payment_days', ['days' => 60]) }}
                                     </option>
 
                                 </select>
@@ -363,21 +351,17 @@
                         {{-- ALAMAT --}}
                         {{-- ================================================= --}}
 
-                        <h6 class="mb-3">
-                            Alamat
-                        </h6>
+                        <h6 class="mb-3">{{ __('ui.common.address') }}</h6>
 
                         <div class="row">
 
                             {{-- ADDRESS --}}
                             <div class="col-md-12 mb-3">
 
-                                <label class="form-label">
-                                    Alamat
-                                </label>
+                                <label class="form-label">{{ __('ui.common.address') }}</label>
 
                                 <textarea class="form-control" id="supplier-address" name="address" rows="3"
-                                    placeholder="Alamat lengkap supplier"></textarea>
+                                    placeholder="{{ __('ui.master.address_supplier') }}"></textarea>
 
                             </div>
 
@@ -389,9 +373,7 @@
                             {{-- CITY --}}
                             <div class="col-md-4 mb-3">
 
-                                <label class="form-label">
-                                    Kota
-                                </label>
+                                <label class="form-label">{{ __('ui.common.city') }}</label>
 
                                 <input type="text" class="form-control" id="supplier-city" name="city">
 
@@ -402,7 +384,7 @@
                             <div class="col-md-4 mb-3">
 
                                 <label class="form-label">
-                                    Provinsi
+                                    {{ __('ui.master.province') }}
                                 </label>
 
                                 <input type="text" class="form-control" id="supplier-province" name="province">
@@ -414,7 +396,7 @@
                             <div class="col-md-4 mb-3">
 
                                 <label class="form-label">
-                                    Kode Pos
+                                    {{ __('ui.master.postal_code') }}
                                 </label>
 
                                 <input type="text" class="form-control" id="supplier-postal-code" name="postal_code">
@@ -432,7 +414,7 @@
                         {{-- ================================================= --}}
 
                         <h6 class="mb-3">
-                            Informasi Bank
+                            {{ __('ui.master.bank_info') }}
                         </h6>
 
                         <div class="row">
@@ -441,7 +423,7 @@
                             <div class="col-md-4 mb-3">
 
                                 <label class="form-label">
-                                    Nama Bank
+                                    {{ __('ui.master.bank_name') }}
                                 </label>
 
                                 <input type="text" class="form-control" id="supplier-bank-name" name="bank_name"
@@ -454,7 +436,7 @@
                             <div class="col-md-4 mb-3">
 
                                 <label class="form-label">
-                                    Nomor Rekening
+                                    {{ __('ui.master.account_number') }}
                                 </label>
 
                                 <input type="text" class="form-control" id="supplier-bank-account-number"
@@ -467,7 +449,7 @@
                             <div class="col-md-4 mb-3">
 
                                 <label class="form-label">
-                                    Nama Rekening
+                                    {{ __('ui.master.account_name') }}
                                 </label>
 
                                 <input type="text" class="form-control" id="supplier-bank-account-name"
@@ -490,11 +472,9 @@
                             {{-- NOTES --}}
                             <div class="col-md-9 mb-3">
 
-                                <label class="form-label">
-                                    Catatan
-                                </label>
+                                <label class="form-label">{{ __('ui.common.notes') }}</label>
 
-                                <textarea class="form-control" id="supplier-notes" name="notes" rows="3" placeholder="Catatan supplier"></textarea>
+                                <textarea class="form-control" id="supplier-notes" name="notes" rows="3" placeholder="{{ __('ui.master.notes_supplier') }}"></textarea>
 
                             </div>
 
@@ -502,9 +482,7 @@
                             {{-- STATUS --}}
                             <div class="col-md-3 mb-3">
 
-                                <label class="form-label">
-                                    Status
-                                </label>
+                                <label class="form-label">{{ __('ui.common.status') }}</label>
 
                                 <div class="form-check form-switch mt-2">
 
@@ -513,7 +491,7 @@
 
                                     <label class="form-check-label" for="supplier-active">
 
-                                        Active
+                                        {{ __('ui.master.status_active') }}
 
                                     </label>
 
@@ -529,17 +507,9 @@
                     {{-- FOOTER --}}
                     <div class="modal-footer">
 
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('ui.common.cancel') }}</button>
 
-                            Batal
-
-                        </button>
-
-                        <button type="submit" class="btn btn-primary" id="btn-save-supplier">
-
-                            Simpan
-
-                        </button>
+                        <button type="submit" class="btn btn-primary" id="btn-save-supplier">{{ __('ui.common.save') }}</button>
 
                     </div>
 
@@ -649,7 +619,7 @@
 
                                 return `
                             <span class="badge bg-info">
-                                Individual
+                                {{ __('ui.master.individual') }}
                             </span>
                         `;
 
@@ -657,7 +627,7 @@
 
                             return `
                         <span class="badge bg-primary">
-                            Company
+                            {{ __('ui.master.company') }}
                         </span>
                     `;
 
@@ -715,11 +685,11 @@
 
                         render: function(data) {
 
-                            if (data === 'Active') {
+                            if (data === @json(__('ui.master.status_active'))) {
 
                                 return `
                             <span class="badge bg-success">
-                                Active
+                                {{ __('ui.master.status_active') }}
                             </span>
                         `;
 
@@ -727,7 +697,7 @@
 
                             return `
                         <span class="badge bg-secondary">
-                            Not Active
+                            {{ __('ui.master.status_inactive') }}
                         </span>
                     `;
 
@@ -799,7 +769,7 @@
 
 
                     $('#supplierModalTitle')
-                        .text('Tambah Supplier');
+                        .text('{{ __('ui.master.add_supplier') }}');
 
 
                     $form
@@ -963,7 +933,7 @@
 
 
                     $('#supplierModalTitle')
-                        .text('Edit Supplier');
+                        .text('{{ __('ui.common.edit') }} {{ __('ui.common.supplier') }}');
 
 
                     $('#supplier-form')
@@ -1058,7 +1028,7 @@
 
                     $button
                         .prop('disabled', true)
-                        .text('Menyimpan...');
+                        .text('{{ __('ui.workflow.saving') }}');
 
 
                     $.ajax({
@@ -1086,10 +1056,10 @@
 
                                 icon: 'success',
 
-                                title: 'Berhasil',
+                                title: '{{ __('ui.master.success') }}',
 
                                 text: response.message ||
-                                    'Supplier berhasil disimpan.',
+                                    '{{ __('ui.master.created', ['type' => __('ui.common.supplier')]) }}',
 
                                 timer: 1500,
 
@@ -1103,7 +1073,7 @@
                         error: function(xhr) {
 
                             let message =
-                                'Terjadi kesalahan.';
+                                '{{ __('ui.master.failure') }}';
 
 
                             if (
@@ -1138,7 +1108,7 @@
 
                                 icon: 'error',
 
-                                title: 'Gagal',
+                                title: '{{ __('ui.master.failure') }}',
 
                                 html: message
 
@@ -1151,7 +1121,7 @@
 
                             $button
                                 .prop('disabled', false)
-                                .text('Simpan');
+                                .text('{{ __('ui.common.save') }}');
 
                         }
 
@@ -1182,22 +1152,22 @@
 
                     const confirmText =
                         $button.data('confirm') ||
-                        'Apakah Anda yakin ingin menghapus data ini?';
+                        '{{ __('ui.master.record_delete_confirmation') }}';
 
 
                     Swal.fire({
 
                         icon: 'warning',
 
-                        title: 'Konfirmasi',
+                        title: '{{ __('ui.master.confirmation') }}',
 
                         text: confirmText,
 
                         showCancelButton: true,
 
-                        confirmButtonText: 'Ya, Hapus',
+                        confirmButtonText: '{{ __('ui.master.confirm_delete') }}',
 
-                        cancelButtonText: 'Batal',
+                        cancelButtonText: '{{ __('ui.common.cancel') }}',
 
                         reverseButtons: true
 
@@ -1235,10 +1205,10 @@
 
                                     icon: 'success',
 
-                                    title: 'Berhasil',
+                                    title: '{{ __('ui.master.success') }}',
 
                                     text: response.message ||
-                                        'Supplier berhasil dihapus.',
+                                        '{{ __('ui.master.deleted', ['type' => __('ui.common.supplier')]) }}',
 
                                     timer: 1500,
 
@@ -1252,7 +1222,7 @@
                             error: function(xhr) {
 
                                 let message =
-                                    'Supplier gagal dihapus.';
+                                    '{{ __('ui.master.failure') }}';
 
 
                                 if (
@@ -1270,7 +1240,7 @@
 
                                     icon: 'error',
 
-                                    title: 'Tidak dapat menghapus',
+                                    title: '{{ __('ui.master.cannot_delete') }}',
 
                                     text: message
 

@@ -1,11 +1,11 @@
 @extends('layouts.admin')
 
-@section('title', 'Dashboard')
+@section('title', __('ui.dashboard.title'))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item active" aria-current="page">Dashboard</li>
+            <li class="breadcrumb-item active" aria-current="page">{{ __('ui.dashboard.title') }}</li>
         </ol>
     </nav>
 @endsection
@@ -14,88 +14,49 @@
     <div class="dashboard-shell">
         <div class="d-flex flex-column flex-lg-row align-items-lg-center justify-content-between gap-3 mb-4">
             <div>
-                <div class="text-uppercase fw-semibold text-primary small letter-spacing-1">Overview</div>
-                <h4 class="mb-1">Dashboard</h4>
-                <p class="text-muted mb-0">Ringkasan data master ERP dan status operasional utama.</p>
+                <div class="text-uppercase fw-semibold text-primary small letter-spacing-1">{{ __('ui.welcome.feature_overview') }}</div>
+                <h4 class="mb-1">{{ __('ui.dashboard.title') }}</h4>
+                <p class="text-muted mb-0">{{ __('ui.dashboard.subtitle') }}</p>
             </div>
-
-            <div class="dashboard-date-badge">
-                <i data-feather="calendar" class="icon-sm me-2"></i>
-                {{ now()->translatedFormat('d M Y') }}
-            </div>
+            <div class="dashboard-date-badge"><i data-feather="calendar" class="icon-sm me-2"></i>{{ now()->translatedFormat('d M Y') }}</div>
         </div>
+
+        @unless ($companyConfigured)
+            <div class="alert alert-warning d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div><strong>{{ __('ui.dashboard.company_missing') }}</strong><br>{{ __('ui.dashboard.company_missing_help') }}</div>
+                @can('company.view')
+                    <a href="{{ route('super.companies.index') }}" class="btn btn-warning">{{ __('ui.dashboard.manage_company') }}</a>
+                @endcan
+            </div>
+        @endunless
 
         <div class="row g-3 mb-4">
             @php
                 $stats = [
-                    'products' => [
-                        'label' => 'Barang',
-                        'route' => 'super.products.index',
-                        'icon' => 'box',
-                        'permission' => 'products.view',
-                        'accent' => 'primary',
-                    ],
-                    'pricelists' => [
-                        'label' => 'Pricelist',
-                        'route' => 'super.pricelists.index',
-                        'icon' => 'dollar-sign',
-                        'permission' => 'pricelists.view',
-                        'accent' => 'success',
-                    ],
-                    'categories' => [
-                        'label' => 'Kategori',
-                        'route' => 'super.categories.index',
-                        'icon' => 'tag',
-                        'permission' => 'categories.view',
-                        'accent' => 'warning',
-                    ],
-                    'units' => [
-                        'label' => 'Satuan',
-                        'route' => 'super.units.index',
-                        'icon' => 'package',
-                        'permission' => 'units.view',
-                        'accent' => 'info',
-                    ],
-                    'suppliers' => [
-                        'label' => 'Supplier',
-                        'route' => 'super.suppliers.index',
-                        'icon' => 'truck',
-                        'permission' => 'suppliers.view',
-                        'accent' => 'danger',
-                    ],
-                    'customers' => [
-                        'label' => 'Pelanggan',
-                        'route' => 'super.customers.index',
-                        'icon' => 'users',
-                        'permission' => 'customers.view',
-                        'accent' => 'secondary',
-                    ],
+                    ['key' => 'products', 'label' => 'ui.dashboard.all_items', 'icon' => 'box', 'permission' => 'products.view'],
+                    ['key' => 'fabrics', 'label' => 'ui.dashboard.fabric', 'icon' => 'layers', 'permission' => 'products.view'],
+                    ['key' => 'accessories', 'label' => 'ui.dashboard.accessories', 'icon' => 'paperclip', 'permission' => 'products.view'],
+                    ['key' => 'work_in_process', 'label' => 'ui.dashboard.wip', 'icon' => 'settings', 'permission' => 'products.view'],
+                    ['key' => 'finished_goods', 'label' => 'ui.dashboard.finished_goods', 'icon' => 'package', 'permission' => 'products.view'],
+                    ['key' => 'material_requests', 'label' => 'ui.dashboard.mr_pending', 'icon' => 'clipboard', 'permission' => 'material-requests.view'],
+                    ['key' => 'purchase_requests', 'label' => 'ui.dashboard.pr_pending', 'icon' => 'file-text', 'permission' => 'purchase-requests.view'],
+                    ['key' => 'purchase_orders', 'label' => 'ui.dashboard.po_open', 'icon' => 'shopping-cart', 'permission' => 'purchase-orders.view'],
+                    ['key' => 'goods_receipts', 'label' => 'ui.dashboard.receipts', 'icon' => 'inbox', 'permission' => 'goods-receipts.view'],
                 ];
             @endphp
 
-            @foreach ($stats as $key => $stat)
+            @foreach ($stats as $stat)
                 @can($stat['permission'])
-                    <div class="col-sm-6 col-xl-4">
-                        <a href="{{ route($stat['route']) }}" class="text-decoration-none">
-                            <div class="card border-0 shadow-sm dashboard-stat-card dashboard-stat-{{ $stat['accent'] }} h-100">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div>
-                                            <div class="text-muted small fw-semibold text-uppercase tracking-wide">
-                                                {{ $stat['label'] }}</div>
-                                            <div class="mt-2 fs-3 fw-bold text-dark">{{ number_format($totals[$key]) }}</div>
-                                        </div>
-                                        <div class="stat-icon bg-{{ $stat['accent'] }}-soft text-{{ $stat['accent'] }}">
-                                            <i data-feather="{{ $stat['icon'] }}"></i>
-                                        </div>
-                                    </div>
-                                    <div class="mt-3 small text-muted">
-                                        <span
-                                            class="fw-semibold text-{{ $stat['accent'] }}">{{ $totals[$key] > 0 ? 'Siap digunakan' : 'Belum ada data' }}</span>
-                                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body d-flex justify-content-between align-items-start">
+                                <div>
+                                    <div class="text-muted small fw-semibold">{{ __($stat['label']) }}</div>
+                                    <div class="mt-2 fs-3 fw-bold text-dark">{{ number_format($totals[$stat['key']]) }}</div>
                                 </div>
+                                <span class="dashboard-icon"><i data-feather="{{ $stat['icon'] }}"></i></span>
                             </div>
-                        </a>
+                        </div>
                     </div>
                 @endcan
             @endforeach
@@ -103,96 +64,28 @@
 
         <div class="row g-3">
             <div class="col-xl-8">
-                <div class="card border-0 shadow-sm h-100 dashboard-panel">
+                <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <div>
-                                <div class="text-muted small fw-semibold text-uppercase tracking-wide">Data Master</div>
-                                <h6 class="mb-0 mt-1">Ringkasan sistem</h6>
-                            </div>
-                            <span class="badge bg-primary-subtle text-primary rounded-pill">Live</span>
+                        <div class="text-muted small fw-semibold text-uppercase">{{ __('ui.dashboard.workflow') }}</div>
+                        <h5 class="mt-1 mb-3">{{ __('ui.dashboard.workflow_title') }}</h5>
+                        <div class="garment-flow">
+                            <span>BOM &amp; {{ __('ui.dashboard.production_order') }}</span><b>→</b><span>{{ __('ui.dashboard.material_request') }}</span><b>→</b><span>{{ __('ui.dashboard.purchase_request') }}</span><b>→</b><span>{{ __('ui.dashboard.purchase_order') }}</span><b>→</b><span>{{ __('ui.dashboard.goods_receipt') }} &amp; {{ __('ui.dashboard.inventory_label') }}</span>
                         </div>
-
-                        <div class="row g-3">
-                            <div class="col-md-4">
-                                <div class="summary-mini-box summary-box-primary">
-                                    <div class="summary-mini-label">Barang</div>
-                                    <div class="summary-mini-value">{{ number_format($totals['products']) }}</div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="summary-mini-box summary-box-success">
-                                    <div class="summary-mini-label">Supplier</div>
-                                    <div class="summary-mini-value">{{ number_format($totals['suppliers']) }}</div>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="summary-mini-box summary-box-warning">
-                                    <div class="summary-mini-label">Pelanggan</div>
-                                    <div class="summary-mini-value">{{ number_format($totals['customers']) }}</div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mt-4 small text-muted">
-                            <div
-                                class="d-flex align-items-center justify-content-between py-2 border-top border-light-subtle">
-                                <span>Jumlah kategori produk</span>
-                                <strong class="text-dark">{{ number_format($totals['categories']) }}</strong>
-                            </div>
-                            <div
-                                class="d-flex align-items-center justify-content-between py-2 border-top border-light-subtle">
-                                <span>Jumlah satuan barang</span>
-                                <strong class="text-dark">{{ number_format($totals['units']) }}</strong>
-                            </div>
-                            <div
-                                class="d-flex align-items-center justify-content-between py-2 border-top border-light-subtle">
-                                <span>Jumlah pricelist</span>
-                                <strong class="text-dark">{{ number_format($totals['pricelists']) }}</strong>
-                            </div>
-                        </div>
+                        <p class="text-muted small mt-3 mb-0">{{ __('ui.dashboard.workflow_note') }}</p>
                     </div>
                 </div>
             </div>
-
             <div class="col-xl-4">
-                <div class="card border-0 shadow-sm h-100 dashboard-panel">
+                <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
-                        <div class="d-flex align-items-center justify-content-between mb-3">
-                            <div>
-                                <div class="text-muted small fw-semibold text-uppercase tracking-wide">Aksi cepat</div>
-                                <h6 class="mb-0 mt-1">Navigasi</h6>
-                            </div>
-                        </div>
-
+                        <div class="text-muted small fw-semibold text-uppercase">{{ __('ui.dashboard.quick_actions') }}</div>
+                        <h5 class="mt-1 mb-3">{{ __('ui.dashboard.manage_data') }}</h5>
                         <div class="d-grid gap-2">
-                            @can('products.view')
-                                <a href="{{ route('super.products.index') }}"
-                                    class="btn btn-light text-start dashboard-quick-action">
-                                    <i data-feather="box" class="me-2"></i> Kelola Barang
-                                </a>
-                            @endcan
-
-                            @can('suppliers.view')
-                                <a href="{{ route('super.suppliers.index') }}"
-                                    class="btn btn-light text-start dashboard-quick-action">
-                                    <i data-feather="truck" class="me-2"></i> Daftar Supplier
-                                </a>
-                            @endcan
-
-                            @can('customers.view')
-                                <a href="{{ route('super.customers.index') }}"
-                                    class="btn btn-light text-start dashboard-quick-action">
-                                    <i data-feather="users" class="me-2"></i> Pelanggan
-                                </a>
-                            @endcan
-
-                            @can('categories.view')
-                                <a href="{{ route('super.categories.index') }}"
-                                    class="btn btn-light text-start dashboard-quick-action">
-                                    <i data-feather="tag" class="me-2"></i> Kategori Produk
-                                </a>
-                            @endcan
+                            @can('products.view')<a class="btn btn-light text-start" href="{{ route('super.products.index') }}"><i data-feather="box" class="me-2"></i>{{ __('ui.dashboard.items_materials') }}</a>@endcan
+                            @can('material-requests.view')<a class="btn btn-light text-start" href="{{ route('super.material-requests.index') }}"><i data-feather="clipboard" class="me-2"></i>{{ __('ui.dashboard.material_request') }}</a>@endcan
+                            @can('purchase-requests.view')<a class="btn btn-light text-start" href="{{ route('super.purchase-requests.index') }}"><i data-feather="file-text" class="me-2"></i>{{ __('ui.dashboard.purchase_request') }}</a>@endcan
+                            @can('purchase-orders.view')<a class="btn btn-light text-start" href="{{ route('super.purchase-orders.index') }}"><i data-feather="shopping-cart" class="me-2"></i>{{ __('ui.dashboard.purchase_order') }}</a>@endcan
+                            @can('goods-receipts.view')<a class="btn btn-light text-start" href="{{ route('super.goods-receipts.index') }}"><i data-feather="inbox" class="me-2"></i>{{ __('ui.dashboard.goods_receipt') }}</a>@endcan
                         </div>
                     </div>
                 </div>
@@ -205,6 +98,38 @@
     <style>
         .dashboard-shell {
             padding-bottom: 8px;
+        }
+
+        .dashboard-icon {
+            width: 42px;
+            height: 42px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: #edf4ff;
+            color: #2563eb;
+        }
+
+        .garment-flow {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: .65rem;
+        }
+
+        .garment-flow span {
+            padding: .55rem .75rem;
+            border: 1px solid #e7edf5;
+            border-radius: 10px;
+            background: #f8fafc;
+            color: #334155;
+            font-size: .88rem;
+            font-weight: 600;
+        }
+
+        .garment-flow b {
+            color: #94a3b8;
         }
 
         .letter-spacing-1 {

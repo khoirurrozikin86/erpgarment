@@ -59,9 +59,9 @@
     { "@type": "SiteNavigationElement", "name": "Layanan", "url": "https://oznets.com/#services" },
     { "@type": "SiteNavigationElement", "name": "Teknologi", "url": "https://oznets.com/#tech" },
     { "@type": "SiteNavigationElement", "name": "Portfolio", "url": "https://oznets.com/#portfolio" },
-    { "@type": "SiteNavigationElement", "name": "Proses", "url": "https://oznets.com/#process" },
+    { "@type": "SiteNavigationElement", "name": "{{ __('ui.common.process') }}", "url": "https://oznets.com/#process" },
     { "@type": "SiteNavigationElement", "name": "Tentang Kami", "url": "https://oznets.com/#about" },
-    { "@type": "SiteNavigationElement", "name": "Kontak", "url": "https://oznets.com/#contact" }
+    { "@type": "SiteNavigationElement", "name": "{{ __('ui.common.contact') }}", "url": "https://oznets.com/#contact" }
   ]
 }
 </script>
@@ -365,8 +365,8 @@
                 <a href="#services" class="block py-2">Layanan</a>
                 <a href="#tech" class="block py-2">Teknologi</a>
                 <a href="#portfolio" class="block py-2">Portfolio</a>
-                <a href="#process" class="block py-2">Proses</a>
-                <a href="#contact" class="block py-2">Kontak</a>
+                <a href="#process" class="block py-2">{{ __('ui.common.process') }}</a>
+                <a href="#contact" class="block py-2">{{ __('ui.common.contact') }}</a>
             </div>
         </div>
     </header>
@@ -794,7 +794,7 @@
     <section id="contact" class="py-20 border-t border-white/10">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-10 items-start">
             <div class="reveal">
-                <h2 class="text-3xl font-extrabold">{{ $contactTitle ?? 'Kontak' }}</h2>
+                <h2 class="text-3xl font-extrabold">{{ $contactTitle ?? '{{ __('ui.common.contact') }}' }}</h2>
                 <p class="mt-3 text-white/70">
                     {{ $contactSub ?? 'Kami responsif via WhatsApp & email. Sertakan gambaran singkat kebutuhan Anda.' }}
                 </p>
@@ -833,10 +833,10 @@
                 <div class="grid sm:grid-cols-2 gap-4">
                     <input name="name" value="{{ old('name') }}"
                         class="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-brand/60"
-                        placeholder="Nama" required />
+                        placeholder="{{ __('ui.common.name') }}" required />
                     <input type="email" name="email" value="{{ old('email') }}"
                         class="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 outline-none focus:border-brand/60"
-                        placeholder="Email" required />
+                        placeholder="{{ __('ui.common.email') }}" required />
                 </div>
 
                 <input name="company" value="{{ old('company') }}"
@@ -859,7 +859,7 @@
                     <p class="text-xs text-emerald-400">{{ session('ok') }}</p>
                 @endif
 
-                <button type="submit" class="rounded-xl bg-brand px-6 py-3 font-semibold shadow-glow">Kirim</button>
+                <button type="submit" class="rounded-xl bg-brand px-6 py-3 font-semibold shadow-glow">{{ __('ui.common.send') }}</button>
             </form>
         </div>
     </section>
@@ -893,9 +893,9 @@
                             <li><a href="#services" class="hover:text-brand">Layanan</a></li>
                             <li><a href="#tech" class="hover:text-brand">Teknologi</a></li>
                             <li><a href="#portfolio" class="hover:text-brand">Portfolio</a></li>
-                            <li><a href="#process" class="hover:text-brand">Proses</a></li>
+                            <li><a href="#process" class="hover:text-brand">{{ __('ui.common.process') }}</a></li>
                             <li><a href="#about" class="hover:text-brand">About</a></li>
-                            <li><a href="#contact" class="hover:text-brand">Kontak</a></li>
+                            <li><a href="#contact" class="hover:text-brand">{{ __('ui.common.contact') }}</a></li>
                         @endforelse
                     </ul>
                 </nav>

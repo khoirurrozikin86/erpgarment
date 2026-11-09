@@ -36,21 +36,21 @@
 <body>
     @include('super.documents.partials.company-pdf-header', ['company' => $company, 'companyLogoDataUri' => $companyLogoDataUri])
     <div class="header">
-        <h1>Purchase Request</h1>
+        <h1>{{ __('ui.common.purchase_request') }}</h1>
         <div class="muted">Permintaan persetujuan pembelian barang</div>
         <div class="document-no">{{ $purchaseRequest->number }}</div>
     </div>
 
     <table class="meta">
-        <tr><td class="label">Referensi Material Request</td><td>{{ $purchaseRequest->materialRequest?->number ?? '—' }}</td><td class="label">Tanggal Pengajuan</td><td>{{ $purchaseRequest->created_at?->format('d/m/Y H:i') ?? '—' }}</td></tr>
-        <tr><td class="label">Supplier</td><td>{{ $purchaseRequest->supplier?->name ?? 'Supplier dihapus' }}</td><td class="label">Pemohon</td><td>{{ $purchaseRequest->requester?->name ?? 'User dihapus' }}</td></tr>
-        <tr><td class="label">Status</td><td>{{ ['pending' => 'Menunggu Approval', 'approved' => 'Disetujui', 'rejected' => 'Ditolak'][$purchaseRequest->status] ?? $purchaseRequest->status }}</td><td class="label">Ditinjau Oleh</td><td>{{ $purchaseRequest->reviewer?->name ?? '—' }}</td></tr>
-        <tr><td class="label">Waktu Review</td><td>{{ $purchaseRequest->reviewed_at?->format('d/m/Y H:i') ?? '—' }}</td><td class="label">Catatan Review</td><td>{{ $purchaseRequest->review_note ?: '—' }}</td></tr>
+        <tr><td class="label">Referensi Material Request</td><td>{{ $purchaseRequest->materialRequest?->number ?? '—' }}</td><td class="label">{{ __('ui.common.request_date') }}</td><td>{{ $purchaseRequest->created_at?->format('d/m/Y H:i') ?? '—' }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.supplier') }}</td><td>{{ $purchaseRequest->supplier?->name ?? 'Supplier dihapus' }}</td><td class="label">{{ __('ui.common.requester') }}</td><td>{{ $purchaseRequest->requester?->name ?? 'User dihapus' }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.status') }}</td><td>{{ ['pending' => 'Menunggu Approval', 'approved' => 'Disetujui', 'rejected' => 'Ditolak'][$purchaseRequest->status] ?? $purchaseRequest->status }}</td><td class="label">{{ __('ui.common.reviewed_by') }}</td><td>{{ $purchaseRequest->reviewer?->name ?? '—' }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.review_time') }}</td><td>{{ $purchaseRequest->reviewed_at?->format('d/m/Y H:i') ?? '—' }}</td><td class="label">Catatan Review</td><td>{{ $purchaseRequest->review_note ?: '—' }}</td></tr>
     </table>
 
     <div class="section-title">Rincian Pembelian</div>
     <table class="items">
-        <thead><tr><th class="center" style="width:32px">No</th><th style="width:105px">Kode</th><th>Nama Barang</th><th class="right" style="width:75px">Jumlah</th><th style="width:65px">Satuan</th><th class="right" style="width:105px">Harga Satuan</th><th class="right" style="width:110px">Subtotal</th></tr></thead>
+        <thead><tr><th class="center" style="width:32px">{{ __('ui.common.no') }}</th><th style="width:105px">{{ __('ui.common.code') }}</th><th>{{ __('ui.common.item_name') }}</th><th class="right" style="width:75px">{{ __('ui.common.quantity') }}</th><th style="width:65px">{{ __('ui.common.unit') }}</th><th class="right" style="width:105px">{{ __('ui.common.unit_price') }}</th><th class="right" style="width:110px">{{ __('ui.common.subtotal') }}</th></tr></thead>
         <tbody>
             @forelse ($purchaseRequest->items as $item)
                 <tr>
@@ -63,14 +63,14 @@
                     <td class="right">Rp {{ number_format((float) $item->line_total, 2, ',', '.') }}</td>
                 </tr>
             @empty
-                <tr><td colspan="7" class="center">Tidak ada barang.</td></tr>
+                <tr><td colspan="7" class="center">{{ __('ui.common.no_items') }}</td></tr>
             @endforelse
-            <tr class="total"><td colspan="6" class="right">Total Estimasi</td><td class="right">Rp {{ number_format((float) $purchaseRequest->total_amount, 2, ',', '.') }}</td></tr>
+            <tr class="total"><td colspan="6" class="right">{{ __('ui.common.estimated_total') }}</td><td class="right">Rp {{ number_format((float) $purchaseRequest->total_amount, 2, ',', '.') }}</td></tr>
         </tbody>
     </table>
 
     @if ($purchaseRequest->notes)
-        <div class="section-title">Catatan</div>
+        <div class="section-title">{{ __('ui.common.notes') }}</div>
         <div class="note">{{ $purchaseRequest->notes }}</div>
     @endif
 

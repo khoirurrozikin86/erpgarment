@@ -17,11 +17,11 @@
             @csrf @if ($permission->exists)
                 @method('PUT')
             @endif
-            <label class="block mb-2 text-sm">Name</label>
+            <label class="block mb-2 text-sm">{{ __('ui.common.name') }}</label>
             <input name="name" value="{{ old('name', $permission->name) }}" class="border rounded px-3 py-2 w-full"
                 required>
             <div class="mt-4">
-                <button class="px-4 py-2 bg-indigo-600 text-white rounded">Save</button>
+                <button class="px-4 py-2 bg-indigo-600 text-white rounded">{{ __('ui.common.save') }}</button>
             </div>
         </form>
     </div>

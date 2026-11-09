@@ -1,27 +1,27 @@
 @extends('layouts.admin')
 
-@section('title', 'Stock Opname')
+@section('title', __( 'ui.common.stock_opname' ))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb"><ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="#">Inventory</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Stock Opname</li>
+        <li class="breadcrumb-item"><a href="#">{{ __('ui.common.inventory') }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ __('ui.common.stock_opname') }}</li>
     </ol></nav>
 @endsection
 
 @section('content')
     <div class="row">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <div><h4 class="page-title mb-1">Stock Opname</h4><span class="text-muted">Bandingkan hasil hitung fisik dengan saldo sistem dan posting selisih stok.</span></div>
+            <div><h4 class="page-title mb-1">{{ __('ui.common.stock_opname') }}</h4><span class="text-muted">{{ __('ui.workflow.stocktake_subtitle') }}</span></div>
             @can('stock-opnames.create')
-                <a href="{{ route('super.stock-opnames.create') }}" class="btn btn-primary btn-sm"><i data-feather="plus" class="icon-sm me-1"></i>Buat Opname</a>
+                <a href="{{ route('super.stock-opnames.create') }}" class="btn btn-primary btn-sm"><i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.common.create_opname') }}</a>
             @endcan
         </div>
         <div class="col-12">
             @include('super.purchasing.date-filter')
             <div class="card"><div class="card-body"><div class="table-responsive">
                 <table id="stock-opnames-table" class="table table-bordered table-hover align-middle w-100">
-                    <thead><tr><th>No</th><th>Nomor Opname</th><th>Waktu Mulai</th><th>Jumlah Barang</th><th>Status</th><th>Dibuat Oleh</th><th>Dihitung Oleh</th><th>Diposting Oleh</th><th>Action</th></tr></thead>
+                    <thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.workflow.stocktake_number') }}</th><th>{{ __('ui.common.start_time') }}</th><th>{{ __('ui.common.item_count') }}</th><th>{{ __('ui.common.status') }}</th><th>{{ __('ui.common.created_by') }}</th><th>{{ __('ui.common.counted_by') }}</th><th>{{ __('ui.common.posted_by') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead>
                 </table>
             </div></div></div>
         </div>
@@ -29,9 +29,9 @@
 
     <div class="modal fade" id="viewStockOpnameModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title" id="viewStockOpnameTitle">Detail Stock Opname</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+            <div class="modal-header"><h5 class="modal-title" id="viewStockOpnameTitle">{{ __('ui.workflow.stocktake_detail') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div>
             <div class="modal-body" id="viewStockOpnameBody"></div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button></div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ __('ui.common.close') }}</button></div>
         </div></div>
     </div>
 @endsection
@@ -72,32 +72,33 @@
             $(document).on('click', '.btn-view-stock-opname', function() {
                 $.get($(this).data('url')).done(function(opname) {
                     const rows = opname.items.map(item => `<tr><td>${safe(item.code)} — ${safe(item.name)}</td><td class="text-end">${item.system_quantity} ${safe(item.unit)}</td><td class="text-end">${item.counted_quantity} ${safe(item.unit)}</td><td class="text-end">${item.difference}</td></tr>`).join('');
-                    $('#viewStockOpnameTitle').text(`Stock Opname ${opname.number}`);
+                    $('#viewStockOpnameTitle').text(`{{ __('ui.workflow.stocktake_name') }} ${opname.number}`);
+                    const statusLabels = { draft: '{{ __('ui.workflow.draft') }}', counting: '{{ __('ui.workflow.counting') }}', posted: '{{ __('ui.workflow.posted') }}' };
                     $('#viewStockOpnameBody').html(`
-                        <dl class="row mb-3"><dt class="col-sm-3">Waktu Mulai</dt><dd class="col-sm-9">${safe(opname.counted_at)}</dd>
-                        <dt class="col-sm-3">Status</dt><dd class="col-sm-9">${{ draft: 'Draft', counting: 'Menunggu Posting', posted: 'Diposting' }[opname.status]}</dd>
-                        <dt class="col-sm-3">Dibuat Oleh</dt><dd class="col-sm-9">${safe(opname.starter)}</dd>
-                        <dt class="col-sm-3">Dihitung Oleh</dt><dd class="col-sm-9">${safe(opname.counter)}</dd>
-                        <dt class="col-sm-3">Diposting Oleh</dt><dd class="col-sm-9">${safe(opname.poster)} (${safe(opname.posted_at)})</dd>
-                        <dt class="col-sm-3">Catatan</dt><dd class="col-sm-9 text-break">${safe(opname.notes)}</dd></dl>
-                        <div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>Barang</th><th class="text-end">Saldo Sistem</th><th class="text-end">Fisik</th><th class="text-end">Selisih</th></tr></thead><tbody>${rows}</tbody></table></div>`);
+                        <dl class="row mb-3"><dt class="col-sm-3">{{ __('ui.common.start_time') }}</dt><dd class="col-sm-9">${safe(opname.counted_at)}</dd>
+                        <dt class="col-sm-3">{{ __('ui.common.status') }}</dt><dd class="col-sm-9">${statusLabels[opname.status]}</dd>
+                        <dt class="col-sm-3">{{ __('ui.common.created_by') }}</dt><dd class="col-sm-9">${safe(opname.starter)}</dd>
+                        <dt class="col-sm-3">{{ __('ui.common.counted_by') }}</dt><dd class="col-sm-9">${safe(opname.counter)}</dd>
+                        <dt class="col-sm-3">{{ __('ui.common.posted_by') }}</dt><dd class="col-sm-9">${safe(opname.poster)} (${safe(opname.posted_at)})</dd>
+                        <dt class="col-sm-3">{{ __('ui.common.notes') }}</dt><dd class="col-sm-9 text-break">${safe(opname.notes)}</dd></dl>
+                        <div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>{{ __('ui.common.item') }}</th><th class="text-end">{{ __('ui.workflow.system_balance') }}</th><th class="text-end">{{ __('ui.workflow.physical_count') }}</th><th class="text-end">{{ __('ui.common.difference') }}</th></tr></thead><tbody>${rows}</tbody></table></div>`);
                     modal.show();
-                }).fail(() => Swal.fire({ icon: 'error', title: 'Gagal', text: 'Detail Stock Opname tidak dapat dimuat.' }));
+                }).fail(() => Swal.fire({ icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: '{{ __('ui.workflow.stocktake_detail_load_failed') }}' }));
             });
 
             $(document).on('click', '.btn-post-stock-opname', function() {
                 const button = $(this);
                 Swal.fire({
                     icon: 'warning', title: `Posting ${button.data('number')}?`,
-                    text: 'Selisih hitung akan langsung memperbarui saldo stok dan tercatat di Stock Card.',
-                    showCancelButton: true, confirmButtonText: 'Posting', cancelButtonText: 'Batal'
+                    text: '{{ __('ui.workflow.post_stock_difference_confirmation') }}',
+                    showCancelButton: true, confirmButtonText: '{{ __('ui.workflow.posting') }}', cancelButtonText: '{{ __('ui.common.cancel') }}'
                 }).then(result => {
                     if (!result.isConfirmed) return;
                     $.ajax({
                         url: button.data('url'), method: 'POST',
                         data: { _token: @json(csrf_token()), _method: 'PUT' },
-                        success: response => { Swal.fire({ icon: 'success', title: 'Berhasil', text: response.message }); table.ajax.reload(null, false); },
-                        error: xhr => Swal.fire({ icon: 'error', title: 'Gagal', text: xhr.responseJSON?.message || 'Stock Opname gagal diposting.' })
+                        success: response => { Swal.fire({ icon: 'success', title: '{{ __('ui.workflow.success') }}', text: response.message }); table.ajax.reload(null, false); },
+                        error: xhr => Swal.fire({ icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: xhr.responseJSON?.message || '{{ __('ui.workflow.stocktake_post_failed') }}' })
                     });
                 });
             });

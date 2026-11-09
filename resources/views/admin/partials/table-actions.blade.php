@@ -1,6 +1,6 @@
 <div class="dropdown text-center">
     <button class="btn btn-sm bg-transparent border-0 p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false"
-        title="Actions">
+        title="{{ __('ui.common.actions') }}">
         <i data-feather="more-vertical" class="icon-sm"></i>
     </button>
 

@@ -6,7 +6,7 @@
     <div class="max-w-4xl mx-auto grid md:grid-cols-2 gap-6">
         {{-- Roles --}}
         <div class="bg-white dark:bg-gray-800 rounded shadow p-4">
-            <h3 class="font-semibold mb-3">Roles</h3>
+            <h3 class="font-semibold mb-3">{{ __('ui.common.roles') }}</h3>
             <form method="POST" action="{{ route('super.users.roles.sync', $user) }}">
                 @csrf @method('PUT')
                 <div class="grid grid-cols-1 gap-2">

@@ -20,6 +20,7 @@ class ProductsExport implements FromQuery, WithHeadings, WithMapping, ShouldAuto
         return [
             'code', 'barcode', 'sku', 'name', 'short_name', 'category_name', 'unit_name',
             'product_type', 'purchase_price', 'sales_price', 'min_stock', 'max_stock',
+            'garment_item_type', 'style_code', 'color', 'size', 'hs_code',
             'reorder_point', 'track_stock', 'taxable', 'tax_rate', 'allow_discount',
             'allow_purchase', 'allow_sales', 'description', 'is_active',
         ];
@@ -31,6 +32,7 @@ class ProductsExport implements FromQuery, WithHeadings, WithMapping, ShouldAuto
             $product->code, $product->barcode, $product->sku, $product->name,
             $product->short_name, $product->category?->name, $product->unit?->name,
             $product->product_type, $product->purchase_price, $product->sales_price,
+            $product->garment_item_type, $product->style_code, $product->color, $product->size, $product->hs_code,
             $product->min_stock, $product->max_stock, $product->reorder_point,
             (int) $product->track_stock, (int) $product->taxable, $product->tax_rate,
             (int) $product->allow_discount, (int) $product->allow_purchase,

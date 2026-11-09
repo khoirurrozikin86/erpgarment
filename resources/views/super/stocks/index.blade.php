@@ -1,28 +1,28 @@
 @extends('layouts.admin')
 
-@section('title', 'Stok Barang')
+@section('title', __( 'ui.common.item' ))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb"><ol class="breadcrumb">
-        <li class="breadcrumb-item"><a href="#">Inventory</a></li>
-        <li class="breadcrumb-item active" aria-current="page">Stok Barang</li>
+        <li class="breadcrumb-item"><a href="#">{{ __('ui.common.inventory') }}</a></li>
+        <li class="breadcrumb-item active" aria-current="page">{{ __('ui.common.item') }}</li>
     </ol></nav>
 @endsection
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <div><h4 class="page-title mb-1">Stok Barang</h4><span class="text-muted">Saldo terkini semua barang yang melacak stok.</span></div>
+        <div><h4 class="page-title mb-1">{{ __('ui.common.item') }}</h4><span class="text-muted">{{ __('ui.workflow.stock_balance_subtitle') }}</span></div>
         <div class="d-flex gap-2">
-            <a href="{{ route('super.stocks.export') }}" class="btn btn-outline-success btn-sm"><i data-feather="download" class="icon-sm me-1"></i>Export Excel</a>
+            <a href="{{ route('super.stocks.export') }}" class="btn btn-outline-success btn-sm"><i data-feather="download" class="icon-sm me-1"></i>{{ __('ui.common.export_excel') }}</a>
             @can('stock-opnames.create')
-                <a href="{{ route('super.stock-opnames.create') }}" class="btn btn-primary btn-sm"><i data-feather="clipboard" class="icon-sm me-1"></i>Buat Stock Opname</a>
+                <a href="{{ route('super.stock-opnames.create') }}" class="btn btn-primary btn-sm"><i data-feather="clipboard" class="icon-sm me-1"></i>{{ __('ui.common.create_stock_count') }}</a>
             @endcan
         </div>
     </div>
 
     <div class="card"><div class="card-body"><div class="table-responsive">
         <table id="stock-balances-table" class="table table-bordered table-hover align-middle w-100">
-            <thead><tr><th>No</th><th>Kode Barang</th><th>Nama Barang</th><th>Kategori</th><th>Satuan</th><th class="text-end">Saldo Stok</th><th class="text-end">Reorder Point</th><th>Status</th></tr></thead>
+            <thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.common.code') }}</th><th>{{ __('ui.common.item_name') }}</th><th>{{ __('ui.common.category') }}</th><th>{{ __('ui.common.unit') }}</th><th class="text-end">{{ __('ui.workflow.stock_balance') }}</th><th class="text-end">{{ __('ui.workflow.reorder_point') }}</th><th>{{ __('ui.common.status') }}</th></tr></thead>
         </table>
     </div></div></div>
 @endsection
@@ -42,7 +42,7 @@
                         render: (data, type, row) => {
                             if (type !== 'display') return data;
                             const code = $('<div>').text(data ?? '').html();
-                            return `<a href="${@json(route('super.stock-card.index'))}?product_id=${encodeURIComponent(row.id)}" title="Lihat mutasi di Stock Card">${code}</a>`;
+                            return `<a href="${@json(route('super.stock-card.index'))}?product_id=${encodeURIComponent(row.id)}" title="{{ __('ui.workflow.stock_card_link') }}">${code}</a>`;
                         }
                     },
                     { data: 'name', name: 'name' },

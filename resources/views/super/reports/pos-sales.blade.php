@@ -1,11 +1,11 @@
 @extends('layouts.admin')
 
-@section('title', 'Laporan Penjualan POS')
+@section('title', 'Laporan Transaksi Kasir')
 
 @section('breadcrumb')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Report</a></li>
+            <li class="breadcrumb-item"><a href="#">{{ __('ui.common.report') }}</a></li>
             <li class="breadcrumb-item active" aria-current="page">Penjualan POS</li>
         </ol>
     </nav>
@@ -22,13 +22,13 @@
     <form method="GET" class="card mb-3">
         <div class="card-body py-3">
             <div class="row align-items-end g-2">
-                <div class="col-sm-6 col-md-2"><label for="from_date" class="form-label mb-1">Dari Tanggal</label><input
+                <div class="col-sm-6 col-md-2"><label for="from_date" class="form-label mb-1">{{ __('ui.common.from_date') }}</label><input
                         id="from_date" name="from_date" type="date" class="form-control form-control-sm"
                         value="{{ $filters['from_date'] }}" required></div>
-                <div class="col-sm-6 col-md-2"><label for="to_date" class="form-label mb-1">Sampai Tanggal</label><input
+                <div class="col-sm-6 col-md-2"><label for="to_date" class="form-label mb-1">{{ __('ui.common.to_date') }}</label><input
                         id="to_date" name="to_date" type="date" class="form-control form-control-sm"
                         value="{{ $filters['to_date'] }}" required></div>
-                <div class="col-sm-6 col-md-2"><label for="cashier_id" class="form-label mb-1">Kasir</label><select
+                <div class="col-sm-6 col-md-2"><label for="cashier_id" class="form-label mb-1">{{ __('ui.common.cashier') }}</label><select
                         id="cashier_id" name="cashier_id" class="form-select form-select-sm">
                         <option value="">Semua kasir</option>
                         @foreach ($cashiers as $cashier)
@@ -45,7 +45,7 @@
                         @endforeach
                     </select>
                 </div>
-                <div class="col-sm-6 col-md-2"><label for="payment_method" class="form-label mb-1">Pembayaran</label><select
+                <div class="col-sm-6 col-md-2"><label for="payment_method" class="form-label mb-1">{{ __('ui.common.payment') }}</label><select
                         id="payment_method" name="payment_method" class="form-select form-select-sm">
                         <option value="">Semua metode</option>
                         @foreach ($paymentMethods as $value => $label)
@@ -53,7 +53,7 @@
                         @endforeach
                     </select></div>
                 <div class="col-sm-6 col-md-2 d-flex gap-2"><button class="btn btn-sm btn-primary" type="submit"><i
-                            data-feather="filter" class="icon-sm me-1"></i>Tampilkan</button><button
+                            data-feather="filter" class="icon-sm me-1"></i>{{ __('ui.common.show') }}</button><button
                         class="btn btn-sm btn-outline-success" type="submit"
                         formaction="{{ route('super.reports.pos-sales.export') }}"><i data-feather="download"
                             class="icon-sm me-1"></i>CSV</button></div>
@@ -81,7 +81,7 @@
         <div class="col-sm-6 col-xl-3">
             <div class="card h-100">
                 <div class="card-body">
-                    <div class="text-muted small">Diskon</div>
+                    <div class="text-muted small">{{ __('ui.common.discount') }}</div>
                     <div class="fs-5 fw-semibold text-danger">Rp {{ number_format($summary['discount'], 2, ',', '.') }}
                     </div>
                 </div>
@@ -90,7 +90,7 @@
         <div class="col-sm-6 col-xl-3">
             <div class="card h-100">
                 <div class="card-body">
-                    <div class="text-muted small">Pajak</div>
+                    <div class="text-muted small">{{ __('ui.common.tax') }}</div>
                     <div class="fs-5 fw-semibold">Rp {{ number_format($summary['tax'], 2, ',', '.') }}</div>
                 </div>
             </div>
@@ -98,7 +98,7 @@
         <div class="col-sm-6 col-xl-3">
             <div class="card h-100">
                 <div class="card-body">
-                    <div class="text-muted small">Uang Diterima</div>
+                    <div class="text-muted small">{{ __('ui.common.received_amount') }}</div>
                     <div class="fs-5 fw-semibold text-success">Rp {{ number_format($summary['paid'], 2, ',', '.') }}</div>
                 </div>
             </div>
@@ -106,7 +106,7 @@
         <div class="col-sm-6 col-xl-3">
             <div class="card h-100">
                 <div class="card-body">
-                    <div class="text-muted small">Kembalian</div>
+                    <div class="text-muted small">{{ __('ui.common.change_due') }}</div>
                     <div class="fs-5 fw-semibold">Rp {{ number_format($summary['change'], 2, ',', '.') }}</div>
                 </div>
             </div>
@@ -137,22 +137,22 @@
                 <table class="table table-bordered table-hover align-middle mb-0">
                     <thead>
                         <tr>
-                            <th>No</th>
+                            <th>{{ __('ui.common.no') }}</th>
                             <th>Nomor Transaksi</th>
-                            <th>Tanggal</th>
-                            <th>Kasir</th>
+                            <th>{{ __('ui.common.date') }}</th>
+                            <th>{{ __('ui.common.cashier') }}</th>
                             <th>Sesi</th>
-                            <th>Customer</th>
-                            <th>Barang</th>
-                            <th class="text-end">Subtotal</th>
-                            <th class="text-end">Diskon</th>
-                            <th class="text-end">Pajak</th>
-                            <th class="text-end">Total</th>
-                            <th class="text-end">Uang Diterima</th>
-                            <th class="text-end">Kembalian</th>
-                            <th>Pembayaran</th>
-                            <th>Status</th>
-                            <th>Aksi</th>
+                            <th>{{ __('ui.common.customer') }}</th>
+                            <th>{{ __('ui.common.item') }}</th>
+                            <th class="text-end">{{ __('ui.common.subtotal') }}</th>
+                            <th class="text-end">{{ __('ui.common.discount') }}</th>
+                            <th class="text-end">{{ __('ui.common.tax') }}</th>
+                            <th class="text-end">{{ __('ui.common.total') }}</th>
+                            <th class="text-end">{{ __('ui.common.received_amount') }}</th>
+                            <th class="text-end">{{ __('ui.common.change_due') }}</th>
+                            <th>{{ __('ui.common.payment') }}</th>
+                            <th>{{ __('ui.common.status') }}</th>
+                            <th>{{ __('ui.common.actions') }}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -171,11 +171,11 @@
                                             <table class="table table-sm table-bordered mb-0">
                                                 <thead>
                                                     <tr>
-                                                        <th>Barang</th>
+                                                        <th>{{ __('ui.common.item') }}</th>
                                                         <th class="text-end">Qty</th>
-                                                        <th class="text-end">Harga</th>
-                                                        <th class="text-end">Diskon</th>
-                                                        <th class="text-end">Pajak</th>
+                                                        <th class="text-end">{{ __('ui.common.price') }}</th>
+                                                        <th class="text-end">{{ __('ui.common.discount') }}</th>
+                                                        <th class="text-end">{{ __('ui.common.tax') }}</th>
                                                         <th class="text-end">Total Baris</th>
                                                     </tr>
                                                 </thead>

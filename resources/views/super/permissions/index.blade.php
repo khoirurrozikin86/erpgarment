@@ -1,12 +1,12 @@
 {{-- resources/views/super/permissions/index.blade.php --}}
 @extends('layouts.admin')
-@section('title', 'Permissions')
+@section('title', __( 'ui.common.permissions' ))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Access</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Permissions</li>
+            <li class="breadcrumb-item"><a href="#">{{ __('ui.common.access') }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ __('ui.common.permissions') }}</li>
         </ol>
     </nav>
 @endsection
@@ -17,8 +17,8 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex align-items-center justify-content-between mb-3">
-                        <h6 class="card-title mb-0">Permissions</h6>
-                        <a href="javascript:void(0)" id="btnNewPermission" class="btn btn-primary btn-sm">+ New</a>
+                        <h6 class="card-title mb-0">{{ __('ui.common.permissions') }}</h6>
+                        <a href="javascript:void(0)" id="btnNewPermission" class="btn btn-primary btn-sm">{{ __('ui.common.new') }}</a>
                     </div>
 
                     @if (session('ok'))
@@ -32,10 +32,10 @@
                             <thead>
                                 <tr>
                                     <th>Id</th>
-                                    <th>Name</th>
+                                    <th>{{ __('ui.common.name') }}</th>
                                     <th>Group Name</th>
-                                    <th>Roles</th>
-                                    <th>Actions</th>
+                                    <th>{{ __('ui.common.roles') }}</th>
+                                    <th>{{ __('ui.common.actions') }}</th>
                                 </tr>
                             </thead>
                             {{-- tbody diisi DataTables --}}
@@ -59,7 +59,7 @@
 
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="permName" class="form-label">Name <span class="text-danger">*</span></label>
+                        <label for="permName" class="form-label">{{ __('ui.common.name') }}<span class="text-danger">*</span></label>
                         <input id="permName" name="name" type="text" class="form-control" required
                             placeholder="e.g. users.view">
                         <div class="invalid-feedback" id="permNameErr"></div>
@@ -77,8 +77,8 @@
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary btn-sm"
-                        data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="btnSavePermission" class="btn btn-primary btn-sm">Save</button>
+                        data-bs-dismiss="modal">{{ __('ui.common.cancel') }}</button>
+                    <button type="submit" id="btnSavePermission" class="btn btn-primary btn-sm">{{ __('ui.common.save') }}</button>
                 </div>
             </form>
         </div>
@@ -256,7 +256,7 @@
                         toastErr(xhr.responseJSON?.message);
                     })
                     .always(function() {
-                        $btnSave.prop('disabled', false).text('Save');
+                        $btnSave.prop('disabled', false).text('{{ __('ui.common.save') }}');
                     });
             });
 
@@ -274,7 +274,7 @@
                     text: ask,
                     showCancelButton: true,
                     confirmButtonText: 'Yes, delete it',
-                    cancelButtonText: 'Cancel',
+                    cancelButtonText: '{{ __('ui.common.cancel') }}',
                     reverseButtons: true
                 }).then(function(result) {
                     if (!result.isConfirmed) return;

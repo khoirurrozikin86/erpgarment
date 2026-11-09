@@ -118,18 +118,29 @@ class ProductController extends Controller
 
             ->addColumn('product_type_label', function (Product $product) {
                 return match ($product->product_type) {
-                    'stock' => '<span class="badge bg-primary">Stock</span>',
-                    'service' => '<span class="badge bg-info">Service</span>',
+                    'stock' => '<span class="badge bg-primary">' . __('ui.workflow.stock') . '</span>',
+                    'service' => '<span class="badge bg-info">' . __('ui.workflow.service') . '</span>',
                     default => '<span class="badge bg-secondary">'
                         . e($product->product_type)
                         . '</span>',
                 };
             })
 
+            ->addColumn('garment_item_type_label', function (Product $product) {
+                return match ($product->garment_item_type) {
+                    'fabric' => __('ui.workflow.fabric'),
+                    'accessory' => __('ui.workflow.accessory'),
+                    'work_in_process' => 'WIP',
+                    'finished_good' => __('ui.workflow.finished_good'),
+                    'packaging' => __('ui.workflow.packaging'),
+                    default => __('ui.common.general'),
+                };
+            })
+
             ->addColumn('status', function (Product $product) {
                 return $product->is_active
-                    ? '<span class="badge bg-success">Aktif</span>'
-                    : '<span class="badge bg-secondary">Nonaktif</span>';
+                    ? '<span class="badge bg-success">' . __('ui.common.active') . '</span>'
+                    : '<span class="badge bg-secondary">' . __('ui.common.inactive') . '</span>';
             })
 
             ->addColumn('image', function (Product $product) {
@@ -177,7 +188,7 @@ class ProductController extends Controller
                 $actions = [
                     [
                         'type' => 'edit',
-                        'label' => 'Edit',
+                        'label' => __('ui.common.edit'),
                         'icon' => 'edit-2',
                         'update_url' => route(
                             'super.products.update',
@@ -193,6 +204,11 @@ class ProductController extends Controller
                             'category_id' => $product->category_id,
                             'unit_id' => $product->unit_id,
                             'product_type' => $product->product_type,
+                            'garment_item_type' => $product->garment_item_type,
+                            'style_code' => $product->style_code,
+                            'color' => $product->color,
+                            'size' => $product->size,
+                            'hs_code' => $product->hs_code,
                             'purchase_price' => $product->purchase_price,
                             'sales_price' => $product->sales_price,
                             'min_stock' => $product->min_stock,
@@ -221,13 +237,13 @@ class ProductController extends Controller
                     ],
                     [
                         'type' => 'delete',
-                        'label' => 'Delete',
+                        'label' => __('ui.common.delete'),
                         'icon' => 'trash-2',
                         'url' => route(
                             'super.products.destroy',
                             $product->getRouteKey()
                         ),
-                        'confirm' => "Hapus Barang {$product->name}?",
+                        'confirm' => __('ui.workflow.product_delete_confirmation', ['name' => $product->name]),
                         'payload' => [
                             'id' => $product->id,
                             'name' => $product->name,
@@ -245,6 +261,7 @@ class ProductController extends Controller
             ->rawColumns([
                 'image',
                 'product_type_label',
+                'garment_item_type_label',
                 'status',
                 'actions',
             ])
@@ -295,7 +312,7 @@ class ProductController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Barang berhasil ditambahkan.',
+                'message' => __('ui.workflow.product_added_message'),
                 'data' => $product,
             ]);
         }
@@ -304,7 +321,7 @@ class ProductController extends Controller
             ->route('super.products.index')
             ->with(
                 'success',
-                'Barang berhasil ditambahkan.'
+                __('ui.workflow.product_added_message')
             );
     }
 
@@ -369,7 +386,7 @@ class ProductController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Barang berhasil diperbarui.',
+                'message' => __('ui.workflow.product_updated_message'),
                 'data' => $product,
             ]);
         }
@@ -378,7 +395,7 @@ class ProductController extends Controller
             ->route('super.products.index')
             ->with(
                 'success',
-                'Barang berhasil diperbarui.'
+                __('ui.workflow.product_updated_message')
             );
     }
 
@@ -405,7 +422,7 @@ class ProductController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Barang berhasil dihapus.',
+                'message' => __('ui.workflow.product_delete_success'),
             ]);
         }
 
@@ -413,7 +430,7 @@ class ProductController extends Controller
             ->route('super.products.index')
             ->with(
                 'success',
-                'Barang berhasil dihapus.'
+                __('ui.workflow.product_delete_success')
             );
     }
 }

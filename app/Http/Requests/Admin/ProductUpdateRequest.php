@@ -71,6 +71,12 @@ class ProductUpdateRequest extends FormRequest
                 Rule::in(['stock', 'service']),
             ],
 
+            'garment_item_type' => ['sometimes', 'required', Rule::in(['general', 'fabric', 'accessory', 'work_in_process', 'finished_good', 'packaging'])],
+            'style_code' => ['nullable', 'string', 'max:80'],
+            'color' => ['nullable', 'string', 'max:80'],
+            'size' => ['nullable', 'string', 'max:40'],
+            'hs_code' => ['nullable', 'string', 'max:30'],
+
             'purchase_price' => [
                 'nullable',
                 'numeric',
@@ -193,6 +199,8 @@ class ProductUpdateRequest extends FormRequest
             'max_stock' => 'maximum stok',
             'reorder_point' => 'reorder point',
             'tax_rate' => 'tax rate',
+            'images' => __('ui.workflow.image_field'),
+            'images.*' => __('ui.workflow.image_field'),
         ];
     }
 }

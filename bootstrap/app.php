@@ -5,6 +5,7 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Spatie\Permission\Middleware\{RoleMiddleware, PermissionMiddleware, RoleOrPermissionMiddleware};
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\SetCompanyContext;
+use App\Http\Middleware\SetLocale;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -22,6 +23,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
         // Set active company untuk seluruh request web
         $middleware->web(append: [
+            SetLocale::class,
             SetCompanyContext::class,
         ]);
 

@@ -161,7 +161,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="7" class="text-muted">Belum ada pembayaran.</td>
+                                    <td colspan="7" class="text-muted">{{ __('ui.common.no_payments') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>

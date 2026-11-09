@@ -46,25 +46,25 @@ class PurchaseOrderController extends Controller
 
         return DataTables::eloquent($query->builder($filters['from_date'] ?? null, $filters['to_date'] ?? null))
             ->addColumn('purchase_request_number', fn (PurchaseOrder $order) => $order->purchaseRequest?->number ?? '—')
-            ->addColumn('supplier_name', fn (PurchaseOrder $order) => $order->supplier?->name ?? 'Supplier dihapus')
-            ->addColumn('creator_name', fn (PurchaseOrder $order) => $order->creator?->name ?? 'User dihapus')
+            ->addColumn('supplier_name', fn (PurchaseOrder $order) => $order->supplier?->name ?? __('ui.workflow.deleted_supplier'))
+            ->addColumn('creator_name', fn (PurchaseOrder $order) => $order->creator?->name ?? __('ui.workflow.deleted_user'))
             ->addColumn('status_label', fn (PurchaseOrder $order) => match ($order->status) {
-                'issued' => '<span class="badge bg-primary">Diterbitkan</span>',
-                'partially_received' => '<span class="badge bg-info text-dark">Diterima Sebagian</span>',
-                'received' => '<span class="badge bg-success">Selesai Diterima</span>',
-                'cancelled' => '<span class="badge bg-danger">Dibatalkan</span>',
-                default => '<span class="badge bg-secondary">Draft</span>',
+                'issued' => '<span class="badge bg-primary">' . __('ui.workflow.issued') . '</span>',
+                'partially_received' => '<span class="badge bg-info text-dark">' . __('ui.workflow.receive_partial') . '</span>',
+                'received' => '<span class="badge bg-success">' . __('ui.workflow.received_complete') . '</span>',
+                'cancelled' => '<span class="badge bg-danger">' . __('ui.common.cancelled') . '</span>',
+                default => '<span class="badge bg-secondary">' . __('ui.workflow.draft') . '</span>',
             })
             ->addColumn('actions', function (PurchaseOrder $order) {
-                $buttons = '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-purchase-order" data-url="' . e(route('super.purchase-orders.show', $order)) . '" title="Lihat detail"><i data-feather="eye"></i></button>';
-                $buttons .= ' <button type="button" class="btn btn-sm btn-outline-dark btn-email-history" data-url="' . e(route('super.purchase-orders.emails', $order)) . '" title="Riwayat email"><i data-feather="clock"></i></button>';
-                $buttons .= ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.purchase-orders.pdf', $order)) . '" target="_blank" rel="noopener" title="Lihat PDF"><i data-feather="file-text"></i></a>';
-                $buttons .= ' <a class="btn btn-sm btn-outline-secondary" href="' . e(route('super.purchase-orders.pdf.download', $order)) . '" title="Unduh PDF"><i data-feather="download"></i></a>';
+                $buttons = '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-purchase-order" data-url="' . e(route('super.purchase-orders.show', $order)) . '" title="' . e(__('ui.workflow.view_detail')) . '"><i data-feather="eye"></i></button>';
+                $buttons .= ' <button type="button" class="btn btn-sm btn-outline-dark btn-email-history" data-url="' . e(route('super.purchase-orders.emails', $order)) . '" title="' . e(__('ui.workflow.po_email_history')) . '"><i data-feather="clock"></i></button>';
+                $buttons .= ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.purchase-orders.pdf', $order)) . '" target="_blank" rel="noopener" title="' . e(__('ui.workflow.view_pdf')) . '"><i data-feather="file-text"></i></a>';
+                $buttons .= ' <a class="btn btn-sm btn-outline-secondary" href="' . e(route('super.purchase-orders.pdf.download', $order)) . '" title="' . e(__('ui.workflow.download_pdf')) . '"><i data-feather="download"></i></a>';
                 if ($order->status === 'draft' && auth()->user()->can('purchase-orders.issue')) {
-                    $buttons .= ' <button type="button" class="btn btn-sm btn-success btn-issue-purchase-order" data-url="' . e(route('super.purchase-orders.issue', $order)) . '" title="Terbitkan PO"><i data-feather="send"></i></button>';
+                    $buttons .= ' <button type="button" class="btn btn-sm btn-success btn-issue-purchase-order" data-url="' . e(route('super.purchase-orders.issue', $order)) . '" title="' . e(__('ui.workflow.issue_po')) . '"><i data-feather="send"></i></button>';
                 }
                 if (in_array($order->status, ['issued', 'partially_received', 'received'], true) && auth()->user()->can('purchase-orders.email')) {
-                    $buttons .= ' <button type="button" class="btn btn-sm btn-outline-primary btn-email-purchase-order" data-url="' . e(route('super.purchase-orders.email', $order)) . '" data-email="' . e($order->supplier?->email ?? '') . '" title="Kirim PO melalui email"><i data-feather="mail"></i></button>';
+                    $buttons .= ' <button type="button" class="btn btn-sm btn-outline-primary btn-email-purchase-order" data-url="' . e(route('super.purchase-orders.email', $order)) . '" data-email="' . e($order->supplier?->email ?? '') . '" title="' . e(__('ui.workflow.email_po')) . '"><i data-feather="mail"></i></button>';
                 }
                 return $buttons;
             })
@@ -75,9 +75,9 @@ class PurchaseOrderController extends Controller
     public function eligible(PurchaseOrderTableQuery $query)
     {
         return DataTables::eloquent($query->eligiblePurchaseRequests())
-            ->addColumn('supplier_name', fn (PurchaseRequest $request) => $request->supplier?->name ?? 'Supplier dihapus')
-            ->addColumn('requester_name', fn (PurchaseRequest $request) => $request->requester?->name ?? 'User dihapus')
-            ->addColumn('actions', fn (PurchaseRequest $request) => '<button type="button" class="btn btn-sm btn-primary btn-select-purchase-request" data-id="' . (int) $request->id . '" data-number="' . e($request->number) . '"><i data-feather="check" class="icon-sm me-1"></i>Pilih</button>')
+            ->addColumn('supplier_name', fn (PurchaseRequest $request) => $request->supplier?->name ?? __('ui.workflow.deleted_supplier'))
+            ->addColumn('requester_name', fn (PurchaseRequest $request) => $request->requester?->name ?? __('ui.workflow.deleted_user'))
+            ->addColumn('actions', fn (PurchaseRequest $request) => '<button type="button" class="btn btn-sm btn-primary btn-select-purchase-request" data-id="' . (int) $request->id . '" data-number="' . e($request->number) . '"><i data-feather="check" class="icon-sm me-1"></i>' . e(__('ui.workflow.select_action')) . '</button>')
             ->rawColumns(['actions'])
             ->toJson();
     }
@@ -88,10 +88,10 @@ class PurchaseOrderController extends Controller
         return response()->json([
             'id' => $purchaseRequest->id,
             'number' => $purchaseRequest->number,
-            'supplier' => $purchaseRequest->supplier?->name ?? 'Supplier dihapus',
+            'supplier' => $purchaseRequest->supplier?->name ?? __('ui.workflow.deleted_supplier'),
             'items' => $purchaseRequest->items->map(fn ($item) => [
                 'code' => $item->product?->code ?? '—',
-                'name' => $item->product?->name ?? 'Barang dihapus',
+                'name' => $item->product?->name ?? __('ui.workflow.deleted_item'),
                 'quantity' => $item->quantity,
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
                 'unit_price' => $item->unit_price,
@@ -109,7 +109,7 @@ class PurchaseOrderController extends Controller
             'notes' => ['nullable', 'string', 'max:5000'],
         ]);
         $order = $service->create($data, (int) $request->user()->id);
-        return response()->json(['message' => 'Purchase Order berhasil dibuat sebagai draft.', 'id' => $order->id], 201);
+        return response()->json(['message' => __('ui.workflow.purchase_order_draft_message'), 'id' => $order->id], 201);
     }
 
     public function show(PurchaseOrder $purchaseOrder, PurchaseOrderTableQuery $query): JsonResponse
@@ -142,7 +142,7 @@ class PurchaseOrderController extends Controller
     public function issue(PurchaseOrder $purchaseOrder, PurchaseOrderService $service): JsonResponse
     {
         $service->issue($purchaseOrder);
-        return response()->json(['message' => 'Purchase Order berhasil diterbitkan.']);
+        return response()->json(['message' => __('ui.workflow.purchase_order_issued_message')]);
     }
 
     public function email(Request $request, PurchaseOrder $purchaseOrder, PurchaseOrderService $service): JsonResponse
@@ -157,11 +157,11 @@ class PurchaseOrderController extends Controller
             report($exception);
 
             return response()->json([
-                'message' => 'Email gagal dikirim. Periksa Email Setting dan log aplikasi.',
+                'message' => __('ui.workflow.purchase_order_email_failed_message'),
             ], 500);
         }
 
-        return response()->json(['message' => "Purchase Order {$purchaseOrder->number} berhasil dikirim ke {$data['email']}."]);
+        return response()->json(['message' => __('ui.workflow.purchase_order_email_sent_message', ['number' => $purchaseOrder->number, 'email' => $data['email']])]);
     }
 
     public function emailHistory(PurchaseOrder $purchaseOrder): JsonResponse

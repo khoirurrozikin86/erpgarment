@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
 <head>
     <meta charset="UTF-8">
@@ -9,7 +9,7 @@
     <meta name="author" content="NobleUI">
     <meta name="keywords" content="nobleui, bootstrap, admin, dashboard, template, responsive, ui">
 
-    <title>Login - {{ config('app.name') }}</title>
+    <title>{{ __('ui.auth.login') }} — {{ config('app.name') }}</title>
 
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -60,9 +60,8 @@
                                         <a href="{{ url('/') }}" class="noble-ui-logo d-block mb-2">
                                             {{ config('app.name') }}
                                         </a>
-                                        <h5 class="text-muted fw-normal mb-4">
-                                            Welcome back! Log in to your account.
-                                        </h5>
+                                        <div class="d-flex justify-content-end mb-3">@include('components.language-switcher')</div>
+                                        <h5 class="text-muted fw-normal mb-4">{{ __('ui.auth.welcome_back') }}</h5>
 
                                         {{-- Session Status --}}
                                         @if (session('status'))
@@ -74,11 +73,11 @@
                                             @csrf
 
                                             <div class="mb-3">
-                                                <label for="email" class="form-label">Email address</label>
+                                                <label for="email" class="form-label">{{ __('ui.auth.email') }}</label>
                                                 <input type="email"
                                                     class="form-control @error('email') is-invalid @enderror"
                                                     id="email" name="email" value="{{ old('email') }}"
-                                                    placeholder="Email" required autofocus autocomplete="username">
+                                                    placeholder="{{ __('ui.auth.email') }}" required autofocus autocomplete="username">
 
                                                 @error('email')
                                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -86,11 +85,11 @@
                                             </div>
 
                                             <div class="mb-3">
-                                                <label for="password" class="form-label">Password</label>
+                                                <label for="password" class="form-label">{{ __('ui.auth.password') }}</label>
                                                 <input type="password"
                                                     class="form-control @error('password') is-invalid @enderror"
                                                     id="password" name="password" autocomplete="current-password"
-                                                    placeholder="Password" required>
+                                                    placeholder="{{ __('ui.auth.password') }}" required>
 
                                                 @error('password')
                                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -107,7 +106,7 @@
 
                                             <div class="d-flex align-items-center justify-content-between">
                                                 <button type="submit" class="btn btn-primary text-white">
-                                                    Log in
+                                                    {{ __('ui.auth.login') }}
                                                 </button>
 
                                                 {{-- @if (Route::has('password.request'))

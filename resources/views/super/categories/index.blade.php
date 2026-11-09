@@ -1,17 +1,17 @@
 @extends('layouts.admin')
 
-@section('title', 'category')
+@section('title', __('ui.master.category_title'))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
 
             <li class="breadcrumb-item">
-                <a href="#">Master</a>
+                <a href="#">{{ __('ui.common.master') }}</a>
             </li>
 
             <li class="breadcrumb-item active" aria-current="page">
-                Category
+                {{ __('ui.master.category_title') }}
             </li>
 
         </ol>
@@ -30,29 +30,28 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <h4 class="page-title mb-1">
-                    Category
+                    {{ __('ui.master.category_title') }}
                 </h4>
 
                 <span class="text-muted">
-                    Master data kategori barang
+                    {{ __('ui.master.category_subtitle') }}
                 </span>
             </div>
 
             <div class="d-flex gap-2">
                 @can('categories.view')
                     <a href="{{ route('super.categories.template') }}" class="btn btn-outline-secondary">
-                        <i data-feather="file-text" class="icon-sm me-1"></i> Template
+                        <i data-feather="file-text" class="icon-sm me-1"></i> {{ __('ui.master.template') }}
                     </a>
                     <a href="{{ route('super.categories.export') }}" class="btn btn-success">
-                        <i data-feather="download" class="icon-sm me-1"></i> Export Excel
-                    </a>
+                        <i data-feather="download" class="icon-sm me-1"></i>{{ __('ui.common.export_excel') }}</a>
                 @endcan
                 @can('categories.create')
                     <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#categoryImportModal">
-                        <i data-feather="upload" class="icon-sm me-1"></i> Import Excel
+                        <i data-feather="upload" class="icon-sm me-1"></i> {{ __('ui.master.import_excel') }}
                     </button>
                     <button type="button" class="btn btn-primary" id="btn-add-category">
-                        <i data-feather="plus" class="icon-sm me-1"></i> Tambah Kategori
+                        <i data-feather="plus" class="icon-sm me-1"></i> {{ __('ui.master.add_category') }}
                     </button>
                 @endcan
             </div>
@@ -78,29 +77,21 @@
 
                             <tr>
 
-                                <th width="5%">
-                                    No
-                                </th>
+                                <th width="5%">{{ __('ui.common.no') }}</th>
 
                                 <th width="15%">
-                                    Code
+                                    {{ __('ui.master.code') }}
                                 </th>
+
+                                <th>{{ __('ui.common.name') }}</th>
 
                                 <th>
-                                    Nama
+                                    {{ __('ui.master.description') }}
                                 </th>
 
-                                <th>
-                                    Deskripsi
-                                </th>
+                                <th width="10%">{{ __('ui.common.status') }}</th>
 
-                                <th width="10%">
-                                    Status
-                                </th>
-
-                                <th width="12%">
-                                    Action
-                                </th>
+                                <th width="12%">{{ __('ui.common.action') }}</th>
 
                             </tr>
 
@@ -122,9 +113,9 @@
                 document.addEventListener('DOMContentLoaded', function() {
                     Swal.fire({
                         icon: 'success',
-                        title: 'Berhasil',
+                        title: '{{ __('ui.master.success') }}',
                         text: @json(session('category_import_success')),
-                        confirmButtonText: 'OK'
+                        confirmButtonText: '{{ __('ui.master.ok') }}'
                     });
                 });
             </script>
@@ -136,18 +127,18 @@
                 <form action="{{ route('super.categories.import') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     <div class="modal-header"><div>
-                        <h5 class="modal-title">Import Kategori</h5>
-                        <small class="text-muted">Isi file menggunakan template kategori.</small>
-                    </div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button></div>
+                        <h5 class="modal-title">{{ __('ui.master.import_category') }}</h5>
+                        <small class="text-muted">{{ __('ui.master.import_template_help', ['name' => __('ui.master.category')]) }}</small>
+                    </div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div>
                     <div class="modal-body">
                         @error('file')<div class="alert alert-danger">{{ $message }}</div>@enderror
-                        <label for="category-import-file" class="form-label">File Excel atau CSV</label>
+                        <label for="category-import-file" class="form-label">{{ __('ui.common.file_excel_csv') }}</label>
                         <input type="file" id="category-import-file" name="file" class="form-control" accept=".xlsx,.xls,.csv" required>
-                        <div class="form-text">Format XLSX, XLS, atau CSV. Maksimal 10 MB. Kode kategori harus unik.</div>
+                        <div class="form-text">{{ __('ui.master.import_file_help', ['name' => __('ui.master.category')]) }}</div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                        <button type="submit" class="btn btn-primary"><i data-feather="upload" class="icon-sm me-1"></i> Import Kategori</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('ui.common.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary"><i data-feather="upload" class="icon-sm me-1"></i> {{ __('ui.master.import_category') }}</button>
                     </div>
                 </form>
             </div></div>
@@ -169,7 +160,7 @@
 
                             <h5 class="modal-title" id="category-modal-title">
 
-                                Tambah Kategori
+                                {{ __('ui.master.add_category') }}
 
                             </h5>
 
@@ -194,7 +185,7 @@
 
                                 <label class="form-label" for="category-code">
 
-                                    Code
+                                    {{ __('ui.master.code') }}
 
                                     <span class="text-danger">
                                         *
@@ -215,11 +206,7 @@
 
                             <div class="mb-3">
 
-                                <label class="form-label" for="category-name">
-
-                                    Nama
-
-                                    <span class="text-danger">
+                                <label class="form-label" for="category-name">{{ __('ui.common.name') }}<span class="text-danger">
                                         *
                                     </span>
 
@@ -240,7 +227,7 @@
 
                                 <label class="form-label" for="category-description">
 
-                                    Deskripsi
+                                    {{ __('ui.master.description') }}
 
                                 </label>
 
@@ -261,7 +248,7 @@
 
                                 <label class="form-check-label" for="category-active">
 
-                                    Active
+                                    {{ __('ui.master.status_active') }}
 
                                 </label>
 
@@ -274,20 +261,12 @@
 
                         <div class="modal-footer">
 
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-
-                                Batal
-
-                            </button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('ui.common.cancel') }}</button>
 
                             <button type="submit" class="btn btn-primary" id="btn-save-category">
 
                                 <i data-feather="save" class="me-1">
-                                </i>
-
-                                Simpan
-
-                            </button>
+                                </i>{{ __('ui.common.save') }}</button>
 
                         </div>
 
@@ -441,7 +420,7 @@
 
                     icon: 'error',
 
-                    title: 'Gagal',
+                    title: '{{ __('ui.master.failure') }}',
 
                     text: message ||
                         'Something went wrong'
@@ -497,7 +476,7 @@
                     .prop('checked', true);
 
                 $('#category-modal-title')
-                    .text('Tambah Kategori');
+                    .text('{{ __('ui.master.add_category') }}');
 
                 clearErrors();
 
@@ -609,12 +588,12 @@
                             render: function(data) {
 
                                 if (
-                                    data === 'Active'
+                                    data === @json(__('ui.master.status_active'))
                                 ) {
 
                                     return `
                                     <span class="badge bg-success">
-                                        Active
+                                        {{ __('ui.master.status_active') }}
                                     </span>
                                 `;
 
@@ -622,7 +601,7 @@
 
                                 return `
                                 <span class="badge bg-secondary">
-                                    Not Active
+                                    {{ __('ui.master.status_inactive') }}
                                 </span>
                             `;
 
@@ -654,25 +633,25 @@
 
                     language: {
 
-                        processing: 'Memproses...',
+                        processing: '{{ __('ui.common.data_processing') }}',
 
-                        search: 'Cari:',
+                        search: '{{ __('ui.common.search') }}:',
 
-                        lengthMenu: 'Tampilkan _MENU_ data',
+                        lengthMenu: '{{ __('ui.common.show_entries') }}',
 
-                        info: 'Menampilkan _START_ sampai _END_ dari _TOTAL_ data',
+                        info: '{{ __('ui.common.showing_entries') }}',
 
-                        infoEmpty: 'Tidak ada data',
+                        infoEmpty: '{{ __('ui.common.no_data') }}',
 
-                        zeroRecords: 'Data tidak ditemukan',
+                        zeroRecords: '{{ __('ui.common.no_matching_data') }}',
 
-                        emptyTable: 'Belum ada kategori',
+                        emptyTable: '{{ __('ui.common.empty_table') }}',
 
                         paginate: {
 
-                            first: 'Pertama',
+                            first: '{{ __('ui.common.first') }}',
 
-                            last: 'Terakhir',
+                            last: '{{ __('ui.common.last') }}',
 
                             next: '›',
 
@@ -713,7 +692,7 @@
                         );
 
                     $('#category-modal-title')
-                        .text('Tambah Kategori');
+                        .text('{{ __('ui.master.add_category') }}');
 
                     categoryModal.show();
 
@@ -822,7 +801,7 @@
 
 
                     $('#category-modal-title')
-                        .text('Edit Kategori');
+                        .text('{{ __('ui.common.edit') }} {{ __('ui.common.category') }}');
 
 
                     categoryModal.show();
@@ -896,7 +875,7 @@
                             true
                         )
                         .html(
-                            '<span class="spinner-border spinner-border-sm me-1"></span> Menyimpan...'
+                            '<span class="spinner-border spinner-border-sm me-1"></span> {{ __('ui.workflow.saving') }}'
                         );
 
 
@@ -924,8 +903,8 @@
                                 response.message ||
                                 (
                                     mode === 'edit' ?
-                                    'Kategori berhasil diperbarui.' :
-                                    'Kategori berhasil dibuat.'
+                                    '{{ __('ui.master.updated', ['type' => __('ui.common.category')]) }}' :
+                                    '{{ __('ui.master.created', ['type' => __('ui.common.category')]) }}'
                                 )
                             );
 
@@ -1001,7 +980,7 @@
 
                             toastError(
                                 xhr.responseJSON?.message ||
-                                'Gagal menyimpan kategori.'
+                                '{{ __('ui.master.category_save_failed') }}'
                             );
 
                         },
@@ -1045,13 +1024,13 @@
 
                     const confirmMessage =
                         button.data('confirm') ||
-                        'Data kategori akan dihapus.';
+                        '{{ __('ui.master.category_delete_fallback') }}';
 
 
                     if (!url) {
 
                         toastError(
-                            'Delete URL tidak ditemukan.'
+                            '{{ __('ui.master.category_delete_url_missing') }}'
                         );
 
                         return;
@@ -1061,7 +1040,7 @@
 
                     Swal.fire({
 
-                        title: 'Hapus kategori?',
+                        title: '{{ __('ui.master.delete_category_title') }}',
 
                         text: confirmMessage,
 
@@ -1069,9 +1048,9 @@
 
                         showCancelButton: true,
 
-                        confirmButtonText: 'Ya, Hapus',
+                        confirmButtonText: '{{ __('ui.master.confirm_delete') }}',
 
-                        cancelButtonText: 'Batal',
+                        cancelButtonText: '{{ __('ui.common.cancel') }}',
 
                         reverseButtons: true
 
@@ -1113,7 +1092,7 @@
 
                                     toastOk(
                                         response.message ||
-                                        'Kategori berhasil dihapus.'
+                                        '{{ __('ui.master.deleted', ['type' => __('ui.common.category')]) }}'
                                     );
 
                                 },
@@ -1123,7 +1102,7 @@
 
                                     toastError(
                                         xhr.responseJSON?.message ||
-                                        'Kategori gagal dihapus.'
+                                        '{{ __('ui.master.record_delete_failed') }}'
                                     );
 
                                 }

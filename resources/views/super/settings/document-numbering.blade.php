@@ -76,9 +76,7 @@
                                         Active
                                     </th>
 
-                                    <th style="min-width: 100px;" class="text-center">
-                                        Action
-                                    </th>
+                                    <th style="min-width: 100px;" class="text-center">{{ __('ui.common.action') }}</th>
                                 </tr>
                             </thead>
 
@@ -177,9 +175,7 @@
                                             <button type="button" class="btn btn-primary btn-sm btn-save-numbering"
                                                 title="Simpan perubahan">
                                                 <i data-feather="save"></i>
-                                                <span class="save-text d-none">
-                                                    Simpan
-                                                </span>
+                                                <span class="save-text d-none">{{ __('ui.common.save') }}</span>
                                             </button>
 
                                         </td>

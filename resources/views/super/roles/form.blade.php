@@ -4,8 +4,8 @@
 @section('breadcrumb')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Access</a></li>
-            <li class="breadcrumb-item"><a href="{{ route('super.roles.index') }}">Roles</a></li>
+            <li class="breadcrumb-item"><a href="#">{{ __('ui.common.access') }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('super.roles.index') }}">{{ __('ui.common.roles') }}</a></li>
             <li class="breadcrumb-item active" aria-current="page">{{ $role->exists ? 'Edit' : 'New' }}</li>
         </ol>
     </nav>
@@ -18,7 +18,7 @@
                 <div class="card-body">
                     <div class="d-flex align-items-center justify-content-between mb-3">
                         <h6 class="card-title mb-0">{{ $role->exists ? 'Edit Role' : 'New Role' }}</h6>
-                        <a href="{{ route('super.roles.index') }}" class="btn btn-light btn-sm">Back</a>
+                        <a href="{{ route('super.roles.index') }}" class="btn btn-light btn-sm">{{ __('ui.common.back') }}</a>
                     </div>
 
                     {{-- Alert --}}
@@ -37,7 +37,7 @@
                         @endif
 
                         <div class="mb-3">
-                            <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+                            <label for="name" class="form-label">{{ __('ui.common.name') }}<span class="text-danger">*</span></label>
                             <input id="name" name="name" type="text" value="{{ old('name', $role->name) }}"
                                 class="form-control @error('name') is-invalid @enderror" required
                                 placeholder="e.g. admin, editor">
@@ -47,8 +47,8 @@
                         </div>
 
                         <div class="d-flex justify-content-end gap-2">
-                            <a href="{{ route('super.roles.index') }}" class="btn btn-outline-secondary btn-sm">Cancel</a>
-                            <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                            <a href="{{ route('super.roles.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('ui.common.cancel') }}</a>
+                            <button type="submit" class="btn btn-primary btn-sm">{{ __('ui.common.save') }}</button>
                         </div>
                     </form>
 

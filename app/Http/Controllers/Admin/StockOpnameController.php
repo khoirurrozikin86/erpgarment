@@ -40,21 +40,21 @@ class StockOpnameController extends Controller
         $filters = $this->dateFilters($request);
 
         return DataTables::eloquent($query->builder($filters['from_date'] ?? null, $filters['to_date'] ?? null))
-            ->addColumn('starter_name', fn (StockOpname $stockOpname) => $stockOpname->starter?->name ?? 'User dihapus')
+            ->addColumn('starter_name', fn (StockOpname $stockOpname) => $stockOpname->starter?->name ?? __('ui.workflow.deleted_user'))
             ->addColumn('counter_name', fn (StockOpname $stockOpname) => $stockOpname->counter?->name ?? '—')
             ->addColumn('poster_name', fn (StockOpname $stockOpname) => $stockOpname->poster?->name ?? '—')
             ->addColumn('status_label', fn (StockOpname $stockOpname) => match ($stockOpname->status) {
-                'counting' => '<span class="badge bg-info text-dark">Menunggu Posting</span>',
-                'posted' => '<span class="badge bg-success">Diposting</span>',
-                default => '<span class="badge bg-secondary">Draft</span>',
+                'counting' => '<span class="badge bg-info text-dark">' . __('ui.workflow.counting') . '</span>',
+                'posted' => '<span class="badge bg-success">' . __('ui.workflow.posted') . '</span>',
+                default => '<span class="badge bg-secondary">' . __('ui.workflow.draft') . '</span>',
             })
             ->addColumn('actions', function (StockOpname $stockOpname) {
-                $buttons = '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-stock-opname" data-url="' . e(route('super.stock-opnames.show', $stockOpname)) . '" title="Lihat detail"><i data-feather="eye"></i></button>';
+                $buttons = '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-stock-opname" data-url="' . e(route('super.stock-opnames.show', $stockOpname)) . '" title="' . e(__('ui.workflow.view_detail')) . '"><i data-feather="eye"></i></button>';
                 if (in_array($stockOpname->status, ['draft', 'counting'], true) && auth()->user()->can('stock-opnames.count')) {
-                    $buttons .= ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.stock-opnames.count', $stockOpname)) . '" title="Input hasil hitung"><i data-feather="edit-3"></i></a>';
+                    $buttons .= ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.stock-opnames.count', $stockOpname)) . '" title="' . e(__('ui.workflow.counting_entry')) . '"><i data-feather="edit-3"></i></a>';
                 }
                 if ($stockOpname->status === 'counting' && auth()->user()->can('stock-opnames.post')) {
-                    $buttons .= ' <button type="button" class="btn btn-sm btn-success btn-post-stock-opname" data-url="' . e(route('super.stock-opnames.post', $stockOpname)) . '" data-number="' . e($stockOpname->number) . '" title="Posting Opname"><i data-feather="check"></i></button>';
+                    $buttons .= ' <button type="button" class="btn btn-sm btn-success btn-post-stock-opname" data-url="' . e(route('super.stock-opnames.post', $stockOpname)) . '" data-number="' . e($stockOpname->number) . '" title="' . e(__('ui.workflow.post_stocktake')) . '"><i data-feather="check"></i></button>';
                 }
                 return $buttons;
             })
@@ -66,7 +66,7 @@ class StockOpnameController extends Controller
     {
         return DataTables::eloquent($query->products())
             ->addColumn('unit_label', fn (Product $product) => $product->unit?->symbol ?: $product->unit?->name ?: '—')
-            ->addColumn('actions', fn (Product $product) => '<button type="button" class="btn btn-sm btn-outline-primary btn-toggle-opname-product" data-id="' . (int) $product->id . '" data-code="' . e($product->code) . '" data-name="' . e($product->name) . '" data-unit="' . e($product->unit?->symbol ?: $product->unit?->name ?: '') . '"><i data-feather="plus" class="icon-sm me-1"></i>Pilih</button>')
+            ->addColumn('actions', fn (Product $product) => '<button type="button" class="btn btn-sm btn-outline-primary btn-toggle-opname-product" data-id="' . (int) $product->id . '" data-code="' . e($product->code) . '" data-name="' . e($product->name) . '" data-unit="' . e($product->unit?->symbol ?: $product->unit?->name ?: '') . '"><i data-feather="plus" class="icon-sm me-1"></i>' . e(__('ui.workflow.select')) . '</button>')
             ->rawColumns(['actions'])
             ->toJson();
     }
@@ -81,7 +81,7 @@ class StockOpnameController extends Controller
         $stockOpname = $service->create($data, (int) $request->user()->id);
 
         return response()->json([
-            'message' => "Stock Opname {$stockOpname->number} berhasil dibuat. Lanjutkan dengan input hasil hitung fisik.",
+            'message' => __('ui.workflow.stocktake_created_message', ['number' => $stockOpname->number]),
             'url' => route('super.stock-opnames.count', $stockOpname),
         ], 201);
     }
@@ -118,7 +118,7 @@ class StockOpnameController extends Controller
         ]);
         $stockOpname = $service->saveCounts($stockOpname, $data, (int) $request->user()->id);
 
-        return response()->json(['message' => "Hasil hitung {$stockOpname->number} berhasil disimpan. Opname siap ditinjau dan diposting."]);
+        return response()->json(['message' => __('ui.workflow.stock_count_saved_message', ['number' => $stockOpname->number])]);
     }
 
     public function post(Request $request, StockOpname $stockOpname, StockOpnameService $service): JsonResponse
@@ -129,7 +129,7 @@ class StockOpnameController extends Controller
             throw $exception;
         }
 
-        return response()->json(['message' => "Stock Opname {$stockOpname->number} berhasil diposting. Selisih telah diperbarui ke stok."]);
+        return response()->json(['message' => __('ui.workflow.stock_count_posted_message', ['number' => $stockOpname->number])]);
     }
 
     private function dateFilters(Request $request): array

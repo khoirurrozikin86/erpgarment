@@ -7,7 +7,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
 
-    <title>{{ $title ? $title . ' — ' . config('app.name', 'Laravel') : config('app.name', 'Laravel') }}</title>
+    <title>{{ $title ? $title . ' — ' . config('app.name', 'ERP Garment IT Inventory') : config('app.name', 'ERP Garment IT Inventory') }}</title>
 
 
     <!-- Fonts -->

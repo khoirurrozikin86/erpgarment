@@ -1,11 +1,11 @@
 @extends('layouts.admin')
-@section('title', 'Roles')
+@section('title', __( 'ui.common.roles' ))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Access</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Roles</li>
+            <li class="breadcrumb-item"><a href="#">{{ __('ui.common.access') }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ __('ui.common.roles') }}</li>
         </ol>
     </nav>
 @endsection
@@ -16,11 +16,9 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex align-items-center justify-content-between mb-3">
-                        <h6 class="card-title mb-0">Roles</h6>
-                        {{-- <a href="{{ route('super.roles.create') }}" class="btn btn-primary btn-sm">
-                            + New
-                        </a> --}}
-                        <a href="javascript:void(0)" id="btnNewRole" class="btn btn-primary btn-sm">+ New</a>
+                        <h6 class="card-title mb-0">{{ __('ui.common.roles') }}</h6>
+                        {{-- <a href="{{ route('super.roles.create') }}" class="btn btn-primary btn-sm">{{ __('ui.common.new') }}</a> --}}
+                        <a href="javascript:void(0)" id="btnNewRole" class="btn btn-primary btn-sm">{{ __('ui.common.new') }}</a>
 
                     </div>
 
@@ -35,10 +33,10 @@
                         <table id="roles-table" class="table w-100">
                             <thead>
                                 <tr>
-                                    <th>Name</th>
-                                    <th>Users</th>
-                                    <th>Permissions</th>
-                                    <th>Actions</th>
+                                    <th>{{ __('ui.common.name') }}</th>
+                                    <th>{{ __('ui.common.users') }}</th>
+                                    <th>{{ __('ui.common.permissions') }}</th>
+                                    <th>{{ __('ui.common.actions') }}</th>
                                 </tr>
                             </thead>
                             {{-- DataTables (serverSide) akan mengisi tbody --}}
@@ -62,7 +60,7 @@
 
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label for="roleName" class="form-label">Name <span class="text-danger">*</span></label>
+                        <label for="roleName" class="form-label">{{ __('ui.common.name') }}<span class="text-danger">*</span></label>
                         <input id="roleName" name="name" type="text" class="form-control" required
                             placeholder="e.g. admin, editor">
                         <div class="invalid-feedback" id="roleNameErr"></div>
@@ -71,8 +69,8 @@
 
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary btn-sm"
-                        data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="btnSaveRole" class="btn btn-primary btn-sm">Save</button>
+                        data-bs-dismiss="modal">{{ __('ui.common.cancel') }}</button>
+                    <button type="submit" id="btnSaveRole" class="btn btn-primary btn-sm">{{ __('ui.common.save') }}</button>
                 </div>
             </form>
         </div>
@@ -252,7 +250,7 @@
                         toastErr(xhr.responseJSON?.message);
                     })
                     .always(function() {
-                        $btnSave.prop('disabled', false).text('Save');
+                        $btnSave.prop('disabled', false).text('{{ __('ui.common.save') }}');
                     });
             });
 
@@ -270,7 +268,7 @@
                     text: ask,
                     showCancelButton: true,
                     confirmButtonText: 'Yes, delete it',
-                    cancelButtonText: 'Cancel',
+                    cancelButtonText: '{{ __('ui.common.cancel') }}',
                     reverseButtons: true
                 }).then(function(result) {
                     if (!result.isConfirmed) return;

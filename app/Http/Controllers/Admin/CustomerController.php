@@ -29,8 +29,8 @@ class CustomerController extends Controller
 
             ->addColumn('status', function (Customer $customer) {
                 return $customer->is_active
-                    ? 'Active'
-                    : 'Not Active';
+                    ? __('ui.master.status_active')
+                    : __('ui.master.status_inactive');
             })
 
             ->addColumn('actions', function (Customer $customer) {
@@ -38,7 +38,7 @@ class CustomerController extends Controller
                 $actions = [
                     [
                         'type' => 'edit',
-                        'label' => 'Edit',
+                        'label' => __('ui.common.edit'),
                         'icon' => 'edit-2',
 
                         'update_url' => route(
@@ -73,10 +73,10 @@ class CustomerController extends Controller
                             'super.customers.destroy',
                             $customer->getRouteKey()
                         ),
-                        'label' => 'Delete',
+                        'label' => __('ui.common.delete'),
                         'icon' => 'trash-2',
                         'confirm' =>
-                        "Hapus customer {$customer->name}?",
+                        __('ui.master.delete_confirmation', ['type' => __('ui.common.customer'), 'name' => $customer->name]),
                         'disabled' => false,
                     ],
                 ];
@@ -128,7 +128,7 @@ class CustomerController extends Controller
             return back()->withErrors(['file' => 'Import gagal. Pastikan kode customer tidak duplikat dan format file sesuai template.']);
         }
 
-        return redirect()->route('super.customers.index')->with('customer_import_success', 'Data customer berhasil diimpor.');
+        return redirect()->route('super.customers.index')->with('customer_import_success', __('ui.master.imported', ['type' => __('ui.common.customer')]));
     }
 
     public function store(

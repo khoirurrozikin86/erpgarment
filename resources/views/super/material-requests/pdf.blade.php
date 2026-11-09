@@ -35,21 +35,21 @@
 <body>
     @include('super.documents.partials.company-pdf-header', ['company' => $company, 'companyLogoDataUri' => $companyLogoDataUri])
     <div class="header">
-        <h1>Material Request</h1>
+        <h1>{{ __('ui.common.material_request') }}</h1>
         <div class="muted">Permintaan kebutuhan barang internal</div>
         <div class="document-no">{{ $materialRequest->number }}</div>
     </div>
 
     <table class="meta">
-        <tr><td class="label">Pemohon</td><td>{{ $materialRequest->requester?->name ?? 'User dihapus' }}</td><td class="label">Tanggal Pengajuan</td><td>{{ $materialRequest->created_at?->format('d/m/Y H:i') ?? '—' }}</td></tr>
-        <tr><td class="label">Departemen</td><td>{{ $materialRequest->department ?: '—' }}</td><td class="label">Tanggal Dibutuhkan</td><td>{{ $materialRequest->needed_at?->format('d/m/Y') ?? '—' }}</td></tr>
-        <tr><td class="label">Status Approval</td><td>{{ ['pending' => 'Menunggu Approval', 'approved' => 'Disetujui', 'rejected' => 'Ditolak'][$materialRequest->status] ?? $materialRequest->status }}</td><td class="label">Progress Purchasing</td><td>{{ ['not_processed' => 'Belum Diproses', 'partially_processed' => 'Sebagian Dialokasikan ke PR', 'processed' => 'Seluruh Kebutuhan Dialokasikan ke PR'][$materialRequest->purchase_status] ?? '—' }}</td></tr>
-        <tr><td class="label">Ditinjau Oleh</td><td>{{ $materialRequest->reviewer?->name ?? '—' }}</td><td class="label">Waktu Review</td><td>{{ $materialRequest->reviewed_at?->format('d/m/Y H:i') ?? '—' }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.requester') }}</td><td>{{ $materialRequest->requester?->name ?? 'User dihapus' }}</td><td class="label">{{ __('ui.common.request_date') }}</td><td>{{ $materialRequest->created_at?->format('d/m/Y H:i') ?? '—' }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.department') }}</td><td>{{ $materialRequest->department ?: '—' }}</td><td class="label">{{ __('ui.common.needed_date') }}</td><td>{{ $materialRequest->needed_at?->format('d/m/Y') ?? '—' }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.approval_status') }}</td><td>{{ ['pending' => 'Menunggu Approval', 'approved' => 'Disetujui', 'rejected' => 'Ditolak'][$materialRequest->status] ?? $materialRequest->status }}</td><td class="label">{{ __('ui.common.purchasing_progress') }}</td><td>{{ ['not_processed' => 'Belum Diproses', 'partially_processed' => 'Sebagian Dialokasikan ke PR', 'processed' => 'Seluruh Kebutuhan Dialokasikan ke PR'][$materialRequest->purchase_status] ?? '—' }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.reviewed_by') }}</td><td>{{ $materialRequest->reviewer?->name ?? '—' }}</td><td class="label">{{ __('ui.common.review_time') }}</td><td>{{ $materialRequest->reviewed_at?->format('d/m/Y H:i') ?? '—' }}</td></tr>
     </table>
 
     <div class="section-title">Barang yang Diminta</div>
     <table class="items">
-        <thead><tr><th class="center" style="width:32px">No</th><th style="width:110px">Kode</th><th>Nama Barang</th><th class="right" style="width:100px">Jumlah</th><th style="width:85px">Satuan</th><th>Catatan</th></tr></thead>
+        <thead><tr><th class="center" style="width:32px">{{ __('ui.common.no') }}</th><th style="width:110px">{{ __('ui.common.code') }}</th><th>{{ __('ui.common.item_name') }}</th><th class="right" style="width:100px">{{ __('ui.common.quantity') }}</th><th style="width:85px">{{ __('ui.common.unit') }}</th><th>{{ __('ui.common.notes') }}</th></tr></thead>
         <tbody>
             @forelse ($materialRequest->items as $item)
                 <tr>
@@ -61,21 +61,21 @@
                     <td>{{ $item->note ?: '—' }}</td>
                 </tr>
             @empty
-                <tr><td colspan="6" class="center">Tidak ada barang.</td></tr>
+                <tr><td colspan="6" class="center">{{ __('ui.common.no_items') }}</td></tr>
             @endforelse
         </tbody>
     </table>
 
-    <div class="section-title">Alasan Permintaan</div>
+    <div class="section-title">{{ __('ui.common.request_reason') }}</div>
     <div class="note">{{ $materialRequest->reason }}</div>
 
     @if ($materialRequest->review_note)
-        <div class="section-title">Catatan Approval</div>
+        <div class="section-title">{{ __('ui.common.approval_notes') }}</div>
         <div class="note">{{ $materialRequest->review_note }}</div>
     @endif
 
     <table class="signatures">
-        <tr><td>Pemohon<div class="sign-line"></div>{{ $materialRequest->requester?->name ?? '—' }}</td><td>Persetujuan<div class="sign-line"></div>{{ $materialRequest->reviewer?->name ?? ' ' }}</td></tr>
+        <tr><td>{{ __('ui.common.requester') }}<div class="sign-line"></div>{{ $materialRequest->requester?->name ?? '—' }}</td><td>Persetujuan<div class="sign-line"></div>{{ $materialRequest->reviewer?->name ?? ' ' }}</td></tr>
     </table>
     <div class="footer">Dicetak pada {{ now()->format('d/m/Y H:i') }}.</div>
 </body>

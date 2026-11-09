@@ -28,15 +28,17 @@ class PriceListController extends Controller
     public function dt(PriceListTableQuery $query): JsonResponse
     {
         return DataTables::eloquent($query->builder())
-            ->addColumn('type_label', fn (PriceList $list) => $list->type === 'sales' ? 'Penjualan' : 'Pembelian')
-            ->addColumn('party_name', fn (PriceList $list) => $list->type === 'sales' ? ($list->customer?->name ?? 'Umum') : ($list->supplier?->name ?? 'Umum'))
-            ->addColumn('period', fn (PriceList $list) => ($list->valid_from?->format('d/m/Y') ?? 'Tanpa batas awal') . ' – ' . ($list->valid_until?->format('d/m/Y') ?? 'Tanpa batas akhir'))
-            ->addColumn('status', fn (PriceList $list) => $list->is_active ? '<span class="badge bg-success">Aktif</span>' : '<span class="badge bg-secondary">Nonaktif</span>')
+            ->addColumn('type_label', fn (PriceList $list) => $list->type === 'sales' ? __('ui.master.sales') : __('ui.master.purchase'))
+            ->addColumn('party_name', fn (PriceList $list) => $list->type === 'sales' ? ($list->customer?->name ?? __('ui.master.general')) : ($list->supplier?->name ?? __('ui.master.general')))
+            ->addColumn('period', fn (PriceList $list) => ($list->valid_from?->format('d/m/Y') ?? __('ui.master.no_start_limit')) . ' – ' . ($list->valid_until?->format('d/m/Y') ?? __('ui.master.no_end_limit')))
+            ->addColumn('status', fn (PriceList $list) => $list->is_active
+                ? '<span class="badge bg-success">' . e(__('ui.master.status_active')) . '</span>'
+                : '<span class="badge bg-secondary">' . e(__('ui.master.status_inactive')) . '</span>')
             ->addColumn('actions', function (PriceList $list) {
                 $actions = [
                     [
                         'type' => 'edit',
-                        'label' => 'Edit',
+                        'label' => __('ui.common.edit'),
                         'icon' => 'edit-2',
                         'class' => 'btn-edit-pricelist',
                         'update_url' => route('super.pricelists.update', $list),
@@ -56,11 +58,11 @@ class PriceListController extends Controller
                     ],
                     [
                         'type' => 'delete',
-                        'label' => 'Hapus',
+                        'label' => __('ui.common.delete'),
                         'icon' => 'trash-2',
                         'class' => 'btn-delete-pricelist',
                         'url' => route('super.pricelists.destroy', $list),
-                        'confirm' => "Hapus pricelist {$list->name}?",
+                        'confirm' => __('ui.master.delete_confirmation', ['type' => __('ui.common.price_list'), 'name' => $list->name]),
                     ],
                 ];
 
@@ -73,19 +75,19 @@ class PriceListController extends Controller
     public function store(PriceListRequest $request, PriceListService $service)
     {
         $service->create($request->validated());
-        return response()->json(['message' => 'Pricelist berhasil dibuat.'], 201);
+        return response()->json(['message' => __('ui.master.created', ['type' => __('ui.common.price_list')])], 201);
     }
 
     public function update(PriceListRequest $request, PriceList $priceList, PriceListService $service)
     {
         $service->update($priceList, $request->validated());
-        return response()->json(['message' => 'Pricelist berhasil diperbarui.']);
+        return response()->json(['message' => __('ui.master.updated', ['type' => __('ui.common.price_list')])]);
     }
 
     public function destroy(Request $request, PriceList $priceList, PriceListService $service)
     {
         abort_unless($request->user()?->can('pricelists.delete'), 403);
         $service->delete($priceList);
-        return response()->json(['message' => 'Pricelist berhasil dihapus.']);
+        return response()->json(['message' => __('ui.master.deleted', ['type' => __('ui.common.price_list')])]);
     }
 }

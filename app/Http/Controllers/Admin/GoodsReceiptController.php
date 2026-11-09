@@ -38,12 +38,12 @@ class GoodsReceiptController extends Controller
 
         return DataTables::eloquent($query->builder($filters['from_date'] ?? null, $filters['to_date'] ?? null))
             ->addColumn('purchase_order_number', fn (GoodsReceipt $receipt) => $receipt->purchaseOrder?->number ?? '—')
-            ->addColumn('supplier_name', fn (GoodsReceipt $receipt) => $receipt->supplier?->name ?? 'Supplier dihapus')
-            ->addColumn('receiver_name', fn (GoodsReceipt $receipt) => $receipt->receiver?->name ?? 'User dihapus')
+            ->addColumn('supplier_name', fn (GoodsReceipt $receipt) => $receipt->supplier?->name ?? __('ui.workflow.deleted_supplier'))
+            ->addColumn('receiver_name', fn (GoodsReceipt $receipt) => $receipt->receiver?->name ?? __('ui.workflow.deleted_user'))
             ->addColumn('actions', function (GoodsReceipt $receipt) {
-                return '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-goods-receipt" data-url="' . e(route('super.goods-receipts.show', $receipt)) . '" title="Lihat rincian"><i data-feather="eye"></i></button>'
-                    . ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.goods-receipts.pdf', $receipt)) . '" target="_blank" rel="noopener" title="Lihat PDF"><i data-feather="file-text"></i></a>'
-                    . ' <a class="btn btn-sm btn-outline-secondary" href="' . e(route('super.goods-receipts.pdf.download', $receipt)) . '" title="Unduh PDF"><i data-feather="download"></i></a>';
+                return '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-goods-receipt" data-url="' . e(route('super.goods-receipts.show', $receipt)) . '" title="' . e(__('ui.workflow.view_details')) . '"><i data-feather="eye"></i></button>'
+                    . ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.goods-receipts.pdf', $receipt)) . '" target="_blank" rel="noopener" title="' . e(__('ui.workflow.view_pdf')) . '"><i data-feather="file-text"></i></a>'
+                    . ' <a class="btn btn-sm btn-outline-secondary" href="' . e(route('super.goods-receipts.pdf.download', $receipt)) . '" title="' . e(__('ui.workflow.download_pdf')) . '"><i data-feather="download"></i></a>';
             })
             ->rawColumns(['actions'])
             ->toJson();
@@ -52,8 +52,8 @@ class GoodsReceiptController extends Controller
     public function eligible(GoodsReceiptTableQuery $query)
     {
         return DataTables::eloquent($query->eligiblePurchaseOrders())
-            ->addColumn('supplier_name', fn (PurchaseOrder $order) => $order->supplier?->name ?? 'Supplier dihapus')
-            ->addColumn('actions', fn (PurchaseOrder $order) => '<button type="button" class="btn btn-sm btn-primary btn-select-receipt-po" data-id="' . (int) $order->id . '" data-number="' . e($order->number) . '"><i data-feather="check" class="icon-sm me-1"></i>Pilih</button>')
+            ->addColumn('supplier_name', fn (PurchaseOrder $order) => $order->supplier?->name ?? __('ui.workflow.deleted_supplier'))
+            ->addColumn('actions', fn (PurchaseOrder $order) => '<button type="button" class="btn btn-sm btn-primary btn-select-receipt-po" data-id="' . (int) $order->id . '" data-number="' . e($order->number) . '"><i data-feather="check" class="icon-sm me-1"></i>' . e(__('ui.workflow.select_action')) . '</button>')
             ->rawColumns(['actions'])
             ->toJson();
     }
@@ -65,11 +65,11 @@ class GoodsReceiptController extends Controller
         return response()->json([
             'id' => $order->id,
             'number' => $order->number,
-            'supplier' => $order->supplier?->name ?? 'Supplier dihapus',
+            'supplier' => $order->supplier?->name ?? __('ui.workflow.deleted_supplier'),
             'items' => $order->items->map(fn ($item) => [
                 'id' => $item->id,
                 'code' => $item->product?->code ?? '—',
-                'name' => $item->product?->name ?? 'Barang dihapus',
+                'name' => $item->product?->name ?? __('ui.workflow.deleted_item'),
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
                 'ordered' => (float) $item->quantity,
                 'received' => (float) $item->received_quantity,
@@ -94,7 +94,7 @@ class GoodsReceiptController extends Controller
         $receipt = $service->receive($data, (int) $request->user()->id);
 
         return response()->json([
-            'message' => "Penerimaan {$receipt->number} berhasil dicatat.",
+            'message' => __('ui.workflow.receipt_created_message', ['number' => $receipt->number]),
             'id' => $receipt->id,
         ], 201);
     }

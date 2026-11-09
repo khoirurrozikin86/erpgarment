@@ -1,11 +1,11 @@
 @extends('layouts.admin')
 
-@section('title', 'Harga / Pricelist')
+@section('title', __('ui.common.price_list'))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb"><ol class="breadcrumb">
-        <li class="breadcrumb-item">Master Data</li>
-        <li class="breadcrumb-item active" aria-current="page">Harga / Pricelist</li>
+        <li class="breadcrumb-item">{{ __('ui.common.master') }}</li>
+        <li class="breadcrumb-item active" aria-current="page">{{ __('ui.common.price_list') }}</li>
     </ol></nav>
 @endsection
 
@@ -13,12 +13,12 @@
     <div class="row">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h4 class="mb-1">Harga / Pricelist</h4>
-            <p class="text-muted mb-0">Kelola harga jual atau harga beli barang dalam satu daftar.</p>
+            <h4 class="mb-1">{{ __('ui.common.price_list') }}</h4>
+            <p class="text-muted mb-0">{{ __('ui.master.price_list_subtitle') }}</p>
         </div>
         @can('pricelists.create')
             <button type="button" class="btn btn-primary" id="btn-add-pricelist">
-                <i data-feather="plus" class="icon-sm me-1"></i> Tambah Pricelist
+                <i data-feather="plus" class="icon-sm me-1"></i> {{ __('ui.master.add_price_list') }}
             </button>
         @endcan
     </div>
@@ -26,8 +26,8 @@
     <div class="card"><div class="card-body"><div class="table-responsive">
         <table id="pricelists-table" class="table table-bordered table-hover align-middle w-100">
             <thead><tr>
-                <th width="50">No</th><th>Kode</th><th>Nama Pricelist</th><th>Jenis</th><th>Customer / Supplier</th>
-                <th>Periode</th><th>Jumlah Barang</th><th>Status</th><th width="80">Action</th>
+                <th width="50">{{ __('ui.common.no') }}</th><th>{{ __('ui.common.code') }}</th><th>{{ __('ui.master.price_list_name') }}</th><th>{{ __('ui.common.type') }}</th><th>{{ __('ui.master.customer_supplier') }}</th>
+                <th>{{ __('ui.master.period') }}</th><th>{{ __('ui.common.item_count') }}</th><th>{{ __('ui.common.status') }}</th><th width="80">{{ __('ui.common.action') }}</th>
             </tr></thead><tbody></tbody>
         </table>
     </div></div></div>
@@ -38,51 +38,51 @@
             <form id="priceListForm">
                 @csrf
                 <div class="modal-header">
-                    <div><h5 class="modal-title" id="priceListModalTitle">Tambah Pricelist</h5>
-                        <small class="text-muted">Tentukan informasi daftar dan harga setiap barang.</small></div>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                    <div><h5 class="modal-title" id="priceListModalTitle">{{ __('ui.master.add_price_list') }}</h5>
+                        <small class="text-muted">{{ __('ui.master.price_list_help') }}</small></div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button>
                 </div>
                 <div class="modal-body">
                     <div id="price-list-alert"></div>
                     <input type="hidden" id="price_list_id">
                     <div class="row">
-                        <div class="col-md-4 mb-3"><label class="form-label">Kode <span class="text-danger">*</span></label><input class="form-control" name="code" id="price_list_code" maxlength="50" required></div>
-                        <div class="col-md-4 mb-3"><label class="form-label">Nama <span class="text-danger">*</span></label><input class="form-control" name="name" id="price_list_name" maxlength="150" required></div>
-                        <div class="col-md-4 mb-3"><label class="form-label">Jenis Harga <span class="text-danger">*</span></label>
-                            <select class="form-select" name="type" id="price_list_type" required><option value="sales">Harga Jual</option><option value="purchase">Harga Beli</option></select>
+                        <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.common.code') }}<span class="text-danger">*</span></label><input class="form-control" name="code" id="price_list_code" maxlength="50" required></div>
+                        <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.common.name') }}<span class="text-danger">*</span></label><input class="form-control" name="name" id="price_list_name" maxlength="150" required></div>
+                        <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.master.price_type') }} <span class="text-danger">*</span></label>
+                            <select class="form-select" name="type" id="price_list_type" required><option value="sales">{{ __('ui.common.selling_price') }}</option><option value="purchase">{{ __('ui.common.purchase_price') }}</option></select>
                         </div>
-                        <div class="col-md-6 mb-3" id="customer-field"><label class="form-label">Customer (opsional)</label>
-                            <select class="form-select" name="customer_id" id="price_list_customer"><option value="">Umum</option>
+                        <div class="col-md-6 mb-3" id="customer-field"><label class="form-label">{{ __('ui.master.optional_customer') }}</label>
+                            <select class="form-select" name="customer_id" id="price_list_customer"><option value="">{{ __('ui.common.general') }}</option>
                                 @foreach ($customers as $customer)<option value="{{ $customer->id }}">{{ $customer->name }}</option>@endforeach
                             </select>
                         </div>
-                        <div class="col-md-6 mb-3 d-none" id="supplier-field"><label class="form-label">Supplier (opsional)</label>
-                            <select class="form-select" name="supplier_id" id="price_list_supplier"><option value="">Umum</option>
+                        <div class="col-md-6 mb-3 d-none" id="supplier-field"><label class="form-label">{{ __('ui.master.optional_supplier') }}</label>
+                            <select class="form-select" name="supplier_id" id="price_list_supplier"><option value="">{{ __('ui.common.general') }}</option>
                                 @foreach ($suppliers as $supplier)<option value="{{ $supplier->id }}">{{ $supplier->name }}</option>@endforeach
                             </select>
                         </div>
-                        <div class="col-md-3 mb-3"><label class="form-label">Berlaku Mulai</label><input type="date" class="form-control" name="valid_from" id="price_list_valid_from"></div>
-                        <div class="col-md-3 mb-3"><label class="form-label">Berlaku Sampai</label><input type="date" class="form-control" name="valid_until" id="price_list_valid_until"></div>
+                        <div class="col-md-3 mb-3"><label class="form-label">{{ __('ui.master.valid_from') }}</label><input type="date" class="form-control" name="valid_from" id="price_list_valid_from"></div>
+                        <div class="col-md-3 mb-3"><label class="form-label">{{ __('ui.common.valid_until') }}</label><input type="date" class="form-control" name="valid_until" id="price_list_valid_until"></div>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mt-2 mb-2">
-                        <h6 class="fw-bold mb-0">Daftar Harga Barang</h6>
-                        <button type="button" class="btn btn-sm btn-outline-primary" id="btn-add-price-item"><i data-feather="plus" class="me-1"></i>Tambah Barang</button>
+                        <h6 class="fw-bold mb-0">{{ __('ui.master.item_prices') }}</h6>
+                        <button type="button" class="btn btn-sm btn-outline-primary" id="btn-add-price-item"><i data-feather="plus" class="me-1"></i>{{ __('ui.common.add_item') }}</button>
                     </div>
                     <div class="table-responsive"><table class="table table-sm table-bordered align-middle">
-                        <thead><tr><th style="min-width:260px">Barang</th><th style="width:220px">Harga</th><th style="width:70px">Aksi</th></tr></thead>
+                        <thead><tr><th style="min-width:260px">{{ __('ui.common.item') }}</th><th style="width:220px">{{ __('ui.common.price') }}</th><th style="width:70px">{{ __('ui.common.actions') }}</th></tr></thead>
                         <tbody id="price-list-items"></tbody>
                     </table></div>
                     <div class="row align-items-center">
                         <div class="col-md-3 mb-3"><input type="hidden" name="is_active" value="0"><div class="form-check form-switch">
                             <input class="form-check-input" type="checkbox" id="price_list_active" name="is_active" value="1" checked>
-                            <label class="form-check-label" for="price_list_active">Aktif</label>
+                            <label class="form-check-label" for="price_list_active">{{ __('ui.common.active') }}</label>
                         </div></div>
-                        <div class="col-md-9 mb-3"><label class="form-label">Catatan</label><input class="form-control" name="notes" id="price_list_notes" maxlength="2000"></div>
+                        <div class="col-md-9 mb-3"><label class="form-label">{{ __('ui.common.notes') }}</label><input class="form-control" name="notes" id="price_list_notes" maxlength="2000"></div>
                     </div>
                 </div>
-                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary" id="btn-save-pricelist"><i data-feather="save" class="icon-sm me-1"></i>Simpan</button>
+                <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('ui.common.cancel') }}</button>
+                    <button type="submit" class="btn btn-primary" id="btn-save-pricelist"><i data-feather="save" class="icon-sm me-1"></i>{{ __('ui.common.save') }}</button>
                 </div>
             </form>
         </div></div>
@@ -105,7 +105,7 @@ $(function () {
             { data: 'code', name: 'code' },
             { data: 'name', name: 'name' },
             { data: 'type_label', name: 'type' },
-            { data: 'party_name', name: 'party_name', orderable: false, searchable: false, defaultContent: 'Umum' },
+            { data: 'party_name', name: 'party_name', orderable: false, searchable: false, defaultContent: '{{ __('ui.master.general') }}' },
             { data: 'period', name: 'valid_from', orderable: false },
             { data: 'items_count', name: 'items_count', searchable: false },
             { data: 'status', name: 'is_active', searchable: false },
@@ -121,7 +121,7 @@ $(function () {
         const itemIndex = nextItemIndex++;
         const row = $('<tr>');
         const select = $('<select>', { class: 'form-select product-select', name: `items[${itemIndex}][product_id]`, required: true })
-            .append($('<option>', { value: '', text: '-- Pilih Barang --' }));
+            .append($('<option>', { value: '', text: '{{ __('ui.master.select_item') }}' }));
         products.forEach(product => select.append($('<option>', { value: product.id, text: product.label })));
         if (item.product_id) select.val(item.product_id);
         row.append($('<td>').append(select));
@@ -129,7 +129,7 @@ $(function () {
             type: 'number', class: 'form-control', name: `items[${itemIndex}][price]`, min: 0, step: '0.01', required: true,
             value: item.price ?? 0
         })));
-        const removeButton = $('<button>', { type: 'button', class: 'btn btn-sm btn-outline-danger btn-remove-price-item', title: 'Hapus barang' });
+        const removeButton = $('<button>', { type: 'button', class: 'btn btn-sm btn-outline-danger btn-remove-price-item', title: '{{ __('ui.master.remove_item') }}' });
         removeButton.append($('<i>', { 'data-feather': 'x' }));
         row.append($('<td class="text-center">').append(removeButton));
         $('#price-list-items').append(row);
@@ -154,7 +154,7 @@ $(function () {
 
     $('#btn-add-pricelist').on('click', function () {
         resetForm();
-        $('#priceListModalTitle').text('Tambah Pricelist');
+        $('#priceListModalTitle').text('{{ __('ui.master.add_price_list') }}');
         modal.show();
     });
 
@@ -167,7 +167,7 @@ $(function () {
         let data;
         try { data = JSON.parse($(this).attr('data-payload')); } catch (error) { return; }
         resetForm();
-        $('#priceListModalTitle').text('Edit Pricelist');
+        $('#priceListModalTitle').text('{{ __('ui.common.edit') }} {{ __('ui.common.price_list') }}');
         $('#priceListForm').data('update-url', $(this).data('update-url'));
         $('#price_list_id').val(data.id);
         $('#price_list_code').val(data.code);
@@ -205,11 +205,11 @@ $(function () {
             .done(function (response) {
                 modal.hide();
                 table.ajax.reload(null, false);
-                Swal.fire({ icon: 'success', title: 'Berhasil', text: response.message, confirmButtonText: 'OK' });
+                Swal.fire({ icon: 'success', title: '{{ __('ui.master.success') }}', text: response.message, confirmButtonText: '{{ __('ui.master.ok') }}' });
             })
             .fail(function (xhr) {
                 const errors = xhr.responseJSON?.errors || {};
-                const message = Object.values(errors).flat().join('<br>') || xhr.responseJSON?.message || 'Pricelist gagal disimpan.';
+                const message = Object.values(errors).flat().join('<br>') || xhr.responseJSON?.message || '{{ __('ui.master.failure') }}';
                 $('#price-list-alert').html($('<div class="alert alert-danger">').html(message));
             })
             .always(() => $('#btn-save-pricelist').prop('disabled', false));
@@ -217,15 +217,15 @@ $(function () {
 
     $(document).on('click', '.btn-delete-pricelist', function () {
         const button = $(this);
-        Swal.fire({ icon: 'warning', title: 'Konfirmasi', text: button.data('confirm'), showCancelButton: true,
-            confirmButtonText: 'Hapus', cancelButtonText: 'Batal' }).then(result => {
+        Swal.fire({ icon: 'warning', title: '{{ __('ui.master.confirmation') }}', text: button.data('confirm'), showCancelButton: true,
+            confirmButtonText: '{{ __('ui.master.confirm_delete') }}', cancelButtonText: '{{ __('ui.common.cancel') }}' }).then(result => {
             if (!result.isConfirmed) return;
             $.ajax({ url: button.data('url'), method: 'DELETE', headers: { 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } })
                 .done(response => {
                     table.ajax.reload(null, false);
-                    Swal.fire({ icon: 'success', title: 'Berhasil', text: response.message });
+                    Swal.fire({ icon: 'success', title: '{{ __('ui.master.success') }}', text: response.message });
                 })
-                .fail(xhr => Swal.fire({ icon: 'error', title: 'Gagal', text: xhr.responseJSON?.message || 'Pricelist tidak dapat dihapus.' }));
+                .fail(xhr => Swal.fire({ icon: 'error', title: '{{ __('ui.master.failure') }}', text: xhr.responseJSON?.message || '{{ __('ui.master.cannot_delete') }}' }));
         });
     });
 });

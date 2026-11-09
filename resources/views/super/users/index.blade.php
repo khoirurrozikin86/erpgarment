@@ -1,11 +1,11 @@
 @extends('layouts.admin')
-@section('title', 'Users')
+@section('title', __( 'ui.common.users' ))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="#">Access</a></li>
-            <li class="breadcrumb-item active" aria-current="page">Users</li>
+            <li class="breadcrumb-item"><a href="#">{{ __('ui.common.access') }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">{{ __('ui.common.users') }}</li>
         </ol>
     </nav>
 @endsection
@@ -16,15 +16,13 @@
             <div class="card">
                 <div class="card-body">
                     <div class="d-flex align-items-center justify-content-between mb-3">
-                        <h6 class="card-title mb-0">Users</h6>
+                        <h6 class="card-title mb-0">{{ __('ui.common.users') }}</h6>
 
                         <div class="d-flex gap-2">
                             <a href="{{ route('super.user.export') }}" class="btn btn-success btn-sm">
-                                <i data-feather="download"></i>
-                                Export Excel
-                            </a>
+                                <i data-feather="download"></i>{{ __('ui.common.export_excel') }}</a>
 
-                            <a href="javascript:void(0)" id="btnNewUser" class="btn btn-primary btn-sm">+ New</a>
+                            <a href="javascript:void(0)" id="btnNewUser" class="btn btn-primary btn-sm">{{ __('ui.common.new') }}</a>
                         </div>
                     </div>
 
@@ -37,10 +35,10 @@
                             <thead>
                                 <tr>
 
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Roles</th>
-                                    <th>Actions</th> {{-- <== Status dihapus --}}
+                                    <th>{{ __('ui.common.name') }}</th>
+                                    <th>{{ __('ui.common.email') }}</th>
+                                    <th>{{ __('ui.common.roles') }}</th>
+                                    <th>{{ __('ui.common.actions') }}</th> {{-- <== Status dihapus --}}
                                 </tr>
                             </thead>
                         </table>
@@ -62,12 +60,12 @@
                 </div>
                 <div class="modal-body row g-3">
                     <div class="col-12">
-                        <label class="form-label">Name <span class="text-danger">*</span></label>
+                        <label class="form-label">{{ __('ui.common.name') }}<span class="text-danger">*</span></label>
                         <input type="text" name="name" id="userName" class="form-control" required>
                         <div class="invalid-feedback" id="userNameErr"></div>
                     </div>
                     <div class="col-12">
-                        <label class="form-label">Email <span class="text-danger">*</span></label>
+                        <label class="form-label">{{ __('ui.common.email') }}<span class="text-danger">*</span></label>
                         <input type="email" name="email" id="userEmail" class="form-control" required>
                         <div class="invalid-feedback" id="userEmailErr"></div>
                     </div>
@@ -90,8 +88,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary btn-sm"
-                        data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="btnSaveUser" class="btn btn-primary btn-sm">Save</button>
+                        data-bs-dismiss="modal">{{ __('ui.common.cancel') }}</button>
+                    <button type="submit" id="btnSaveUser" class="btn btn-primary btn-sm">{{ __('ui.common.save') }}</button>
                 </div>
             </form>
         </div>
@@ -280,7 +278,7 @@
                         }
                         toastErr(xhr.responseJSON?.message);
                     })
-                    .always(() => $btnSave.prop('disabled', false).text('Save'));
+                    .always(() => $btnSave.prop('disabled', false).text('{{ __('ui.common.save') }}'));
             });
 
             // Delete

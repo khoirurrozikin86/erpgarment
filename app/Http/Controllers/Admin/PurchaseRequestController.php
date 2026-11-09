@@ -41,23 +41,23 @@ class PurchaseRequestController extends Controller
 
         return DataTables::eloquent($query->builder($filters['from_date'] ?? null, $filters['to_date'] ?? null))
             ->addColumn('material_request_number', fn (PurchaseRequest $request) => $request->materialRequest?->number ?? '—')
-            ->addColumn('supplier_name', fn (PurchaseRequest $request) => $request->supplier?->name ?? 'Supplier dihapus')
-            ->addColumn('requester_name', fn (PurchaseRequest $request) => $request->requester?->name ?? 'User dihapus')
+            ->addColumn('supplier_name', fn (PurchaseRequest $request) => $request->supplier?->name ?? __('ui.workflow.deleted_supplier'))
+            ->addColumn('requester_name', fn (PurchaseRequest $request) => $request->requester?->name ?? __('ui.workflow.deleted_user'))
             ->addColumn('status_label', fn (PurchaseRequest $request) => match ($request->status) {
-                'approved' => '<span class="badge bg-success">Disetujui</span>',
-                'rejected' => '<span class="badge bg-danger">Ditolak</span>',
-                default => '<span class="badge bg-warning text-dark">Menunggu Approval</span>',
+                'approved' => '<span class="badge bg-success">' . __('ui.workflow.approval_approved') . '</span>',
+                'rejected' => '<span class="badge bg-danger">' . __('ui.workflow.approval_rejected') . '</span>',
+                default => '<span class="badge bg-warning text-dark">' . __('ui.workflow.approval_pending') . '</span>',
             })
             ->addColumn('actions', function (PurchaseRequest $request) {
-                $buttons = '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-purchase-request" data-url="' . e(route('super.purchase-requests.show', $request)) . '" title="Lihat detail"><i data-feather="eye"></i></button>';
-                $buttons .= ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.purchase-requests.pdf', $request)) . '" target="_blank" rel="noopener" title="Lihat PDF"><i data-feather="file-text"></i></a>';
-                $buttons .= ' <a class="btn btn-sm btn-outline-secondary" href="' . e(route('super.purchase-requests.pdf.download', $request)) . '" title="Unduh PDF"><i data-feather="download"></i></a>';
+                $buttons = '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-purchase-request" data-url="' . e(route('super.purchase-requests.show', $request)) . '" title="' . e(__('ui.workflow.view_detail')) . '"><i data-feather="eye"></i></button>';
+                $buttons .= ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.purchase-requests.pdf', $request)) . '" target="_blank" rel="noopener" title="' . e(__('ui.workflow.view_pdf')) . '"><i data-feather="file-text"></i></a>';
+                $buttons .= ' <a class="btn btn-sm btn-outline-secondary" href="' . e(route('super.purchase-requests.pdf.download', $request)) . '" title="' . e(__('ui.workflow.download_pdf')) . '"><i data-feather="download"></i></a>';
                 if ($request->status === 'pending' && auth()->user()->can('purchase-requests.approve')) {
-                    $buttons .= ' <button type="button" class="btn btn-sm btn-success btn-review-purchase-request" data-status="approved" data-url="' . e(route('super.purchase-requests.approve', $request)) . '" title="Setujui"><i data-feather="check"></i></button>';
-                    $buttons .= ' <button type="button" class="btn btn-sm btn-outline-danger btn-review-purchase-request" data-status="rejected" data-url="' . e(route('super.purchase-requests.reject', $request)) . '" title="Tolak"><i data-feather="x"></i></button>';
+                    $buttons .= ' <button type="button" class="btn btn-sm btn-success btn-review-purchase-request" data-status="approved" data-url="' . e(route('super.purchase-requests.approve', $request)) . '" title="' . e(__('ui.workflow.approve')) . '"><i data-feather="check"></i></button>';
+                    $buttons .= ' <button type="button" class="btn btn-sm btn-outline-danger btn-review-purchase-request" data-status="rejected" data-url="' . e(route('super.purchase-requests.reject', $request)) . '" title="' . e(__('ui.workflow.reject')) . '"><i data-feather="x"></i></button>';
                 }
                 if ($request->status === 'approved' && !$request->purchaseOrder && auth()->user()->can('purchase-orders.create')) {
-                    $buttons .= ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.purchase-orders.create', ['purchase_request' => $request->id])) . '" title="Buat Purchase Order"><i data-feather="shopping-bag"></i></a>';
+                    $buttons .= ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.purchase-orders.create', ['purchase_request' => $request->id])) . '" title="' . e(__('ui.workflow.create_purchase_order')) . '"><i data-feather="shopping-bag"></i></a>';
                 }
                 return $buttons;
             })
@@ -70,8 +70,8 @@ class PurchaseRequestController extends Controller
         return DataTables::eloquent(
             $query->eligibleMaterialRequests()->with('requester:id,name')->withCount('items')
         )
-            ->addColumn('requester_name', fn ($materialRequest) => $materialRequest->requester?->name ?? 'User dihapus')
-            ->addColumn('actions', fn ($materialRequest) => '<button type="button" class="btn btn-sm btn-primary btn-select-material-request" data-id="' . (int) $materialRequest->id . '" data-number="' . e($materialRequest->number) . '"><i data-feather="check" class="icon-sm me-1"></i>Pilih</button>')
+            ->addColumn('requester_name', fn ($materialRequest) => $materialRequest->requester?->name ?? __('ui.workflow.deleted_user'))
+            ->addColumn('actions', fn ($materialRequest) => '<button type="button" class="btn btn-sm btn-primary btn-select-material-request" data-id="' . (int) $materialRequest->id . '" data-number="' . e($materialRequest->number) . '"><i data-feather="check" class="icon-sm me-1"></i>' . e(__('ui.workflow.select_action')) . '</button>')
             ->rawColumns(['actions'])
             ->toJson();
     }
@@ -119,7 +119,7 @@ class PurchaseRequestController extends Controller
 
         $purchaseRequest = $service->create($data, (int) $request->user()->id);
         return response()->json([
-            'message' => 'Purchase Request berhasil diajukan untuk approval.',
+            'message' => __('ui.workflow.purchase_request_created_message'),
             'id' => $purchaseRequest->id,
         ], 201);
     }
@@ -187,13 +187,13 @@ class PurchaseRequestController extends Controller
     {
         $data = $request->validate(['note' => ['nullable', 'string', 'max:2000']]);
         $service->review($purchaseRequest, (int) $request->user()->id, 'approved', $data['note'] ?? null);
-        return response()->json(['message' => 'Purchase Request berhasil disetujui.']);
+        return response()->json(['message' => __('ui.workflow.purchase_request_approved_message')]);
     }
 
     public function reject(Request $request, PurchaseRequest $purchaseRequest, PurchaseRequestService $service): JsonResponse
     {
         $data = $request->validate(['note' => ['required', 'string', 'max:2000']]);
         $service->review($purchaseRequest, (int) $request->user()->id, 'rejected', $data['note']);
-        return response()->json(['message' => 'Purchase Request ditolak.']);
+        return response()->json(['message' => __('ui.workflow.purchase_request_rejected_message')]);
     }
 }

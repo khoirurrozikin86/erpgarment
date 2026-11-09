@@ -1,5 +1,5 @@
 @extends('layouts.admin')
-@section('title', 'POS Session')
+@section('title', 'Sesi Kasir')
 @section('breadcrumb')<nav class="page-breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="#">POS</a></li><li class="breadcrumb-item active">Sesi Kasir</li></ol></nav>@endsection
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3"><div><h4 class="page-title mb-1">Sesi Kasir</h4><span class="text-muted">Buka laci kas dengan saldo awal, lalu tutup berdasarkan hasil hitung kas fisik.</span></div>@can('pos-sessions.open')<button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#openPosSessionModal"><i data-feather="unlock" class="icon-sm me-1"></i>Buka Sesi</button>@endcan</div>
