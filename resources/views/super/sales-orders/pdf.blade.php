@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><title>{{ $order->number }}</title><style>
+    @page { margin: 32px 36px; } body { font-family: DejaVu Sans,sans-serif; color:#202938;font-size:11px; }
+    h1 {font-size:20px;margin:0 0 4px}.muted{color:#667085}
+    .company-header{width:100%;border-bottom:1px solid #cfd5df;padding-bottom:10px;margin-bottom:16px}.company-logo-cell{width:90px;vertical-align:middle}.company-logo-cell img{max-width:76px;max-height:62px}.company-info{vertical-align:middle;line-height:1.5}.company-name{font-size:16px;font-weight:bold;color:#263b5e;margin-bottom:2px}.company-contact{color:#475467}
+    .header{border-bottom:2px solid #263b5e;padding-bottom:14px;margin-bottom:18px}.number{font-size:13px;font-weight:bold;color:#263b5e}
+    table.meta{width:100%;margin-bottom:18px}.meta td{padding:4px 8px 4px 0;vertical-align:top}.meta .label{width:130px;color:#667085}
+    table.items{border-collapse:collapse;width:100%}.items th,.items td{border:1px solid #cfd5df;padding:6px 5px}.items th{background:#f1f4f8;text-align:left}.right{text-align:right}.center{text-align:center}.total{font-weight:bold;background:#f1f4f8}
+    .note{border:1px solid #cfd5df;padding:8px;white-space:pre-line}.signatures{width:100%;margin-top:38px}.signatures td{width:50%;text-align:center;padding:8px 18px}.sign-line{border-bottom:1px solid #475467;height:48px;margin-bottom:6px}.footer{margin-top:20px;border-top:1px solid #d0d5dd;padding-top:7px;font-size:9px;color:#667085}
+    </style></head><body>
+    @include('super.documents.partials.company-pdf-header', ['company' => $company, 'companyLogoDataUri' => $companyLogoDataUri])
+    <div class="header"><h1>Sales Order</h1><div class="muted">Pesanan penjualan kepada customer</div><div class="number">{{ $order->number }}</div></div>
+    <table class="meta"><tr><td class="label">Customer</td><td>{{ $order->customer?->name ?? 'Customer dihapus' }}</td><td class="label">Tanggal Order</td><td>{{ $order->order_date?->format('d/m/Y') }}</td></tr>
+        <tr><td class="label">Alamat Customer</td><td>{{ $order->customer?->address ?: '—' }}{{ $order->customer?->city ? ', '.$order->customer->city : '' }}</td><td class="label">Quotation</td><td>{{ $order->quotation?->number ?? '—' }}</td></tr>
+        <tr><td class="label">Telepon / Email</td><td>{{ $order->customer?->phone ?: '—' }} · {{ $order->customer?->email ?: '—' }}</td><td class="label">Pengiriman Diminta</td><td>{{ $order->requested_delivery_at?->format('d/m/Y') ?? '—' }}</td></tr>
+        <tr><td class="label">Status</td><td>{{ ['draft'=>'Draft','confirmed'=>'Dikonfirmasi','partially_delivered'=>'Dikirim Sebagian','delivered'=>'Selesai Dikirim','cancelled'=>'Dibatalkan'][$order->status] ?? $order->status }}</td><td class="label">Dikonfirmasi</td><td>{{ $order->confirmed_at?->format('d/m/Y H:i') ?? 'Belum dikonfirmasi' }}</td></tr></table>
+    <table class="items"><thead><tr><th class="center" style="width:28px">No</th><th>Barang</th><th class="right" style="width:68px">Jumlah</th><th class="right" style="width:72px">Terkirim</th><th class="right" style="width:88px">Harga Satuan</th><th class="right" style="width:76px">Diskon</th><th class="right" style="width:96px">Subtotal</th></tr></thead><tbody>
+        @forelse($order->items as $item)<tr><td class="center">{{ $loop->iteration }}</td><td>{{ $item->product?->code ?? '—' }}<br>{{ $item->product?->name ?? 'Barang dihapus' }}</td><td class="right">{{ number_format((float)$item->quantity,4,',','.') }} {{ $item->product?->unit?->symbol ?: $item->product?->unit?->name }}</td><td class="right">{{ number_format((float)$item->delivered_quantity,4,',','.') }}</td><td class="right">Rp {{ number_format((float)$item->unit_price,2,',','.') }}</td><td class="right">Rp {{ number_format((float)$item->discount_amount,2,',','.') }}</td><td class="right">Rp {{ number_format((float)$item->line_total,2,',','.') }}</td></tr>
+        @empty<tr><td colspan="7" class="center">Tidak ada barang.</td></tr>@endforelse
+        <tr><th colspan="6" class="right">Subtotal</th><td class="right">Rp {{ number_format((float)$order->subtotal,2,',','.') }}</td></tr><tr><th colspan="6" class="right">Total Pajak</th><td class="right">Rp {{ number_format((float)$order->tax_amount,2,',','.') }}</td></tr><tr class="total"><th colspan="6" class="right">Total Order</th><td class="right">Rp {{ number_format((float)$order->total_amount,2,',','.') }}</td></tr>
+    </tbody></table>
+    @if($order->notes)<p><strong>Catatan:</strong></p><div class="note">{{ $order->notes }}</div>@endif
+    <table class="signatures"><tr><td>Customer<div class="sign-line"></div>{{ $order->customer?->name ?? '—' }}</td><td>{{ $company?->name ?: 'Perusahaan' }}<div class="sign-line"></div>{{ $order->creator?->name ?? '—' }}</td></tr></table>
+    <div class="footer">Sales Order {{ $order->number }} · Dicetak {{ now()->format('d/m/Y H:i') }}.</div>
+</body></html>
