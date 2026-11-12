@@ -80,3 +80,17 @@ Label **Terlihat** berasal langsung dari menu/form/tabel pada screenshot; **Infe
 - CRUD, daftar, validasi, impor, ekspor, dan template memakai delapan field: kode, nama, alamat, contact person, telepon, fax, email, negara.
 - `is_active` tetap menjadi status internal untuk kebutuhan alur pembelian; edit mempertahankan status tersebut tanpa menampilkan kontrol status di form. Supplier baru aktif secara default.
 - Field supplier lain yang sebelumnya ada di aplikasi dihapus karena tidak tampak pada referensi.
+
+
+## Master Customer — penyesuaian referensi
+
+- CRUD, daftar, impor, ekspor, dan template memakai delapan field: kode, nama, alamat, kontak person, telepon, fax, email, dan negara sesuai image15–16.
+- `is_active` tetap menjadi status internal dan tidak ditampilkan; Customer baru aktif secara default.
+- Field lama yang tidak terlihat pada referensi dihapus dari model data dan UI.
+
+
+## Master Style
+
+- CRUD Style menyediakan field wajib `Kode Style` dan `Nama Style` sesuai image17; permission `styles.view/create/update/delete` mengatur akses.
+- Style muncul di grup sidebar PPIC. Style yang dipakai oleh barang tidak dapat dihapus atau diganti kodenya.
+- Belum ada relasi foreign key ke barang: data `style_code` pada barang existing dipertahankan sebagai teks untuk menghindari migrasi data di luar permintaan.

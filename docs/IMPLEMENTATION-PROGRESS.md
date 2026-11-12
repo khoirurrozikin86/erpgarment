@@ -69,3 +69,21 @@ Pengerjaan dilakukan satu modul per instruksi. Tidak ada coding modul berikutnya
 - Label opsi kosong pada form Supplier diperbaiki dengan menambahkan `ui.common.select` untuk Bahasa Indonesia dan Inggris.
 - Dropdown Negara kini memakai daftar statis `config/countries.php` berisi 264 kode negara/wilayah dan tetap menyertakan nilai negara lama yang tersimpan pada Supplier.
 - Test Supplier memverifikasi label pilihan dan jumlah opsi negara.
+
+
+## 2026-11-13 — Penyederhanaan Master Customer
+
+- **Status:** CRUD diselaraskan dengan image15–16.
+- **Field:** kode, nama, alamat, contact person, telepon, fax, email, negara; daftar/impor/ekspor/template memakai field yang sama.
+- **Status internal:** `is_active` tetap disimpan untuk kelanjutan kebutuhan aplikasi, tetapi tidak ditampilkan pada form. Customer baru aktif secara default.
+- **Migration:** `2026_11_13_000007_simplify_customer_fields` menambah fax/negara dan menghapus field Customer lama. Penghapusan data kolom bersifat destruktif dan memerlukan backup untuk pemulihan.
+- **Test:** ditambahkan test feature CRUD, tampilan, daftar negara dan headings ekspor. Jalankan `php artisan migrate` pada environment aplikasi.
+
+
+## 2026-11-13 — Master Style
+
+- **Status:** CRUD sesuai image17; form inline berisi Kode Style/Nama Style, tabel berisi No/Aksi/Kode Style/Nama Style.
+- **Lingkup:** migration, model, DTO, query DataTable, create/update/delete actions dan service, request validation, controller/routes, audit log, sidebar PPIC, serta permission seeder.
+- **Permission:** `UsersAndPermissionsSeeder` memberi akses view kepada role user dan CRUD penuh kepada admin; migration grant menambahkan permission untuk role yang sudah ada supaya menu tampil setelah `php artisan migrate`.
+- **Relasi barang:** kode Style dipertahankan sebagai referensi teks pada barang yang sudah ada. Style yang sedang dipakai barang tidak dapat dihapus atau diganti kodenya.
+- **Verifikasi:** test feature CRUD, permission, sidebar, audit, dan perlindungan Style terpakai. Jalankan `php artisan migrate` pada environment aplikasi.

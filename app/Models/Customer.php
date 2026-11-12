@@ -10,29 +10,11 @@ class Customer extends Model
     use HasFactory;
 
     protected $fillable = [
-        'code',
-        'name',
-        'customer_type',
-        'contact_person',
-        'phone',
-        'email',
-        'website',
-        'tax_number',
-        'address',
-        'city',
-        'province',
-        'postal_code',
-        'payment_term',
-        'credit_limit',
-        'notes',
-        'is_active',
+        'code', 'name', 'address', 'contact_person', 'phone', 'fax', 'email', 'country', 'is_active',
     ];
 
     protected function casts(): array
     {
-        return [
-            'credit_limit' => 'decimal:2',
-            'is_active' => 'boolean',
-        ];
+        return ['is_active' => 'boolean'];
     }
 }

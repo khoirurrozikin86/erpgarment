@@ -58,3 +58,13 @@ Tabel `suppliers` menyimpan kode, nama, alamat, contact person, telepon, fax, em
 
 
 Daftar negara pada form diambil dari `config/countries.php` (264 kode negara/wilayah), sehingga tidak perlu dibuat satu-satu di database. Nilai negara yang sudah tersimpan tetapi tidak ada pada daftar tetap ditambahkan sebagai pilihan agar data lama dapat diedit.
+
+
+### Master Customer — field sesuai referensi
+
+Tabel `customers` menyimpan kode, nama, alamat, contact person, telepon, fax, email, negara, dan `is_active`. Delapan field pertama mengikuti image15–16; `is_active` dipertahankan sebagai status internal dan tidak ditampilkan dalam form master. Kolom lama seperti tipe, website, NPWP, alamat terpisah, termin, batas kredit, dan catatan dihapus lewat migration forward. Penghapusan nilai kolom tidak dapat dipulihkan kecuali dari backup. Dropdown negara menggunakan daftar pada `config/countries.php` dan menyertakan nilai lama yang tersimpan.
+
+
+### Master Style — implementasi sesuai image17
+
+Tabel `styles` menyimpan `id`, `code` (unik), `name`, timestamps. Form referensi hanya menunjukkan kode dan nama. Barang existing menyimpan `style_code` sebagai teks; penghapusan Style ditolak bila kode dipakai barang, dan perubahan kode ditolak untuk menjaga kaitan tersebut. Migrasi relasional ke `style_id` belum dilakukan karena berada di luar scope CRUD referensi.

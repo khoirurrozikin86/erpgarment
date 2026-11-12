@@ -69,7 +69,7 @@
             @endcan
 
             {{-- Master operasional lain dan pengadaan dikelompokkan ke PPIC. --}}
-            @canany(['suppliers.view', 'customers.view', 'products.view', 'boms.view', 'stock-opnames.view', 'material-requests.view', 'purchase-requests.view', 'purchase-orders.view'])
+            @canany(['suppliers.view', 'customers.view', 'styles.view', 'products.view', 'boms.view', 'stock-opnames.view', 'material-requests.view', 'purchase-requests.view', 'purchase-orders.view'])
                 <li class="nav-item nav-category">{{ __('ui.nav.ppic') }}</li>
             @endcanany
             @can('suppliers.view')
@@ -77,6 +77,9 @@
             @endcan
             @can('customers.view')
                 <li class="nav-item"><a href="{{ route('super.customers.index') }}" class="nav-link {{ request()->routeIs('super.customers.*') ? 'active' : '' }}"><i class="link-icon" data-feather="users"></i><span class="link-title">{{ __('ui.nav.customers') }}</span></a></li>
+            @endcan
+            @can('styles.view')
+                <li class="nav-item"><a href="{{ route('super.styles.index') }}" class="nav-link {{ request()->routeIs('super.styles.*') ? 'active' : '' }}"><i class="link-icon" data-feather="tag"></i><span class="link-title">{{ __('ui.nav.styles') }}</span></a></li>
             @endcan
             @can('products.view')
                 <li class="nav-item"><a href="{{ route('super.products.index') }}" class="nav-link {{ request()->routeIs('super.products.*') ? 'active' : '' }}"><i class="link-icon" data-feather="package"></i><span class="link-title">{{ __('ui.nav.products') }}</span></a></li>

@@ -21,11 +21,6 @@ class CustomersTemplateExport implements FromArray, WithHeadings, ShouldAutoSize
 
     public function columnFormats(): array
     {
-        return [
-            'A' => '@', 'B' => '@', 'C' => '@', 'D' => '@',
-            'E' => '@', 'F' => '@', 'G' => '@', 'H' => '@',
-            'I' => '@', 'J' => '@', 'K' => '@', 'L' => '@',
-            'M' => '@', 'N' => '#,##0.00', 'O' => '@', 'P' => '@',
-        ];
+        return array_fill_keys(range('A', 'H'), '@');
     }
 }

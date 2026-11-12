@@ -10,27 +10,7 @@ class CustomerTableQuery
     public function builder(): Builder
     {
         return Customer::query()
-            ->select([
-                'id',
-                'code',
-                'name',
-                'customer_type',
-                'contact_person',
-                'phone',
-                'email',
-                'website',
-                'tax_number',
-                'address',
-                'city',
-                'province',
-                'postal_code',
-                'payment_term',
-                'credit_limit',
-                'notes',
-                'is_active',
-                'created_at',
-                'updated_at',
-            ])
+            ->select(['id', 'code', 'name', 'address', 'contact_person', 'phone', 'fax', 'email', 'country', 'is_active', 'created_at'])
             ->orderByDesc('created_at');
     }
 }

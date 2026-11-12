@@ -20,18 +20,16 @@ class CustomerController extends Controller
 {
     public function index()
     {
-        return view('super.customers.index');
+        $countries = collect(config('countries'))->union(
+            Customer::query()->whereNotNull('country')->distinct()->orderBy('country')->pluck('country')->mapWithKeys(fn (string $country) => [$country => $country])->all()
+        )->sort(SORT_NATURAL | SORT_FLAG_CASE)->values();
+
+        return view('super.customers.index', compact('countries'));
     }
 
     public function dt(CustomerTableQuery $q)
     {
         return DataTables::eloquent($q->builder())
-
-            ->addColumn('status', function (Customer $customer) {
-                return $customer->is_active
-                    ? __('ui.master.status_active')
-                    : __('ui.master.status_inactive');
-            })
 
             ->addColumn('actions', function (Customer $customer) {
 
@@ -46,25 +44,10 @@ class CustomerController extends Controller
                             $customer->getRouteKey()
                         ),
 
-                        'payload' => [
-                            'id' => $customer->id,
-                            'code' => $customer->code,
-                            'name' => $customer->name,
-                            'customer_type' => $customer->customer_type,
-                            'contact_person' => $customer->contact_person,
-                            'phone' => $customer->phone,
-                            'email' => $customer->email,
-                            'website' => $customer->website,
-                            'tax_number' => $customer->tax_number,
-                            'address' => $customer->address,
-                            'city' => $customer->city,
-                            'province' => $customer->province,
-                            'postal_code' => $customer->postal_code,
-                            'payment_term' => $customer->payment_term,
-                            'credit_limit' => $customer->credit_limit,
-                            'notes' => $customer->notes,
-                            'is_active' => $customer->is_active,
-                        ],
+                        'payload' => $customer->only([
+                            'id', 'code', 'name', 'address', 'contact_person',
+                            'phone', 'fax', 'email', 'country', 'is_active',
+                        ]),
                     ],
 
                     [
@@ -87,10 +70,7 @@ class CustomerController extends Controller
                 )->render();
             })
 
-            ->rawColumns([
-                'status',
-                'actions',
-            ])
+            ->rawColumns(['actions'])
 
             ->toJson();
     }

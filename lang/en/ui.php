@@ -198,6 +198,7 @@ return [
         'inventory_label' => 'Inventory',
     ],
     'nav' => [
+        'styles' => 'Styles',
         'access' => 'ACCESS',
         'ppic' => 'PPIC',
         'settings_access' => 'SETTINGS & ACCESS',

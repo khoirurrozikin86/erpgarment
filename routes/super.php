@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\{
     EmailSettingController,
     DocumentNumberingController,
     CategoryController,
+    StyleController,
     UnitController,
     SupplierController,
     ImporterController,
@@ -276,6 +277,15 @@ Route::middleware(['auth'])
                     ])
                     ->name('destroy');
             });
+
+
+        Route::prefix('styles')->name('styles.')->group(function () {
+            Route::middleware('permission:styles.view')->get('/', [StyleController::class, 'index'])->name('index');
+            Route::middleware('permission:styles.view')->get('/dt', [StyleController::class, 'dt'])->name('dt');
+            Route::middleware('permission:styles.create')->post('/', [StyleController::class, 'store'])->name('store');
+            Route::middleware('permission:styles.update')->put('/{style}', [StyleController::class, 'update'])->name('update');
+            Route::middleware('permission:styles.delete')->delete('/{style}', [StyleController::class, 'destroy'])->name('destroy');
+        });
 
 
         Route::prefix('units')->name('units.')->group(function () {

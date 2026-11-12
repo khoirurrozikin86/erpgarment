@@ -8,7 +8,7 @@ Referensi: `IT INVENTORY.docx`, berisi 192 objek gambar berurutan `image1.png`�
 
 | Modul | Halaman/fitur yang diberi judul atau tampak di menu | Relasi utama |
 |---|---|---|
-| Pengaturan & akses | Pengguna aplikasi, hak akses, Importir, Exportir, stock opname (administrasi data), PPIC, pemasok, pelanggan, style, barang, BOM | Pengguna/role; master pemasok/pelanggan; barang, satuan, style, BOM; pembatasan akses |
+| Pengaturan & akses | Pengguna aplikasi, hak akses, Importir, Exportir, stock opname (administrasi data), PPIC, pemasok, pelanggan, style, barang, BOM | Pengguna/role; master pemasok/pelanggan; barang, satuan, style (CRUD), BOM; pembatasan akses |
 | PPIC & pengadaan | Material Order (MO), Pesanan Pembelian Supplier, Pesanan Pembelian lain-lain, Cek Pesanan Pembelian | Style/barang/BOM → permintaan material → PO → penerimaan gudang |
 | BC Masuk / dokumen pabean masuk | BC 2.3, BC 2.6.2, BC 2.7, BC 4.0, BC 2.0 | Data importer, dokumen penerimaan/GRN, pemasok, barang, HS code, jumlah/nilai/mata uang/faktur |
 | Gudang & persediaan | Catatan Penerimaan Barang, Terima Pengembalian dari Produksi, GRN Approve, Kirim ke Produksi (MIS), Kembali ke Supplier, Barang Rusak, Barang Hilang, Kartu Stok Bahan Baku | PO/BC → penerimaan → saldo; pengeluaran/retur/penyesuaian → mutasi dan kartu stok |

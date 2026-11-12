@@ -197,6 +197,7 @@ return [
         'inventory_label' => 'Persediaan',
     ],
     'nav' => [
+        'styles' => 'Style',
         'access' => 'ACCESS',
         'ppic' => 'PPIC',
         'settings_access' => 'PENGATURAN & AKSES',

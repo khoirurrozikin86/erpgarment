@@ -1,10 +1,22 @@
 # Referensi UI dari Screenshot
 
+## Master Customer — referensi image15 dan image16
+
+- Daftar: `No`, `Kode`, `Nama`, `Alamat`, `Kontak Person`, `Telepon`, `Fax`, `Email`, `Negara`, `Aksi`; tersedia `Export Excel` dan `Tambah Data`.
+- Form: `Kode Customer`, `Nama Customer`, `Alamat`, `Kontak Person`, `Telepon`, `Fax`, `Email`, dan pilihan `Negara`; tersedia tombol `Simpan` dan `Impor Data`.
+- Field lain seperti jenis, NPWP, website, termin pembayaran, batas kredit, kota/provinsi, dan catatan tidak tampak pada referensi Customer.
+
 ## Master Supplier — referensi image13 dan image14
 
 - Daftar: `No`, `Kode`, `Nama`, `Alamat`, `Contact Person`, `Telepon`, `Email`, `Fax`, `Negara`, `Aksi`; tersedia `Export Excel` dan `Tambah Data`.
 - Form: `Kode Supplier`, `Nama Supplier`, `Alamat`, `Kontak Person`, `Telepon`, `Fax`, `Email`, dan `Negara` (pilihan negara), dengan tombol `Simpan` dan `Impor Data`.
 - Field lain seperti jenis, NPWP, termin pembayaran, website, rincian bank, kota/provinsi, dan catatan tidak tampak pada referensi Supplier.
+
+## Master Style — referensi image17
+
+- Halaman `Pengaturan Style` menampilkan form inline dengan field wajib `Kode Style` dan `Nama Style`, serta tombol `Simpan`.
+- Tabel menampilkan `No`, `Aksi`, `Kode Style`, dan `Nama Style`, dengan aksi edit/hapus dan pencarian/paginasi.
+- Referensi tidak menunjukkan deskripsi, status, atau atribut style lain; field tersebut tidak ditambahkan.
 
 ## Pola tata letak
 
