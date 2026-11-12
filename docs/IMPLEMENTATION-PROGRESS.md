@@ -82,7 +82,7 @@ Pengerjaan dilakukan satu modul per instruksi. Tidak ada coding modul berikutnya
 
 ## 2026-11-13 — Master Style
 
-- **Status:** CRUD sesuai image17; form inline berisi Kode Style/Nama Style, tabel berisi No/Aksi/Kode Style/Nama Style.
+- **Status:** CRUD sesuai image17; modal tambah/edit berisi Kode Style/Nama Style, tabel berisi No/Aksi/Kode Style/Nama Style. Modal/action dropdown mengikuti pola master project.
 - **Lingkup:** migration, model, DTO, query DataTable, create/update/delete actions dan service, request validation, controller/routes, audit log, sidebar PPIC, serta permission seeder.
 - **Permission:** `UsersAndPermissionsSeeder` memberi akses view kepada role user dan CRUD penuh kepada admin; migration grant menambahkan permission untuk role yang sudah ada supaya menu tampil setelah `php artisan migrate`.
 - **Relasi barang:** kode Style dipertahankan sebagai referensi teks pada barang yang sudah ada. Style yang sedang dipakai barang tidak dapat dihapus atau diganti kodenya.

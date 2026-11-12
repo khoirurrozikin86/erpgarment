@@ -24,6 +24,8 @@ class StyleTest extends TestCase
         $html = $this->get(route('super.styles.index'))->assertOk()->getContent();
         $this->assertStringContainsString('Kode Style', $html);
         $this->assertStringContainsString('Nama Style', $html);
+        $this->assertStringContainsString('id="style-modal"', $html);
+        $this->assertStringContainsString('id="btn-add-style"', $html);
         $this->assertStringContainsString('href="'.route('super.styles.index').'"', $html);
         $this->assertStringContainsString(__('ui.nav.ppic'), $html);
         $this->assertStringNotContainsString('style-description', $html);

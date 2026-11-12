@@ -13,7 +13,7 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div><h4 class="mb-1">Pengaturan Style</h4></div>
     @can('styles.create')
-        <button type="button" class="btn btn-primary" id="btn-add-style"><i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.common.add') }}</button>
+        <button type="button" class="btn btn-primary" id="btn-add-style"><i data-feather="plus" class="icon-sm me-1"></i>Tambah Style</button>
     @endcan
 </div>
 <div class="card"><div class="card-body">

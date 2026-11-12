@@ -23,19 +23,22 @@ class StyleController extends Controller
     {
         return DataTables::eloquent($query->builder())
             ->addColumn('actions', function (Style $style) {
-                $actions = [
-                    [
+                $actions = [];
+                if (auth()->user()?->can('styles.update')) {
+                    $actions[] = [
                         'type' => 'edit', 'label' => __('ui.common.edit'), 'icon' => 'edit-2',
                         'update_url' => route('super.styles.update', $style->getRouteKey()),
                         'payload' => $style->only(['id', 'code', 'name']),
-                    ],
-                    [
+                    ];
+                }
+                if (auth()->user()?->can('styles.delete')) {
+                    $actions[] = [
                         'type' => 'delete', 'url' => route('super.styles.destroy', $style->getRouteKey()),
                         'label' => __('ui.common.delete'), 'icon' => 'trash-2',
                         'confirm' => __('ui.master.delete_confirmation', ['type' => 'Style', 'name' => $style->code]),
                         'disabled' => false,
-                    ],
-                ];
+                    ];
+                }
 
                 return view('admin.partials.table-actions', compact('actions'))->render();
             })

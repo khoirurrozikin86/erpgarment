@@ -14,7 +14,7 @@
 
 ## Master Style — referensi image17
 
-- Halaman `Pengaturan Style` menampilkan form inline dengan field wajib `Kode Style` dan `Nama Style`, serta tombol `Simpan`.
+- Halaman `Pengaturan Style` menampilkan field wajib `Kode Style` dan `Nama Style`, serta tombol `Simpan`. Implementasi modal CRUD mengikuti pola interaksi master project setelah arahan pengguna.
 - Tabel menampilkan `No`, `Aksi`, `Kode Style`, dan `Nama Style`, dengan aksi edit/hapus dan pencarian/paginasi.
 - Referensi tidak menunjukkan deskripsi, status, atau atribut style lain; field tersebut tidak ditambahkan.
 
