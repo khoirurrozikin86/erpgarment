@@ -71,15 +71,17 @@
 
             $(document).on('click', '.btn-view-goods-receipt', function() {
                 $.get($(this).data('url')).done(function(receipt) {
-                    const rows = receipt.items.map(item => `<tr><td>${safe(item.code)} — ${safe(item.name)}</td><td class="text-end">${item.quantity} ${safe(item.unit)}</td><td class="text-end">${money(item.unit_price)}</td><td class="text-end">${money(item.line_total)}</td></tr>`).join('');
+                    const rows = receipt.items.map(item => `<tr><td>${safe(item.code)} — ${safe(item.name)}</td><td>${safe(item.lot_number)}</td><td class="text-end">${item.quantity} ${safe(item.unit)}</td><td class="text-end">${money(item.unit_price)}</td><td class="text-end">${money(item.line_total)}</td></tr>`).join('');
                     $('#viewGoodsReceiptTitle').text(`Penerimaan ${receipt.number}`);
                     $('#viewGoodsReceiptBody').html(`
                         <dl class="row mb-3"><dt class="col-sm-3">{{ __('ui.common.purchase_order') }}</dt><dd class="col-sm-9">${safe(receipt.purchase_order)}</dd>
                         <dt class="col-sm-3">{{ __('ui.common.supplier') }}</dt><dd class="col-sm-9">${safe(receipt.supplier)}</dd>
                         <dt class="col-sm-3">{{ __('ui.common.received_date') }}</dt><dd class="col-sm-9">${safe(receipt.received_at)}</dd>
+                        <dt class="col-sm-3">{{ __('ui.workflow.customs_document_code') }}</dt><dd class="col-sm-9">${safe(receipt.customs_document_code)}</dd>
+                        <dt class="col-sm-3">{{ __('ui.workflow.customs_document_number') }}</dt><dd class="col-sm-9">${safe(receipt.customs_document_number)} (${safe(receipt.customs_document_date)})</dd>
                         <dt class="col-sm-3">{{ __('ui.common.received_by') }}</dt><dd class="col-sm-9">${safe(receipt.receiver)}</dd>
                         <dt class="col-sm-3">{{ __('ui.common.notes') }}</dt><dd class="col-sm-9 text-break">${safe(receipt.notes)}</dd></dl>
-                        <div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>{{ __('ui.common.item') }}</th><th class="text-end">{{ __('ui.common.received') }}</th><th class="text-end">{{ __('ui.common.unit_price') }}</th><th class="text-end">{{ __('ui.common.subtotal') }}</th></tr></thead><tbody>${rows}</tbody></table></div>`);
+                        <div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>{{ __('ui.common.item') }}</th><th>{{ __('ui.workflow.lot_roll') }}</th><th class="text-end">{{ __('ui.common.received') }}</th><th class="text-end">{{ __('ui.common.unit_price') }}</th><th class="text-end">{{ __('ui.common.subtotal') }}</th></tr></thead><tbody>${rows}</tbody></table></div>`);
                     modal.show();
                 }).fail(() => Swal.fire({ icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: '{{ __('ui.workflow.receipt_detail_load_failed') }}' }));
             });

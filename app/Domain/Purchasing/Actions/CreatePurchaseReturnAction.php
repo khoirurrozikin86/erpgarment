@@ -8,6 +8,7 @@ use App\Domain\Purchasing\DTOs\PurchaseReturnData;
 use App\Domain\Settings\Services\DocumentNumberService;
 use App\Models\GoodsReceipt;
 use App\Models\GoodsReceiptItem;
+use App\Models\InventoryLot;
 use App\Models\Product;
 use App\Models\ProductStock;
 use App\Models\PurchaseReturn;
@@ -128,6 +129,31 @@ class CreatePurchaseReturnAction
                         'cost_amount' => $costAmount,
                         'notes' => "Retur pembelian {$purchaseReturn->number}",
                     ]);
+                    $lotAllocations = [];
+                    if ($receiptItem->inventory_lot_id) {
+                        $lot = InventoryLot::query()->whereKey($receiptItem->inventory_lot_id)->lockForUpdate()->firstOrFail();
+                        if ((float) $lot->current_quantity < $quantity) {
+                            throw ValidationException::withMessages(['items' => __('ui.workflow.return_exceeds_lot_balance', ['lot' => $lot->lot_number])]);
+                        }
+                        $lot->update(['current_quantity' => round((float) $lot->current_quantity - $quantity, 4)]);
+                        $lotAllocations[] = ['inventory_lot_id' => $lot->id, 'quantity' => -$quantity, 'unit_cost' => $lot->unit_cost];
+                    } else {
+                        $remaining = $quantity;
+                        $lots = InventoryLot::query()->where('product_id', $product->id)->where('current_quantity', '>', 0)
+                            ->orderBy('received_at')->orderBy('id')->lockForUpdate()->get();
+                        foreach ($lots as $lot) {
+                            if ($remaining <= 0) break;
+                            $allocated = min((float) $lot->current_quantity, $remaining);
+                            if ($allocated <= 0) continue;
+                            $lot->update(['current_quantity' => round((float) $lot->current_quantity - $allocated, 4)]);
+                            $lotAllocations[] = ['inventory_lot_id' => $lot->id, 'quantity' => -$allocated, 'unit_cost' => $lot->unit_cost];
+                            $remaining = round($remaining - $allocated, 4);
+                        }
+                        if ($remaining > 0.0000001) {
+                            throw ValidationException::withMessages(['items' => __('ui.workflow.lot_stock_balance_mismatch', ['item' => $product->name])]);
+                        }
+                    }
+                    $movement->lotAllocations()->createMany($lotAllocations);
                     $this->journals->recordStockMovement($movement, $userId, $lineTotal);
                 } else {
                     $this->journals->recordNonStockPurchaseReturn($returnLine, $receipt->number, $purchaseReturn->number, $purchaseReturn->returned_at, $userId);

@@ -21,6 +21,8 @@ class StockMovement extends Model
         'delivery_item_id',
         'pos_sale_id',
         'pos_sale_item_id',
+        'material_request_item_id',
+        'production_order_stage_entry_id',
         'created_by',
         'movement_type',
         'quantity',
@@ -29,6 +31,13 @@ class StockMovement extends Model
         'cost_amount',
         'notes',
     ];
+
+    protected static function booted(): void
+    {
+        static::created(function (StockMovement $movement) {
+            app(\App\Domain\Inventory\Services\StockMovementLotAllocator::class)->allocate($movement);
+        });
+    }
 
     protected function casts(): array
     {
@@ -73,5 +82,20 @@ class StockMovement extends Model
     public function posSale(): BelongsTo
     {
         return $this->belongsTo(PosSale::class, 'pos_sale_id');
+    }
+
+    public function materialRequestItem(): BelongsTo
+    {
+        return $this->belongsTo(MaterialRequestItem::class);
+    }
+
+    public function productionOrderStageEntry(): BelongsTo
+    {
+        return $this->belongsTo(ProductionOrderStageEntry::class);
+    }
+
+    public function lotAllocations(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(StockMovementLotAllocation::class);
     }
 }

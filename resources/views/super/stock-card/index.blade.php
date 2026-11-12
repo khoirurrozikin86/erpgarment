@@ -41,7 +41,7 @@
 
     <div class="card"><div class="card-body"><div class="table-responsive">
         <table id="stock-card-table" class="table table-bordered table-hover align-middle w-100">
-            <thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.workflow.recorded_at') }}</th><th>{{ __('ui.workflow.document_number') }}</th><th>{{ __('ui.common.type') }}</th><th class="text-end">{{ __('ui.common.enter') }}</th><th class="text-end">{{ __('ui.common.exit') }}</th><th class="text-end">{{ __('ui.common.balance') }}</th><th>{{ __('ui.common.unit') }}</th><th>{{ __('ui.common.notes') }}</th></tr></thead>
+            <thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.workflow.recorded_at') }}</th><th>{{ __('ui.workflow.document_number') }}</th><th>{{ __('ui.workflow.lot_roll') }}</th><th>{{ __('ui.common.type') }}</th><th class="text-end">{{ __('ui.common.enter') }}</th><th class="text-end">{{ __('ui.common.exit') }}</th><th class="text-end">{{ __('ui.common.balance') }}</th><th>{{ __('ui.common.unit') }}</th><th>{{ __('ui.common.notes') }}</th></tr></thead>
         </table>
     </div></div></div>
 
@@ -76,6 +76,7 @@
                     { data: 'id', orderable: false, searchable: false, render: (data, type, row, meta) => meta.row + meta.settings._iDisplayStart + 1 },
                     { data: 'created_at', name: 'created_at', render: data => data ? new Date(data).toLocaleString('id-ID') : '—' },
                     { data: 'reference_number', orderable: false, searchable: false },
+                    { data: 'lot_numbers', orderable: false, searchable: false },
                     { data: 'movement_label', name: 'movement_type', searchable: false },
                     { data: 'quantity_in', orderable: false, searchable: false, className: 'text-end' },
                     { data: 'quantity_out', orderable: false, searchable: false, className: 'text-end' },

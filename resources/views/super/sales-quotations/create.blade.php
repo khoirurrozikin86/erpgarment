@@ -1,17 +1,17 @@
 @extends('layouts.admin')
-@section('title', 'Buat Sales Quotation')
+@section('title', __('ui.modules.create_sales_quotation'))
 @section('breadcrumb')<nav class="page-breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="#">{{ __('ui.common.sales') }}</a></li><li class="breadcrumb-item"><a href="{{ route('super.sales-quotations.index') }}">{{ __('ui.common.quotation') }}</a></li><li class="breadcrumb-item active">{{ __('ui.common.create') }}</li></ol></nav>@endsection
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-3"><div><h4 class="page-title mb-1">Buat Sales Quotation</h4><span class="text-muted">Harga awal mengikuti pricelist aktif customer atau harga jual barang.</span></div><a href="{{ route('super.sales-quotations.index') }}" class="btn btn-outline-secondary btn-sm"><i data-feather="arrow-left" class="icon-sm me-1"></i>{{ __('ui.common.back') }}</a></div>
-    <form id="salesQuotationForm"><div class="card mb-3"><div class="card-header"><h6 class="mb-0">Informasi Penawaran</h6></div><div class="card-body"><div class="row">
-        <div class="col-md-6 mb-3"><label class="form-label" for="customer_id">{{ __('ui.common.customer') }}<span class="text-danger">*</span></label><select id="customer_id" class="form-select" required><option value="">-- Pilih Customer --</option>@foreach($customers as $customer)<option value="{{ $customer->id }}">{{ $customer->code }} — {{ $customer->name }}</option>@endforeach</select><small class="text-muted">Pilih customer sebelum menambahkan barang agar harga pricelist yang sesuai digunakan.</small></div>
-        <div class="col-md-3 mb-3"><label class="form-label" for="quote_date">Tanggal Quotation</label><input type="date" id="quote_date" class="form-control" value="{{ now()->toDateString() }}" required></div>
+    <div class="d-flex justify-content-between align-items-center mb-3"><div><h4 class="page-title mb-1">{{ __('ui.modules.create_sales_quotation') }}</h4><span class="text-muted">{{ __('ui.modules.quotation_help') }}</span></div><a href="{{ route('super.sales-quotations.index') }}" class="btn btn-outline-secondary btn-sm"><i data-feather="arrow-left" class="icon-sm me-1"></i>{{ __('ui.common.back') }}</a></div>
+    <form id="salesQuotationForm"><div class="card mb-3"><div class="card-header"><h6 class="mb-0">{{ __('ui.modules.quotation_information') }}</h6></div><div class="card-body"><div class="row">
+        <div class="col-md-6 mb-3"><label class="form-label" for="customer_id">{{ __('ui.common.customer') }}<span class="text-danger">*</span></label><select id="customer_id" class="form-select" required><option value="">{{ __('ui.modules.select_customer') }}</option>@foreach($customers as $customer)<option value="{{ $customer->id }}">{{ $customer->code }} — {{ $customer->name }}</option>@endforeach</select><small class="text-muted">{{ __('ui.modules.choose_customer_for_pricing') }}</small></div>
+        <div class="col-md-3 mb-3"><label class="form-label" for="quote_date">{{ __('ui.modules.quotation_date') }}</label><input type="date" id="quote_date" class="form-control" value="{{ now()->toDateString() }}" required></div>
         <div class="col-md-3 mb-3"><label class="form-label" for="valid_until">{{ __('ui.common.valid_until') }}</label><input type="date" id="valid_until" class="form-control" value="{{ now()->addDays(14)->toDateString() }}"></div>
     </div>
-    <div class="d-flex justify-content-between align-items-center mb-2"><h6 class="mb-0">Barang Penawaran</h6><button type="button" id="openProductPicker" class="btn btn-outline-primary btn-sm"><i data-feather="search" class="icon-sm me-1"></i>{{ __('ui.common.choose_item') }}</button></div>
-    <div class="table-responsive"><table class="table table-sm table-bordered align-middle"><thead><tr><th>{{ __('ui.common.item') }}</th><th style="width:110px">{{ __('ui.common.quantity') }}</th><th style="width:160px">{{ __('ui.common.unit_price') }}</th><th style="width:150px">Diskon (Rp)</th><th class="text-end">{{ __('ui.common.tax') }}</th><th class="text-end">{{ __('ui.common.total') }}</th><th class="text-center" style="width:60px">{{ __('ui.common.action') }}</th></tr></thead><tbody id="quotationItems"><tr><td colspan="7" class="text-center text-muted py-4">{{ __('ui.common.choose_customer_add_items') }}</td></tr></tbody><tfoot><tr><th colspan="5" class="text-end">{{ __('ui.common.subtotal') }}</th><th class="text-end" id="quotationSubtotal">Rp 0</th><th></th></tr><tr><th colspan="5" class="text-end">{{ __('ui.common.tax') }}</th><th class="text-end" id="quotationTax">Rp 0</th><th></th></tr><tr><th colspan="5" class="text-end">{{ __('ui.common.total') }}</th><th class="text-end fw-bold" id="quotationTotal">Rp 0</th><th></th></tr></tfoot></table></div>
-    <div class="mt-3"><label class="form-label" for="quotation_notes">{{ __('ui.common.notes') }}</label><textarea id="quotation_notes" class="form-control" rows="3" maxlength="5000" placeholder="Catatan atau syarat penawaran"></textarea></div></div><div class="card-footer d-flex justify-content-between"><a href="{{ route('super.sales-quotations.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('ui.common.cancel') }}</a><button type="submit" id="submitQuotation" class="btn btn-primary btn-sm" disabled><i data-feather="save" class="icon-sm me-1"></i>{{ __('ui.common.save_draft') }}</button></div></div></form>
-    <div class="modal fade" id="quotationProductPicker" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Pilih Barang untuk Quotation</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div><div class="modal-body"><div class="table-responsive"><table id="quotationProductsTable" class="table table-bordered table-hover align-middle w-100"><thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.common.code') }}</th><th>{{ __('ui.common.item') }}</th><th>{{ __('ui.common.unit') }}</th><th class="text-end">Harga Penawaran</th><th>{{ __('ui.common.action') }}</th></tr></thead></table></div></div></div></div></div>
+    <div class="d-flex justify-content-between align-items-center mb-2"><h6 class="mb-0">{{ __('ui.modules.quoted_items') }}</h6><button type="button" id="openProductPicker" class="btn btn-outline-primary btn-sm"><i data-feather="search" class="icon-sm me-1"></i>{{ __('ui.common.choose_item') }}</button></div>
+    <div class="table-responsive"><table class="table table-sm table-bordered align-middle"><thead><tr><th>{{ __('ui.common.item') }}</th><th style="width:110px">{{ __('ui.common.quantity') }}</th><th style="width:160px">{{ __('ui.common.unit_price') }}</th><th style="width:150px">{{ __('ui.modules.discount_rp') }}</th><th class="text-end">{{ __('ui.common.tax') }}</th><th class="text-end">{{ __('ui.common.total') }}</th><th class="text-center" style="width:60px">{{ __('ui.common.action') }}</th></tr></thead><tbody id="quotationItems"><tr><td colspan="7" class="text-center text-muted py-4">{{ __('ui.common.choose_customer_add_items') }}</td></tr></tbody><tfoot><tr><th colspan="5" class="text-end">{{ __('ui.common.subtotal') }}</th><th class="text-end" id="quotationSubtotal">Rp 0</th><th></th></tr><tr><th colspan="5" class="text-end">{{ __('ui.common.tax') }}</th><th class="text-end" id="quotationTax">Rp 0</th><th></th></tr><tr><th colspan="5" class="text-end">{{ __('ui.common.total') }}</th><th class="text-end fw-bold" id="quotationTotal">Rp 0</th><th></th></tr></tfoot></table></div>
+    <div class="mt-3"><label class="form-label" for="quotation_notes">{{ __('ui.common.notes') }}</label><textarea id="quotation_notes" class="form-control" rows="3" maxlength="5000" placeholder="{{ __('ui.modules.quotation_terms_placeholder') }}"></textarea></div></div><div class="card-footer d-flex justify-content-between"><a href="{{ route('super.sales-quotations.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('ui.common.cancel') }}</a><button type="submit" id="submitQuotation" class="btn btn-primary btn-sm" disabled><i data-feather="save" class="icon-sm me-1"></i>{{ __('ui.common.save_draft') }}</button></div></div></form>
+    <div class="modal fade" id="quotationProductPicker" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">{{ __('ui.modules.items_for_quotation') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div><div class="modal-body"><div class="table-responsive"><table id="quotationProductsTable" class="table table-bordered table-hover align-middle w-100"><thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.common.code') }}</th><th>{{ __('ui.common.item') }}</th><th>{{ __('ui.common.unit') }}</th><th class="text-end">{{ __('ui.modules.quoted_price') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead></table></div></div></div></div></div>
 @endsection
 @push('scripts')
 <script>
@@ -34,7 +34,7 @@ $(function() {
             $('#quotationProductsTable .btn-add-quotation-product').each(function() {
                 const button = $(this), exists = selected.has(Number(button.data('id')));
                 button.prop('disabled', exists).toggleClass('btn-primary', !exists).toggleClass('btn-outline-secondary', exists)
-                    .html(exists ? '<i data-feather="check" class="icon-sm me-1"></i>Ditambahkan' : '<i data-feather="plus" class="icon-sm me-1"></i>Pilih');
+                    .html(exists ? '<i data-feather="check" class="icon-sm me-1"></i>{{ __('ui.modules.added') }}' : '<i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.modules.select') }}');
             });
             if (window.feather) feather.replace();
         }
@@ -68,14 +68,14 @@ $(function() {
             row.append($('<td>').append($('<input>', { type: 'number', min: '0', step: '0.01', value: '0', class: 'form-control form-control-sm text-end quotation-discount' })));
             row.append($('<td class="text-end quotation-tax-cell">').text('—'));
             row.append($('<td class="text-end quotation-total-cell">').text('—'));
-            row.append($('<td class="text-center">').append($('<button type="button" class="btn btn-sm btn-outline-danger btn-remove-quotation-product" title="Hapus">').html('<i data-feather="x" class="icon-sm"></i>')));
+            row.append($('<td class="text-center">').append($('<button type="button" class="btn btn-sm btn-outline-danger btn-remove-quotation-product" title="{{ __('ui.modules.delete') }}">').html('<i data-feather="x" class="icon-sm"></i>')));
             body.append(row);
         });
         recalculate(); if (window.feather) feather.replace();
     }
 
     $('#openProductPicker').on('click', function() {
-        if (!$('#customer_id').val()) { Swal.fire({ icon: 'info', title: 'Pilih customer terlebih dahulu' }); return; }
+        if (!$('#customer_id').val()) { Swal.fire({ icon: 'info', title: '{{ __('ui.modules.choose_customer_first') }}' }); return; }
         pickerTable.ajax.reload(); picker.show();
     });
     $('#customer_id').on('change', () => pickerTable.ajax.reload());
@@ -83,7 +83,7 @@ $(function() {
         const button = $(this), id = Number(button.data('id'));
         if (selected.has(id)) return;
         selected.set(id, { id, code: button.data('code'), name: button.data('name'), unit: button.data('unit'), price: Number(button.data('price')) || 0, taxable: String(button.data('taxable')) === '1', taxRate: Number(button.data('tax-rate')) || 0 });
-        renderRows(); button.prop('disabled', true).removeClass('btn-primary').addClass('btn-outline-secondary').html('<i data-feather="check" class="icon-sm me-1"></i>Ditambahkan');
+        renderRows(); button.prop('disabled', true).removeClass('btn-primary').addClass('btn-outline-secondary').html('<i data-feather="check" class="icon-sm me-1"></i>{{ __('ui.modules.added') }}');
         if (window.feather) feather.replace();
     });
     $(document).on('click', '.btn-remove-quotation-product', function() { selected.delete(Number($(this).closest('tr').data('product-id'))); renderRows(); pickerTable.ajax.reload(null, false); });
@@ -99,8 +99,8 @@ $(function() {
         $.ajax({
             url: @json(route('super.sales-quotations.store')), method: 'POST',
             data: { _token: @json(csrf_token()), customer_id: $('#customer_id').val(), quote_date: $('#quote_date').val(), valid_until: $('#valid_until').val(), notes: $('#quotation_notes').val(), items },
-            success: response => Swal.fire({ icon: 'success', title: 'Berhasil', text: response.message }).then(() => window.location.href = response.url),
-            error: xhr => { const errors = xhr.responseJSON?.errors; Swal.fire({ icon: 'error', title: 'Gagal', text: errors ? Object.values(errors).flat().join('\n') : (xhr.responseJSON?.message || 'Quotation gagal disimpan.') }); button.prop('disabled', false); }
+            success: response => Swal.fire({ icon: 'success', title: '{{ __('ui.modules.success') }}', text: response.message }).then(() => window.location.href = response.url),
+            error: xhr => { const errors = xhr.responseJSON?.errors; Swal.fire({ icon: 'error', title: '{{ __('ui.modules.failure') }}', text: errors ? Object.values(errors).flat().join('\n') : (xhr.responseJSON?.message || '{{ __('ui.modules.quotation_save_failed') }}') }); button.prop('disabled', false); }
         });
     });
 });

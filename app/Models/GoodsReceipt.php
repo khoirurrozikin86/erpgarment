@@ -8,11 +8,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class GoodsReceipt extends Model
 {
-    protected $fillable = ['number', 'purchase_order_id', 'supplier_id', 'received_by', 'received_at', 'notes'];
+    protected $fillable = ['number', 'purchase_order_id', 'supplier_id', 'received_by', 'received_at', 'customs_document_code', 'customs_document_number', 'customs_document_date', 'notes'];
 
     protected function casts(): array
     {
-        return ['received_at' => 'datetime'];
+        return ['received_at' => 'datetime', 'customs_document_date' => 'date'];
     }
 
     public function purchaseOrder(): BelongsTo

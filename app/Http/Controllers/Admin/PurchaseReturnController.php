@@ -31,12 +31,12 @@ class PurchaseReturnController extends Controller
 
         return DataTables::eloquent($query->builder($filters['from_date'] ?? null, $filters['to_date'] ?? null))
             ->addColumn('receipt_number', fn (PurchaseReturn $purchaseReturn) => $purchaseReturn->goodsReceipt?->number ?? '—')
-            ->addColumn('supplier_name', fn (PurchaseReturn $purchaseReturn) => $purchaseReturn->supplier?->name ?? 'Supplier dihapus')
-            ->addColumn('returner_name', fn (PurchaseReturn $purchaseReturn) => $purchaseReturn->returner?->name ?? 'User dihapus')
+            ->addColumn('supplier_name', fn (PurchaseReturn $purchaseReturn) => $purchaseReturn->supplier?->name ?? __('ui.modules.supplier_deleted'))
+            ->addColumn('returner_name', fn (PurchaseReturn $purchaseReturn) => $purchaseReturn->returner?->name ?? __('ui.modules.user_deleted'))
             ->addColumn('actions', function (PurchaseReturn $purchaseReturn) {
-                return '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-purchase-return" data-url="' . e(route('super.purchase-returns.show', $purchaseReturn)) . '" title="Lihat rincian"><i data-feather="eye"></i></button>'
-                    . ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.purchase-returns.pdf', $purchaseReturn)) . '" target="_blank" rel="noopener" title="Lihat PDF"><i data-feather="file-text"></i></a>'
-                    . ' <a class="btn btn-sm btn-outline-secondary" href="' . e(route('super.purchase-returns.pdf.download', $purchaseReturn)) . '" title="Unduh PDF"><i data-feather="download"></i></a>';
+                return '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-purchase-return" data-url="' . e(route('super.purchase-returns.show', $purchaseReturn)) . '" title="' . e(__('ui.modules.view_details')) . '"><i data-feather="eye"></i></button>'
+                    . ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.purchase-returns.pdf', $purchaseReturn)) . '" target="_blank" rel="noopener" title="' . e(__('ui.modules.view_pdf')) . '"><i data-feather="file-text"></i></a>'
+                    . ' <a class="btn btn-sm btn-outline-secondary" href="' . e(route('super.purchase-returns.pdf.download', $purchaseReturn)) . '" title="' . e(__('ui.modules.download_pdf')) . '"><i data-feather="download"></i></a>';
             })
             ->rawColumns(['actions'])
             ->toJson();
@@ -46,8 +46,8 @@ class PurchaseReturnController extends Controller
     {
         return DataTables::eloquent($query->eligibleGoodsReceipts())
             ->addColumn('purchase_order_number', fn (GoodsReceipt $receipt) => $receipt->purchaseOrder?->number ?? '—')
-            ->addColumn('supplier_name', fn (GoodsReceipt $receipt) => $receipt->supplier?->name ?? 'Supplier dihapus')
-            ->addColumn('actions', fn (GoodsReceipt $receipt) => '<button type="button" class="btn btn-sm btn-primary btn-select-return-receipt" data-id="' . (int) $receipt->id . '"><i data-feather="check" class="icon-sm me-1"></i>Pilih</button>')
+            ->addColumn('supplier_name', fn (GoodsReceipt $receipt) => $receipt->supplier?->name ?? __('ui.modules.supplier_deleted'))
+            ->addColumn('actions', fn (GoodsReceipt $receipt) => '<button type="button" class="btn btn-sm btn-primary btn-select-return-receipt" data-id="' . (int) $receipt->id . '"><i data-feather="check" class="icon-sm me-1"></i>' . e(__('ui.modules.select')) . '</button>')
             ->rawColumns(['actions'])
             ->toJson();
     }
@@ -60,11 +60,11 @@ class PurchaseReturnController extends Controller
             'id' => $receipt->id,
             'number' => $receipt->number,
             'purchase_order' => $receipt->purchaseOrder?->number ?? '—',
-            'supplier' => $receipt->supplier?->name ?? 'Supplier dihapus',
+            'supplier' => $receipt->supplier?->name ?? __('ui.modules.supplier_deleted'),
             'items' => $receipt->items->map(fn ($item) => [
                 'id' => $item->id,
                 'code' => $item->product?->code ?? '—',
-                'name' => $item->product?->name ?? 'Barang dihapus',
+                'name' => $item->product?->name ?? __('ui.modules.item_deleted'),
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
                 'received' => (float) $item->quantity,
                 'returned' => (float) $item->returned_quantity,
@@ -90,7 +90,7 @@ class PurchaseReturnController extends Controller
         $purchaseReturn = $service->create($data, (int) $request->user()->id);
 
         return response()->json([
-            'message' => "Purchase Return {$purchaseReturn->number} berhasil dicatat dan stok telah diperbarui.",
+            'message' => __('ui.modules.purchase_return_saved', ['number' => $purchaseReturn->number]),
             'id' => $purchaseReturn->id,
         ], 201);
     }
@@ -103,15 +103,15 @@ class PurchaseReturnController extends Controller
             'number' => $purchaseReturn->number,
             'receipt' => $purchaseReturn->goodsReceipt?->number ?? '—',
             'purchase_order' => $purchaseReturn->goodsReceipt?->purchaseOrder?->number ?? '—',
-            'supplier' => $purchaseReturn->supplier?->name ?? 'Supplier dihapus',
-            'returner' => $purchaseReturn->returner?->name ?? 'User dihapus',
+            'supplier' => $purchaseReturn->supplier?->name ?? __('ui.modules.supplier_deleted'),
+            'returner' => $purchaseReturn->returner?->name ?? __('ui.modules.user_deleted'),
             'returned_at' => $purchaseReturn->returned_at?->format('d/m/Y H:i') ?? '—',
             'reason' => $purchaseReturn->reason,
             'notes' => $purchaseReturn->notes ?: '—',
             'total_amount' => (float) $purchaseReturn->total_amount,
             'items' => $purchaseReturn->items->map(fn ($item) => [
                 'code' => $item->product?->code ?? '—',
-                'name' => $item->product?->name ?? 'Barang dihapus',
+                'name' => $item->product?->name ?? __('ui.modules.item_deleted'),
                 'quantity' => number_format((float) $item->quantity, 4, ',', '.'),
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
                 'unit_price' => (float) $item->unit_price,
@@ -146,7 +146,7 @@ class PurchaseReturnController extends Controller
             'from_date' => ['nullable', 'date_format:Y-m-d'],
             'to_date' => ['nullable', 'date_format:Y-m-d', function ($attribute, $value, $fail) use ($request) {
                 if ($value && $request->input('from_date') && $value < $request->input('from_date')) {
-                    $fail('Tanggal akhir harus sama atau setelah tanggal awal.');
+                    $fail(__('ui.modules.date_end_invalid'));
                 }
             }],
         ]);

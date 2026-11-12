@@ -19,6 +19,8 @@ class MaterialRequestTableQuery
                 'purchase_status', 'reviewed_by', 'reviewed_at', 'review_note', 'created_at', 'updated_at',
             ])
             ->withCount('items')
+            ->withSum('items as items_total_quantity', 'quantity')
+            ->withSum('items as items_issued_quantity', 'issued_quantity')
             ->orderByDesc('created_at');
 
         return $this->applyDateRange($query, 'created_at', $fromDate, $toDate);

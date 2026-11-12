@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Audit Log')
+@section('title', __('ui.modules.audit_title'))
 
 @section('content')
 
@@ -11,11 +11,11 @@
 
             <div>
                 <h4 class="mb-1">
-                    Audit Log
+                    {{ __('ui.modules.audit_title') }}
                 </h4>
 
                 <div class="text-muted">
-                    Riwayat aktivitas dan perubahan sistem
+                    {{ __('ui.modules.audit_subtitle') }}
                 </div>
             </div>
 
@@ -31,7 +31,7 @@
                     {{-- Date From --}}
                     <div class="col-md-2">
                         <label for="date_from" class="form-label">
-                            Tanggal Dari
+                            {{ __('ui.modules.date_from') }}
                         </label>
 
                         <input type="date" class="form-control" id="date_from" value="{{ now()->format('Y-m-d') }}">
@@ -40,16 +40,16 @@
                     {{-- Date To --}}
                     <div class="col-md-2">
                         <label for="date_to" class="form-label">
-                            Tanggal Sampai
+                            {{ __('ui.modules.date_to') }}
                         </label>
 
                         <input type="date" class="form-control" id="date_to" value="{{ now()->format('Y-m-d') }}">
                     </div>
 
-                    {{-- Module --}}
+                    {{-- {{ __('ui.modules.module') }} --}}
                     <div class="col-md-2">
                         <label for="module" class="form-label">
-                            Module
+                            {{ __('ui.modules.module') }}
                         </label>
 
                         <select class="form-select" id="module">
@@ -71,7 +71,7 @@
                         <label for="action" class="form-label">{{ __('ui.common.action') }}</label>
 
                         <select class="form-select" id="action">
-                            <option value="">Semua Action</option>
+                            <option value="">{{ __('ui.modules.all_actions') }}</option>
                             <option value="CREATE">CREATE</option>
                             <option value="UPDATE">UPDATE</option>
                             <option value="DELETE">DELETE</option>
@@ -127,15 +127,15 @@
                             <tr>
 
                                 <th width="160">
-                                    Waktu
+                                    {{ __('ui.modules.time') }}
                                 </th>
 
                                 <th width="130">
-                                    User
+                                    {{ __('ui.modules.user') }}
                                 </th>
 
                                 <th width="130">
-                                    Module
+                                    {{ __('ui.modules.module') }}
                                 </th>
 
                                 <th width="120">{{ __('ui.common.action') }}</th>
@@ -145,7 +145,7 @@
                                 </th>
 
                                 <th>
-                                    Description
+                                    {{ __('ui.modules.description') }}
                                 </th>
 
                                 <th width="140">
@@ -203,7 +203,7 @@
                     {
                         data: 'user_name',
                         name: 'user.name',
-                        defaultContent: 'System'
+                        defaultContent: __('ui.modules.deleted_system')
                     },
                     {
                         data: 'module',

@@ -41,7 +41,7 @@ class GoodsReceiptTableQuery
         return GoodsReceipt::query()
             ->with([
                 'purchaseOrder:id,number,status', 'supplier', 'receiver:id,name',
-                'items.product:id,code,name,unit_id,track_stock', 'items.product.unit:id,name,symbol',
+                'items.product:id,code,name,unit_id,track_stock', 'items.product.unit:id,name,symbol', 'items.inventoryLot:id,lot_number',
             ])
             ->findOrFail($receipt->id);
     }

@@ -26,12 +26,15 @@
                 <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.common.po_number') }}</label><input id="selected_po_number" class="form-control" readonly placeholder="{{ __('ui.workflow.choose_po_to_receive') }}"></div>
                 <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.common.supplier') }}</label><input id="selected_supplier" class="form-control" readonly placeholder="{{ __('ui.workflow.auto_from_po') }}"></div>
                 <div class="col-md-4 mb-3"><label class="form-label" for="received_at">{{ __('ui.common.receipt_date') }}</label><input type="datetime-local" name="received_at" id="received_at" class="form-control" value="{{ now()->format('Y-m-d\TH:i') }}" required></div>
+                <div class="col-md-4 mb-3"><label class="form-label" for="customs_document_code">{{ __('ui.workflow.customs_document_code') }}</label><select name="customs_document_code" id="customs_document_code" class="form-select"><option value="">{{ __('ui.common.optional') }}</option>@foreach (['2.3', '2.7', '2.6.2', '4.0'] as $documentCode)<option value="{{ $documentCode }}">{{ $documentCode }}</option>@endforeach</select></div>
+                <div class="col-md-4 mb-3"><label class="form-label" for="customs_document_number">{{ __('ui.workflow.customs_document_number') }}</label><input name="customs_document_number" id="customs_document_number" class="form-control" maxlength="100"></div>
+                <div class="col-md-4 mb-3"><label class="form-label" for="customs_document_date">{{ __('ui.workflow.customs_document_date') }}</label><input type="date" name="customs_document_date" id="customs_document_date" class="form-control"></div>
             </div>
         </div></div>
 
         <div class="card mb-3"><div class="card-header"><h6 class="mb-0">{{ __('ui.workflow.received_items') }}</h6></div><div class="card-body">
             <div class="table-responsive"><table class="table table-bordered align-middle">
-                <thead><tr><th>{{ __('ui.common.item') }}</th><th class="text-end">{{ __('ui.workflow.ordered') }}</th><th class="text-end">{{ __('ui.workflow.received_previously') }}</th><th class="text-end">{{ __('ui.common.remaining') }}</th><th style="width:180px">{{ __('ui.workflow.receive_now') }}</th></tr></thead>
+                <thead><tr><th>{{ __('ui.common.item') }}</th><th class="text-end">{{ __('ui.workflow.ordered') }}</th><th class="text-end">{{ __('ui.workflow.received_previously') }}</th><th class="text-end">{{ __('ui.common.remaining') }}</th><th style="min-width:330px">{{ __('ui.workflow.receive_now') }} / {{ __('ui.workflow.lot_roll') }}</th></tr></thead>
                 <tbody id="receiptItems"><tr><td colspan="5" class="text-center text-muted py-4">{{ __('ui.workflow.choose_po_load_items') }}</td></tr></tbody>
             </table></div>
             <div class="mb-3"><label class="form-label" for="notes">{{ __('ui.common.notes') }}</label><textarea name="notes" id="notes" class="form-control" rows="2" maxlength="5000" placeholder="{{ __('ui.workflow.receipt_notes_placeholder') }}"></textarea></div>
@@ -54,6 +57,11 @@
         $(function() {
             const poModal = bootstrap.Modal.getOrCreateInstance(document.getElementById('selectPurchaseOrderModal'));
             const safe = value => $('<div>').text(value ?? '').html();
+            let receiptLineIndex = 0;
+            function receiptLine(itemId, quantity, trackStock) {
+                const index = receiptLineIndex++;
+                return `<div class="row g-1 align-items-center mb-1 receipt-lot-row"><input type="hidden" name="items[${index}][purchase_order_item_id]" value="${itemId}"><div class="${trackStock ? 'col-6' : 'd-none'}"><input type="text" class="form-control form-control-sm" name="items[${index}][lot_number]" maxlength="100" placeholder="{{ __('ui.workflow.lot_number') }}"></div><div class="${trackStock ? 'col-5' : 'col-10'}"><input type="number" class="form-control form-control-sm text-end receipt-quantity" name="items[${index}][quantity]" min="0" max="${quantity}" step="0.0001" value="0" placeholder="{{ __('ui.workflow.receive_now') }}"></div><div class="col-1">${trackStock ? '<button type="button" class="btn btn-sm btn-outline-danger remove-lot-row" aria-label="{{ __('ui.common.delete') }}">×</button>' : ''}</div></div>`;
+            }
             const table = $('#eligiblePurchaseOrdersTable').DataTable({
                 processing: true, serverSide: true, responsive: true,
                 ajax: @json(route('super.goods-receipts.eligible')),
@@ -77,18 +85,27 @@
                     $('#purchase_order_id').val(order.id);
                     $('#selected_po_number').val(order.number);
                     $('#selected_supplier').val(order.supplier);
-                    const rows = order.items.map((item, index) => `
+                    receiptLineIndex = 0;
+                    const rows = order.items.map(item => `
                         <tr>
                             <td>${safe(item.code)} — ${safe(item.name)}${item.track_stock ? '' : '<div class="small text-muted">{{ __('ui.common.non_stock_item') }}</div>'}</td>
                             <td class="text-end">${item.ordered} ${safe(item.unit)}</td>
                             <td class="text-end">${item.received} ${safe(item.unit)}</td>
                             <td class="text-end">${item.remaining} ${safe(item.unit)}</td>
-                            <td><input type="hidden" name="items[${index}][purchase_order_item_id]" value="${item.id}"><input type="number" class="form-control form-control-sm text-end receipt-quantity" name="items[${index}][quantity]" min="0" max="${item.remaining}" step="0.0001" value="0"><div class="small text-muted mt-1">Maks. ${item.remaining}</div></td>
+                            <td><div class="receipt-lot-entries" data-item-id="${item.id}" data-remaining="${item.remaining}">${receiptLine(item.id, item.remaining, item.track_stock)}</div>${item.track_stock ? `<button type="button" class="btn btn-link btn-sm p-0 add-receipt-lot" data-item-id="${item.id}" data-remaining="${item.remaining}">{{ __('ui.workflow.add_lot_roll') }}</button>` : ''}<div class="small text-muted mt-1">{{ __('ui.workflow.maximum_receive') }} ${item.remaining}</div></td>
                         </tr>`).join('');
                     $('#receiptItems').html(rows || '<tr><td colspan="5" class="text-center text-muted">{{ __('ui.workflow.no_remaining_receipts') }}</td></tr>');
                     $('#submitReceipt').prop('disabled', !rows);
                     poModal.hide();
                 }).fail(() => Swal.fire({ icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: '{{ __('ui.workflow.detail_po_load_failed') }}' }));
+            });
+
+            $(document).on('click', '.add-receipt-lot', function() {
+                const button = $(this);
+                button.siblings('.receipt-lot-entries').append(receiptLine(button.data('item-id'), button.data('remaining'), true));
+            });
+            $(document).on('click', '.remove-lot-row', function() {
+                if ($(this).closest('.receipt-lot-entries').find('.receipt-lot-row').length > 1) $(this).closest('.receipt-lot-row').remove();
             });
 
             $('#goodsReceiptForm').on('submit', function(event) {

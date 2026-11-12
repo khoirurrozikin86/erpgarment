@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id">
+<html lang="{{ app()->getLocale() }}">
 <head>
     <meta charset="utf-8">
     <title>{{ $purchaseReturn->number }}</title>
@@ -37,14 +37,14 @@
     @include('super.documents.partials.company-pdf-header', ['company' => $company, 'companyLogoDataUri' => $companyLogoDataUri])
     <div class="header">
         <h1>{{ __('ui.common.purchase_return') }}</h1>
-        <div class="muted">Retur barang kepada supplier</div>
+        <div class="muted">{{ __('ui.modules.return_to_supplier') }}</div>
         <div class="document-no">{{ $purchaseReturn->number }}</div>
     </div>
 
     <table class="meta">
         <tr><td class="label">{{ __('ui.common.number') }}</td><td>{{ $purchaseReturn->goodsReceipt?->number ?? '—' }}</td><td class="label">{{ __('ui.common.purchase_order_number') }}</td><td>{{ $purchaseReturn->goodsReceipt?->purchaseOrder?->number ?? '—' }}</td></tr>
-        <tr><td class="label">{{ __('ui.common.supplier') }}</td><td>{{ $purchaseReturn->supplier?->name ?? 'Supplier dihapus' }}</td><td class="label">{{ __('ui.common.returned_date') }}</td><td>{{ $purchaseReturn->returned_at?->format('d/m/Y H:i') ?? '—' }}</td></tr>
-        <tr><td class="label">{{ __('ui.common.supplier_address') }}</td><td>{{ $purchaseReturn->supplier?->address ?: '—' }}</td><td class="label">{{ __('ui.common.recorded_by') }}</td><td>{{ $purchaseReturn->returner?->name ?? 'User dihapus' }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.supplier') }}</td><td>{{ $purchaseReturn->supplier?->name ?? __('ui.modules.supplier_deleted') }}</td><td class="label">{{ __('ui.common.returned_date') }}</td><td>{{ $purchaseReturn->returned_at?->format('d/m/Y H:i') ?? '—' }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.supplier_address') }}</td><td>{{ $purchaseReturn->supplier?->address ?: '—' }}</td><td class="label">{{ __('ui.common.recorded_by') }}</td><td>{{ $purchaseReturn->returner?->name ?? __('ui.modules.user_deleted') }}</td></tr>
         <tr><td class="label">{{ __('ui.common.supplier_phone') }}</td><td>{{ $purchaseReturn->supplier?->phone ?: '—' }}</td><td class="label">{{ __('ui.common.reason') }}</td><td>{{ $purchaseReturn->reason }}</td></tr>
     </table>
 
@@ -56,7 +56,7 @@
                 <tr>
                     <td class="center">{{ $loop->iteration }}</td>
                     <td>{{ $item->product?->code ?? '—' }}</td>
-                    <td>{{ $item->product?->name ?? 'Barang dihapus' }}</td>
+                    <td>{{ $item->product?->name ?? __('ui.modules.item_deleted') }}</td>
                     <td class="right">{{ number_format((float) $item->quantity, 4, ',', '.') }}</td>
                     <td>{{ $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—' }}</td>
                     <td class="right">Rp {{ number_format((float) $item->unit_price, 2, ',', '.') }}</td>
@@ -78,6 +78,6 @@
         <td>{{ __('ui.common.supplier') }}<div class="sign-line"></div>{{ $purchaseReturn->supplier?->name ?? '—' }}</td>
         <td>{{ __('ui.common.prepared_by') }}<div class="sign-line"></div>{{ $purchaseReturn->returner?->name ?? '—' }}</td>
     </tr></table>
-    <div class="footer">Return {{ $purchaseReturn->number }} · Dicetak pada {{ now()->format('d/m/Y H:i') }}.</div>
+    <div class="footer">{{ __('ui.modules.purchase_return_printed', ['number' => $purchaseReturn->number, 'date' => now()->format('d/m/Y H:i')]) }}</div>
 </body>
 </html>

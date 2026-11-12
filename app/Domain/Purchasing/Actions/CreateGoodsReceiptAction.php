@@ -7,6 +7,7 @@ use App\Domain\Audit\Services\AuditLogService;
 use App\Domain\Purchasing\DTOs\GoodsReceiptData;
 use App\Domain\Settings\Services\DocumentNumberService;
 use App\Models\GoodsReceipt;
+use App\Models\InventoryLot;
 use App\Models\Product;
 use App\Models\ProductStock;
 use App\Models\PurchaseOrder;
@@ -44,14 +45,17 @@ class CreateGoodsReceiptAction
                 throw ValidationException::withMessages(['items' => 'Masukkan jumlah diterima untuk minimal satu barang.']);
             }
 
-            foreach ($receivedItems as $item) {
-                $poItem = $orderItems->get((int) $item['purchase_order_item_id']);
+            $receivedTotals = $receivedItems->groupBy(fn (array $item) => (int) $item['purchase_order_item_id'])
+                ->map(fn ($items) => $items->sum(fn (array $item) => (float) $item['quantity']));
+
+            foreach ($receivedTotals as $poItemId => $totalQuantity) {
+                $poItem = $orderItems->get((int) $poItemId);
                 if (!$poItem) {
                     throw ValidationException::withMessages(['items' => 'Barang yang dipilih tidak termasuk dalam Purchase Order ini.']);
                 }
 
                 $remaining = round((float) $poItem->quantity - (float) $poItem->received_quantity, 4);
-                if ((float) $item['quantity'] > $remaining) {
+                if ((float) $totalQuantity > $remaining) {
                     throw ValidationException::withMessages([
                         'items' => "Jumlah penerimaan melebihi sisa pesanan barang pada PO {$order->number}.",
                     ]);
@@ -64,6 +68,9 @@ class CreateGoodsReceiptAction
                 'supplier_id' => $order->supplier_id,
                 'received_by' => $userId,
                 'received_at' => $data->receivedAt,
+                'customs_document_code' => $data->customsDocumentCode,
+                'customs_document_number' => $data->customsDocumentNumber,
+                'customs_document_date' => $data->customsDocumentDate,
                 'notes' => $data->notes,
             ]);
 
@@ -73,9 +80,37 @@ class CreateGoodsReceiptAction
                 $quantity = round((float) $item['quantity'], 4);
                 $lineTotal = round($quantity * (float) $poItem->unit_price, 2);
 
+                $inventoryLot = null;
+                if ($product->track_stock) {
+                    $lotNumber = trim((string) ($item['lot_number'] ?? ''));
+                    if ($lotNumber === '') {
+                        throw ValidationException::withMessages(['items' => __('ui.workflow.lot_number_required')]);
+                    }
+                    $inventoryLot = InventoryLot::query()->firstOrCreate(
+                        ['product_id' => $product->id, 'lot_number' => $lotNumber],
+                        [
+                            'supplier_id' => $order->supplier_id,
+                            'received_at' => $data->receivedAt,
+                            'initial_quantity' => 0,
+                            'current_quantity' => 0,
+                            'unit_cost' => $poItem->unit_price,
+                            'source_type' => 'receipt',
+                        ],
+                    );
+                    $inventoryLot = InventoryLot::query()->whereKey($inventoryLot->id)->lockForUpdate()->firstOrFail();
+                    if ((int) $inventoryLot->supplier_id !== (int) $order->supplier_id) {
+                        throw ValidationException::withMessages(['items' => __('ui.workflow.lot_supplier_mismatch', ['lot' => $lotNumber])]);
+                    }
+                    $inventoryLot->update([
+                        'initial_quantity' => round((float) $inventoryLot->initial_quantity + $quantity, 4),
+                        'current_quantity' => round((float) $inventoryLot->current_quantity + $quantity, 4),
+                    ]);
+                }
+
                 $receiptItem = $receipt->items()->create([
                     'purchase_order_item_id' => $poItem->id,
                     'product_id' => $product->id,
+                    'inventory_lot_id' => $inventoryLot?->id,
                     'quantity' => $quantity,
                     'unit_price' => $poItem->unit_price,
                     'line_total' => $lineTotal,
@@ -85,6 +120,9 @@ class CreateGoodsReceiptAction
                 $poItem->save();
 
                 if ($product->track_stock) {
+                    if (!$inventoryLot) {
+                        throw ValidationException::withMessages(['items' => __('ui.workflow.lot_number_required')]);
+                    }
                     $stock = ProductStock::query()->firstOrCreate(
                         ['product_id' => $product->id],
                         ['quantity' => 0],
@@ -112,6 +150,11 @@ class CreateGoodsReceiptAction
                         'notes' => "Penerimaan {$receipt->number}",
                     ]);
                     $this->journals->recordStockMovement($movement, $userId);
+                    $movement->lotAllocations()->create([
+                        'inventory_lot_id' => $inventoryLot->id,
+                        'quantity' => $quantity,
+                        'unit_cost' => $poItem->unit_price,
+                    ]);
                 } else {
                     $this->journals->recordNonStockReceipt($receiptItem, $receipt, $userId);
                 }

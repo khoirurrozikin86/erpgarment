@@ -34,6 +34,9 @@ class StockCardQuery
                 'stockOpname:id,number',
                 'delivery:id,number',
                 'posSale:id,number',
+                'materialRequestItem.request:id,number',
+                'productionOrderStageEntry.productionOrder:id,number',
+                'lotAllocations.inventoryLot:id,lot_number',
             ])
             ->select([
                 'id',
@@ -44,6 +47,8 @@ class StockCardQuery
                 'stock_opname_id',
                 'delivery_id',
                 'pos_sale_id',
+                'material_request_item_id',
+                'production_order_stage_entry_id',
                 'created_by',
                 'movement_type',
                 'quantity',

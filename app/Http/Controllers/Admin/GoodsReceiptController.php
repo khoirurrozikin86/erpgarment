@@ -85,10 +85,14 @@ class GoodsReceiptController extends Controller
         $data = $request->validate([
             'purchase_order_id' => ['required', 'integer', 'exists:purchase_orders,id'],
             'received_at' => ['required', 'date', 'before_or_equal:now'],
+            'customs_document_code' => ['nullable', 'string', 'max:30'],
+            'customs_document_number' => ['nullable', 'string', 'max:100', 'required_with:customs_document_code'],
+            'customs_document_date' => ['nullable', 'date_format:Y-m-d', 'required_with:customs_document_number'],
             'notes' => ['nullable', 'string', 'max:5000'],
             'items' => ['required', 'array', 'min:1'],
-            'items.*.purchase_order_item_id' => ['required', 'integer', 'distinct', 'exists:purchase_order_items,id'],
+            'items.*.purchase_order_item_id' => ['required', 'integer', 'exists:purchase_order_items,id'],
             'items.*.quantity' => ['required', 'numeric', 'min:0', 'max:999999999999.9999'],
+            'items.*.lot_number' => ['nullable', 'string', 'max:100'],
         ]);
 
         $receipt = $service->receive($data, (int) $request->user()->id);
@@ -109,11 +113,15 @@ class GoodsReceiptController extends Controller
             'supplier' => $receipt->supplier?->name ?? 'Supplier dihapus',
             'receiver' => $receipt->receiver?->name ?? 'User dihapus',
             'received_at' => $receipt->received_at?->format('d/m/Y H:i') ?? '—',
+            'customs_document_code' => $receipt->customs_document_code ?: '—',
+            'customs_document_number' => $receipt->customs_document_number ?: '—',
+            'customs_document_date' => $receipt->customs_document_date?->format('d/m/Y') ?? '—',
             'notes' => $receipt->notes ?: '—',
             'items' => $receipt->items->map(fn ($item) => [
                 'code' => $item->product?->code ?? '—',
                 'name' => $item->product?->name ?? 'Barang dihapus',
                 'quantity' => number_format((float) $item->quantity, 4, ',', '.'),
+                'lot_number' => $item->inventoryLot?->lot_number ?? '—',
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
                 'unit_price' => (float) $item->unit_price,
                 'line_total' => (float) $item->line_total,

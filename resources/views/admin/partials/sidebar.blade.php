@@ -506,9 +506,23 @@
                 </li>
             @endcan
 
-            @canany(['stocks.view', 'stock-card.view', 'stock-opnames.view'])
+            @canany(['stocks.view', 'stock-card.view', 'stock-opnames.view', 'boms.view', 'production-orders.view'])
                 <li class="nav-item nav-category">{{ __('ui.nav.inventory') }}</li>
             @endcanany
+            @can('production-orders.view')
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('super.production-orders.*') ? 'active' : '' }}" href="{{ route('super.production-orders.index') }}">
+                        <i class="link-icon" data-feather="clipboard"></i><span class="link-title">{{ __('ui.workflow.production_order') }}</span>
+                    </a>
+                </li>
+            @endcan
+            @can('boms.view')
+                <li class="nav-item">
+                    <a class="nav-link {{ request()->routeIs('super.boms.*') ? 'active' : '' }}" href="{{ route('super.boms.index') }}">
+                        <i class="link-icon" data-feather="git-branch"></i><span class="link-title">{{ __('ui.workflow.bom_title') }}</span>
+                    </a>
+                </li>
+            @endcan
             @can('stocks.view')
                 <li class="nav-item">
                     <a class="nav-link {{ request()->routeIs('super.stocks.*') ? 'active' : '' }}"

@@ -44,6 +44,9 @@
         <tr><td class="label">{{ __('ui.common.requester') }}</td><td>{{ $materialRequest->requester?->name ?? 'User dihapus' }}</td><td class="label">{{ __('ui.common.request_date') }}</td><td>{{ $materialRequest->created_at?->format('d/m/Y H:i') ?? '—' }}</td></tr>
         <tr><td class="label">{{ __('ui.common.department') }}</td><td>{{ $materialRequest->department ?: '—' }}</td><td class="label">{{ __('ui.common.needed_date') }}</td><td>{{ $materialRequest->needed_at?->format('d/m/Y') ?? '—' }}</td></tr>
         <tr><td class="label">{{ __('ui.common.approval_status') }}</td><td>{{ ['pending' => 'Menunggu Approval', 'approved' => 'Disetujui', 'rejected' => 'Ditolak'][$materialRequest->status] ?? $materialRequest->status }}</td><td class="label">{{ __('ui.common.purchasing_progress') }}</td><td>{{ ['not_processed' => 'Belum Diproses', 'partially_processed' => 'Sebagian Dialokasikan ke PR', 'processed' => 'Seluruh Kebutuhan Dialokasikan ke PR'][$materialRequest->purchase_status] ?? '—' }}</td></tr>
+        @if ($materialRequest->bom_version)
+            <tr><td class="label">{{ __('ui.workflow.bom_used') }}</td><td>{{ $materialRequest->outputProduct?->name ?? '—' }} × {{ number_format((float) $materialRequest->production_quantity, 4, ',', '.') }}</td><td class="label">{{ __('ui.workflow.production_order') }}</td><td>{{ $materialRequest->productionOrder?->number ?? 'BOM ' . $materialRequest->bom_version }}</td></tr>
+        @endif
         <tr><td class="label">{{ __('ui.common.reviewed_by') }}</td><td>{{ $materialRequest->reviewer?->name ?? '—' }}</td><td class="label">{{ __('ui.common.review_time') }}</td><td>{{ $materialRequest->reviewed_at?->format('d/m/Y H:i') ?? '—' }}</td></tr>
     </table>
 

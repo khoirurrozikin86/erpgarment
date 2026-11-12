@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Laporan Transaksi Kasir')
+@section('title', __('ui.modules.sales_report_title'))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb">
@@ -14,7 +14,7 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h4 class="page-title mb-1">Laporan Penjualan POS</h4><span class="text-muted">Transaksi POS, void, pembayaran,
+            <h4 class="page-title mb-1">{{ __('ui.modules.sales_report_title') }} POS</h4><span class="text-muted">Transaksi POS, void, pembayaran,
                 diskon, pajak, dan rincian barang.</span>
         </div>
     </div>
@@ -30,7 +30,7 @@
                         value="{{ $filters['to_date'] }}" required></div>
                 <div class="col-sm-6 col-md-2"><label for="cashier_id" class="form-label mb-1">{{ __('ui.common.cashier') }}</label><select
                         id="cashier_id" name="cashier_id" class="form-select form-select-sm">
-                        <option value="">Semua kasir</option>
+                        <option value="">{{ __('ui.modules.no_cashier') }}</option>
                         @foreach ($cashiers as $cashier)
                             <option value="{{ $cashier->id }}" @selected((string) ($filters['cashier_id'] ?? '') === (string) $cashier->id)>{{ $cashier->name }}</option>
                         @endforeach
@@ -38,7 +38,7 @@
                 </div>
                 <div class="col-sm-6 col-md-2"><label for="pos_session_id" class="form-label mb-1">Sesi POS</label><select
                         id="pos_session_id" name="pos_session_id" class="form-select form-select-sm">
-                        <option value="">Semua sesi</option>
+                        <option value="">{{ __('ui.modules.all_sessions') }}</option>
                         @foreach ($sessions as $session)
                             <option value="{{ $session->id }}" @selected((string) ($filters['pos_session_id'] ?? '') === (string) $session->id)>{{ $session->number }} ·
                                 {{ $session->opened_at?->format('d/m/Y') }}</option>
@@ -47,7 +47,7 @@
                 </div>
                 <div class="col-sm-6 col-md-2"><label for="payment_method" class="form-label mb-1">{{ __('ui.common.payment') }}</label><select
                         id="payment_method" name="payment_method" class="form-select form-select-sm">
-                        <option value="">Semua metode</option>
+                        <option value="">{{ __('ui.modules.all_methods') }}</option>
                         @foreach ($paymentMethods as $value => $label)
                             <option value="{{ $value }}" @selected(($filters['payment_method'] ?? '') === $value)>{{ $label }}</option>
                         @endforeach
@@ -65,7 +65,7 @@
         <div class="col-sm-6 col-xl-3">
             <div class="card h-100">
                 <div class="card-body">
-                    <div class="text-muted small">Transaksi Selesai</div>
+                    <div class="text-muted small">{{ __('ui.modules.completed_transactions') }}</div>
                     <div class="fs-5 fw-semibold">{{ number_format($summary['transaction_count'], 0, ',', '.') }}</div>
                 </div>
             </div>
@@ -73,7 +73,7 @@
         <div class="col-sm-6 col-xl-3">
             <div class="card h-100">
                 <div class="card-body">
-                    <div class="text-muted small">Total Penjualan</div>
+                    <div class="text-muted small">{{ __('ui.modules.total_sales_label') }}</div>
                     <div class="fs-5 fw-semibold">Rp {{ number_format($summary['total'], 2, ',', '.') }}</div>
                 </div>
             </div>
@@ -114,7 +114,7 @@
         <div class="col-sm-6 col-xl-3">
             <div class="card h-100">
                 <div class="card-body">
-                    <div class="text-muted small">Transaksi Void</div>
+                    <div class="text-muted small">{{ __('ui.modules.void_transactions') }}</div>
                     <div class="fs-5 fw-semibold text-danger">{{ number_format($summary['voided_count'], 0, ',', '.') }}
                     </div>
                 </div>
@@ -123,7 +123,7 @@
         <div class="col-sm-6 col-xl-3">
             <div class="card h-100">
                 <div class="card-body">
-                    <div class="text-muted small">Nilai Transaksi Void</div>
+                    <div class="text-muted small">Nilai {{ __('ui.modules.void_transactions') }}</div>
                     <div class="fs-5 fw-semibold text-danger">Rp
                         {{ number_format($summary['voided_total'], 2, ',', '.') }}</div>
                 </div>
@@ -138,7 +138,7 @@
                     <thead>
                         <tr>
                             <th>{{ __('ui.common.no') }}</th>
-                            <th>Nomor Transaksi</th>
+                            <th>{{ __('ui.modules.transaction_number') }}</th>
                             <th>{{ __('ui.common.date') }}</th>
                             <th>{{ __('ui.common.cashier') }}</th>
                             <th>Sesi</th>
@@ -161,9 +161,9 @@
                                 <td>{{ $loop->iteration }}</td>
                                 <td class="fw-semibold">{{ $sale->number }}</td>
                                 <td class="text-nowrap">{{ $sale->sold_at?->format('d/m/Y H:i') }}</td>
-                                <td>{{ $sale->cashier?->name ?? 'User dihapus' }}</td>
+                                <td>{{ $sale->cashier?->name ?? __('ui.modules.user_deleted') }}</td>
                                 <td>{{ $sale->session?->number ?? '—' }}</td>
-                                <td>{{ $sale->customer?->name ?? 'Walk-in Customer' }}</td>
+                                <td>{{ $sale->customer?->name ?? __('ui.modules.customer_general') }}</td>
                                 <td>
                                     <details>
                                         <summary>{{ $sale->items_count }} item</summary>
@@ -176,14 +176,14 @@
                                                         <th class="text-end">{{ __('ui.common.price') }}</th>
                                                         <th class="text-end">{{ __('ui.common.discount') }}</th>
                                                         <th class="text-end">{{ __('ui.common.tax') }}</th>
-                                                        <th class="text-end">Total Baris</th>
+                                                        <th class="text-end">{{ __('ui.modules.line_count') }}</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
                                                     @foreach ($sale->items as $item)
                                                         <tr>
                                                             <td>{{ $item->product?->code ?? '—' }} ·
-                                                                {{ $item->product?->name ?? 'Barang dihapus' }}</td>
+                                                                {{ $item->product?->name ?? __('ui.modules.item_deleted') }}</td>
                                                             <td class="text-end">
                                                                 {{ number_format((float) $item->quantity, 4, ',', '.') }}
                                                                 {{ $item->product?->unit?->symbol ?: $item->product?->unit?->name }}
@@ -225,7 +225,7 @@
                                         <span class="badge bg-danger">VOID</span>
                                         <div class="small mt-1">{{ $sale->void_reason }}</div>
                                         <div class="small">{{ $sale->voided_at?->format('d/m/Y H:i') }} ·
-                                            {{ $sale->voider?->name ?? 'User dihapus' }}</div>
+                                            {{ $sale->voider?->name ?? __('ui.modules.user_deleted') }}</div>
                                     @else
                                         <span class="badge bg-success">Selesai</span>
                                     @endif
@@ -238,7 +238,7 @@
                                             (int) $sale->cashier_id === (int) auth()->id())
                                         <button type="button" class="btn btn-sm btn-outline-danger btn-void-pos-sale"
                                             data-url="{{ route('super.pos.void', $sale) }}"
-                                            data-number="{{ $sale->number }}" title="Void transaksi"><i
+                                            data-number="{{ $sale->number }}" title="{{ __('ui.modules.void_transaction') }}"><i
                                                 data-feather="x-circle" class="icon-sm"></i></button>
                                     @else
                                         —
@@ -275,7 +275,7 @@
                     inputValidator: value => value?.trim() ? undefined : 'Alasan wajib diisi.',
                     showCancelButton: true,
                     confirmButtonText: 'Void dan Refund',
-                    cancelButtonText: 'Batal',
+                    cancelButtonText: '{{ __('ui.modules.cancel') }}',
                     confirmButtonColor: '#c0392b',
                     preConfirm: reason => $.ajax({
                         url: button.data('url'),

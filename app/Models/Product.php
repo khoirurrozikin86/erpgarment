@@ -26,6 +26,10 @@ class Product extends Model
         'color',
         'size',
         'hs_code',
+        'composition',
+        'fabric_width_cm',
+        'fabric_weight_gsm',
+        'country_of_origin',
         'purchase_price',
         'sales_price',
         'min_stock',
@@ -52,6 +56,8 @@ class Product extends Model
             'reorder_point' => 'decimal:4',
 
             'tax_rate' => 'decimal:2',
+            'fabric_width_cm' => 'decimal:2',
+            'fabric_weight_gsm' => 'decimal:2',
 
             'track_stock' => 'boolean',
             'taxable' => 'boolean',
@@ -70,6 +76,16 @@ class Product extends Model
     public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class);
+    }
+
+    public function billsOfMaterial(): HasMany
+    {
+        return $this->hasMany(BillOfMaterial::class);
+    }
+
+    public function billOfMaterialComponents(): HasMany
+    {
+        return $this->hasMany(BillOfMaterialItem::class);
     }
 
     public function images(): HasMany

@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GoodsReceiptItem extends Model
 {
-    protected $fillable = ['purchase_order_item_id', 'product_id', 'quantity', 'returned_quantity', 'unit_price', 'line_total'];
+    protected $fillable = ['purchase_order_item_id', 'product_id', 'inventory_lot_id', 'quantity', 'returned_quantity', 'unit_price', 'line_total'];
 
     protected function casts(): array
     {
@@ -27,6 +27,11 @@ class GoodsReceiptItem extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function inventoryLot(): BelongsTo
+    {
+        return $this->belongsTo(InventoryLot::class);
     }
 
     public function purchaseReturns(): \Illuminate\Database\Eloquent\Relations\HasMany

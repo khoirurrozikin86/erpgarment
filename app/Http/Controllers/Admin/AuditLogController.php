@@ -97,7 +97,7 @@ class AuditLogController extends Controller
                         'actions' => [
                             [
                                 'type' => 'link',
-                                'label' => 'Detail',
+                                'label' => __('ui.modules.audit_detail_action'),
                                 'icon' => 'eye',
                                 'url' => route(
                                     'super.audit-logs.show',

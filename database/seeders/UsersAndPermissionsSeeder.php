@@ -47,8 +47,10 @@ class UsersAndPermissionsSeeder extends Seeder
             'suppliers' => ['view', 'create', 'update', 'delete'],
             'customers' => ['view', 'create', 'update', 'delete'],
             'products' => ['view', 'create', 'update', 'delete'],
+            'boms' => ['view', 'create', 'update', 'delete'],
             'pricelists' => ['view', 'create', 'update', 'delete'],
-            'material-requests' => ['view', 'create', 'approve'],
+            'material-requests' => ['view', 'create', 'approve', 'issue'],
+            'production-orders' => ['view', 'create', 'release', 'update'],
             'purchase-requests' => ['view', 'create', 'approve'],
             'purchase-orders' => ['view', 'create', 'issue', 'email'],
             'goods-receipts' => ['view', 'create'],
@@ -133,9 +135,12 @@ class UsersAndPermissionsSeeder extends Seeder
             'suppliers.view',
             'customers.view',
             'products.view',
+            'boms.view',
             'pricelists.view',
             'material-requests.view',
             'material-requests.create',
+            'production-orders.view',
+            'production-orders.create',
 
         ]);
 
@@ -201,6 +206,11 @@ class UsersAndPermissionsSeeder extends Seeder
             'products.update',
             'products.delete',
 
+            'boms.view',
+            'boms.create',
+            'boms.update',
+            'boms.delete',
+
             'pricelists.view',
             'pricelists.create',
             'pricelists.update',
@@ -209,6 +219,11 @@ class UsersAndPermissionsSeeder extends Seeder
             'material-requests.view',
             'material-requests.create',
             'material-requests.approve',
+            'material-requests.issue',
+            'production-orders.view',
+            'production-orders.create',
+            'production-orders.release',
+            'production-orders.update',
             'purchase-requests.view',
             'purchase-requests.create',
             'purchase-requests.approve',

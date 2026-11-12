@@ -9,6 +9,9 @@ class GoodsReceiptData
         public string $receivedAt,
         public ?string $notes,
         public array $items,
+        public ?string $customsDocumentCode = null,
+        public ?string $customsDocumentNumber = null,
+        public ?string $customsDocumentDate = null,
     ) {}
 
     public static function fromArray(array $data): self
@@ -18,6 +21,9 @@ class GoodsReceiptData
             receivedAt: $data['received_at'],
             notes: $data['notes'] ?? null,
             items: $data['items'],
+            customsDocumentCode: $data['customs_document_code'] ?? null,
+            customsDocumentNumber: $data['customs_document_number'] ?? null,
+            customsDocumentDate: $data['customs_document_date'] ?? null,
         );
     }
 }

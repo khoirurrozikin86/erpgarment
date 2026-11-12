@@ -25,18 +25,18 @@ class JournalEntryController extends Controller
         $filters = $request->validate([
             'from_date' => ['nullable', 'date_format:Y-m-d'],
             'to_date' => ['nullable', 'date_format:Y-m-d', function ($attribute, $value, $fail) use ($request) {
-                if ($value && $request->input('from_date') && $value < $request->input('from_date')) $fail('Tanggal akhir harus sama atau setelah tanggal awal.');
+                if ($value && $request->input('from_date') && $value < $request->input('from_date')) $fail(__('ui.modules.date_end_invalid'));
             }],
         ]);
         return DataTables::eloquent($query->builder($filters['from_date'] ?? null, $filters['to_date'] ?? null))
-            ->addColumn('status_label', fn (JournalEntry $entry) => $entry->status === 'posted' ? '<span class="badge bg-success">Posted</span>' : '<span class="badge bg-warning text-dark">Draft</span>')
+            ->addColumn('status_label', fn (JournalEntry $entry) => $entry->status === 'posted' ? '<span class="badge bg-success">' . e(__('ui.modules.delivery_posted_status')) . '</span>' : '<span class="badge bg-warning text-dark">' . e(__('ui.modules.draft_status')) . '</span>')
             ->addColumn('actions', function (JournalEntry $entry) {
-                $buttons = '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-journal" data-url="' . e(route('super.journals.show', $entry)) . '" title="Detail"><i data-feather="eye"></i></button>';
+                $buttons = '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-journal" data-url="' . e(route('super.journals.show', $entry)) . '" title="' . e(__('ui.modules.view_details')) . '"><i data-feather="eye"></i></button>';
                 if ($entry->status === 'draft' && auth()->user()->can('journal.post')) {
-                    $buttons .= ' <button type="button" class="btn btn-sm btn-outline-success btn-post-journal" data-url="' . e(route('super.journals.post', $entry)) . '" data-number="' . e($entry->number) . '" title="Posting"><i data-feather="check"></i></button>';
+                    $buttons .= ' <button type="button" class="btn btn-sm btn-outline-success btn-post-journal" data-url="' . e(route('super.journals.post', $entry)) . '" data-number="' . e($entry->number) . '" title="' . e(__('ui.modules.posting')) . '"><i data-feather="check"></i></button>';
                 }
                 if ($entry->status === 'draft' && auth()->user()->can('journal.delete')) {
-                    $buttons .= ' <button type="button" class="btn btn-sm btn-outline-danger btn-delete-journal" data-url="' . e(route('super.journals.destroy', $entry)) . '" data-number="' . e($entry->number) . '" title="Hapus draft"><i data-feather="trash-2"></i></button>';
+                    $buttons .= ' <button type="button" class="btn btn-sm btn-outline-danger btn-delete-journal" data-url="' . e(route('super.journals.destroy', $entry)) . '" data-number="' . e($entry->number) . '" title="' . e(__('ui.modules.delete_draft')) . '"><i data-feather="trash-2"></i></button>';
                 }
                 return $buttons;
             })
@@ -56,7 +56,7 @@ class JournalEntryController extends Controller
             'lines.*.credit' => ['required', 'numeric', 'min:0', 'decimal:0,2'],
         ]);
         $entry = $service->create($data, (int) $request->user()->id);
-        return response()->json(['message' => "Draft jurnal {$entry->number} berhasil disimpan.", 'url' => route('super.journals.index')], 201);
+        return response()->json(['message' => __('ui.modules.journal_draft_saved', ['number' => $entry->number]), 'url' => route('super.journals.index')], 201);
     }
 
     public function show(JournalEntry $journalEntry, JournalEntryQuery $query): JsonResponse
@@ -74,7 +74,7 @@ class JournalEntryController extends Controller
             'total_debit' => (float) $entry->total_debit,
             'total_credit' => (float) $entry->total_credit,
             'lines' => $entry->lines->map(fn ($line) => [
-                'code' => $line->account?->code ?? '—', 'account' => $line->account?->name ?? 'Akun dihapus',
+                'code' => $line->account?->code ?? '—', 'account' => $line->account?->name ?? __('ui.modules.account_deleted'),
                 'description' => $line->description ?: '—', 'debit' => (float) $line->debit, 'credit' => (float) $line->credit,
             ]),
         ]);
@@ -83,12 +83,12 @@ class JournalEntryController extends Controller
     public function post(Request $request, JournalEntry $journalEntry, JournalEntryService $service): JsonResponse
     {
         $entry = $service->post($journalEntry, (int) $request->user()->id);
-        return response()->json(['message' => "Jurnal {$entry->number} berhasil diposting."]);
+        return response()->json(['message' => __('ui.modules.journal_posted', ['number' => $entry->number])]);
     }
 
     public function destroy(JournalEntry $journalEntry, JournalEntryService $service): JsonResponse
     {
         $service->deleteDraft($journalEntry);
-        return response()->json(['message' => "Draft jurnal {$journalEntry->number} berhasil dihapus."]);
+        return response()->json(['message' => __('ui.modules.journal_deleted', ['number' => $journalEntry->number])]);
     }
 }

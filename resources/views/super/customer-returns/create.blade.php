@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Catat Customer Return')
+@section('title', __('ui.modules.return_create_title'))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb">
@@ -14,8 +14,7 @@
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h4 class="page-title mb-1">Catat Customer Return</h4><span class="text-muted">Retur mengacu pada invoice terbit.
-                Nilai refund dibayar dari akun kas/bank yang dipilih.</span>
+            <h4 class="page-title mb-1">{{ __('ui.modules.customer_return_create_title') }}</h4><span class="text-muted">{{ __('ui.modules.customer_return_create_help') }}</span>
         </div>
         <a href="{{ route('super.customer-returns.index') }}" class="btn btn-outline-secondary btn-sm"><i
                 data-feather="arrow-left" class="icon-sm me-1"></i>{{ __('ui.common.back') }}</a>
@@ -41,7 +40,7 @@
                     <div class="col-md-4 mb-3"><label class="form-label" for="cash_bank_account_id">Bayarkan Refund
                             Dari</label><select name="cash_bank_account_id" id="cash_bank_account_id" class="form-select"
                             required>
-                            <option value="">Pilih akun kas/bank</option>
+                            <option value="">{{ __('ui.modules.select_cash_bank_account') }}</option>
                             @foreach ($accounts as $account)
                                 <option value="{{ $account->id }}">{{ $account->code }} — {{ $account->name }}
                                     ({{ strtoupper($account->type) }})</option>
@@ -72,8 +71,7 @@
                         </thead>
                         <tbody id="returnItems">
                             <tr>
-                                <td colspan="5" class="text-center text-muted py-4">Pilih invoice untuk memuat daftar
-                                    barang.</td>
+                                <td colspan="5" class="text-center text-muted py-4">{{ __('ui.modules.choose_invoice_items') }}</td>
                             </tr>
                         </tbody>
                     </table>
@@ -81,7 +79,7 @@
                 <div class="row align-items-start">
                     <div class="col-md-6 mb-3"><label class="form-label" for="reason">{{ __('ui.common.return_reason') }}</label>
                         <textarea name="reason" id="reason" class="form-control" rows="2" maxlength="2000" required
-                            placeholder="Contoh: barang rusak atau tidak sesuai pesanan"></textarea>
+                            placeholder="{{ __('ui.modules.return_reason_example') }}"></textarea>
                     </div>
                     <div class="col-md-6 mb-3"><label class="form-label" for="notes">{{ __('ui.common.notes') }}</label>
                         <textarea name="notes" id="notes" class="form-control" rows="2" maxlength="5000"
@@ -98,7 +96,7 @@
         </div>
         <div class="d-flex justify-content-end gap-2"><a href="{{ route('super.customer-returns.index') }}"
                 class="btn btn-outline-secondary btn-sm">{{ __('ui.common.cancel') }}</a><button type="submit" id="submitReturn"
-                class="btn btn-primary btn-sm" disabled><i data-feather="corner-down-left" class="icon-sm me-1"></i>Simpan
+                class="btn btn-primary btn-sm" disabled><i data-feather="corner-down-left" class="icon-sm me-1"></i>{{ __('ui.modules.save_return') }}
                 dan Bayar Refund</button></div>
     </form>
 
@@ -106,7 +104,7 @@
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">Pilih Sales Invoice</h5><button type="button" class="btn-close"
+                    <h5 class="modal-title">{{ __('ui.modules.choose_sales_invoice') }}</h5><button type="button" class="btn-close"
                         data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button>
                 </div>
                 <div class="modal-body">
@@ -224,8 +222,8 @@
                     invoiceModal.hide();
                 }).fail(() => Swal.fire({
                     icon: 'error',
-                    title: 'Gagal',
-                    text: 'Detail invoice tidak dapat dimuat.'
+                    title: '{{ __('ui.modules.failure') }}',
+                    text: '{{ __('ui.modules.invoice_detail_failed') }}'
                 }));
             });
 
@@ -235,8 +233,8 @@
                 if (!$('.return-quantity').toArray().some(input => Number(input.value || 0) > 0)) {
                     Swal.fire({
                         icon: 'warning',
-                        title: 'Jumlah belum diisi',
-                        text: 'Masukkan jumlah retur untuk minimal satu barang.'
+                        title: '{{ __('ui.modules.refund_quantity_required_title') }}',
+                        text: '{{ __('ui.modules.refund_quantity_required') }}'
                     });
                     return;
                 }
@@ -247,16 +245,16 @@
                     data: $(this).serialize(),
                     success: response => Swal.fire({
                         icon: 'success',
-                        title: 'Berhasil',
+                        title: '{{ __('ui.modules.success') }}',
                         text: response.message
                     }).then(() => window.location.href = @json(route('super.customer-returns.index'))),
                     error: xhr => {
                         const errors = xhr.responseJSON?.errors;
                         const message = errors ? Object.values(errors).flat().join('\n') : (xhr
-                            .responseJSON?.message || 'Customer Return gagal disimpan.');
+                            .responseJSON?.message || '{{ __('ui.modules.customer_return_save_failed') }}');
                         Swal.fire({
                             icon: 'error',
-                            title: 'Gagal',
+                            title: '{{ __('ui.modules.failure') }}',
                             text: message
                         });
                         button.prop('disabled', false);

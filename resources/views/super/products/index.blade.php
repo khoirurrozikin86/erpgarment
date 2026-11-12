@@ -276,6 +276,22 @@
                                 <label class="form-label">{{ __('ui.workflow.hs_code') }}</label>
                                 <input type="text" class="form-control" id="hs_code" name="hs_code" maxlength="30">
                             </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ __('ui.workflow.material_composition') }}</label>
+                                <input type="text" class="form-control" id="composition" name="composition" maxlength="255" placeholder="{{ __('ui.workflow.material_composition_example') }}">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ __('ui.workflow.country_of_origin') }}</label>
+                                <input type="text" class="form-control" id="country_of_origin" name="country_of_origin" maxlength="100">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ __('ui.workflow.fabric_width_cm') }}</label>
+                                <input type="number" class="form-control" id="fabric_width_cm" name="fabric_width_cm" min="0" step="0.01">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">{{ __('ui.workflow.fabric_weight_gsm') }}</label>
+                                <input type="number" class="form-control" id="fabric_weight_gsm" name="fabric_weight_gsm" min="0" step="0.01">
+                            </div>
 
                         </div>
 
@@ -283,8 +299,8 @@
                         <hr>
 
 
-                        {{-- PRICE --}}
-                        <h6 class="fw-bold mb-3">{{ __('ui.common.price') }}</h6>
+                        {{-- COST AND OPTIONAL COMMERCIAL PRICE --}}
+                        <h6 class="fw-bold mb-3">{{ __('ui.workflow.cost_and_commercial_settings') }}</h6>
 
                         <div class="row">
 
@@ -296,7 +312,7 @@
                             </div>
 
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ __('ui.common.selling_price') }}</label>
+                                <label class="form-label">{{ __('ui.workflow.optional_selling_price') }}</label>
 
                                 <input type="number" class="form-control" id="sales_price" name="sales_price"
                                     min="0" step="0.01" value="0">
@@ -955,6 +971,7 @@
                 $('#product_type').val('stock');
                 $('#garment_item_type').val('general');
                 $('#style_code, #color, #size, #hs_code').val('');
+                $('#composition, #country_of_origin, #fabric_width_cm, #fabric_weight_gsm').val('');
 
                 $('#purchase_price').val('0');
                 $('#sales_price').val('0');
@@ -1155,6 +1172,10 @@
                 $('#color').val(payload.color || '');
                 $('#size').val(payload.size || '');
                 $('#hs_code').val(payload.hs_code || '');
+                $('#composition').val(payload.composition || '');
+                $('#country_of_origin').val(payload.country_of_origin || '');
+                $('#fabric_width_cm').val(payload.fabric_width_cm || '');
+                $('#fabric_weight_gsm').val(payload.fabric_weight_gsm || '');
 
                 $('#purchase_price').val(payload.purchase_price);
                 $('#sales_price').val(payload.sales_price);

@@ -6,7 +6,7 @@
         {{-- Header --}}
         <div class="d-flex justify-content-between align-items-center mb-4">
             <div>
-                <h4 class="mb-1">Audit Log Detail</h4>
+                <h4 class="mb-1">{{ __('ui.modules.audit_detail') }}</h4>
                 <p class="text-muted mb-0">
                     Detail aktivitas dan perubahan data
                 </p>
@@ -21,7 +21,7 @@
             <div class="card-header">
                 <h5 class="mb-0">
                     <i class="fas fa-history me-2"></i>
-                    Informasi Audit
+                    {{ __('ui.modules.information') }} Audit
                 </h5>
             </div>
 
@@ -29,21 +29,21 @@
                 <div class="row">
 
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Waktu</label>
+                        <label class="form-label fw-bold">{{ __('ui.modules.time') }}</label>
                         <div>
                             {{ optional($auditLog->created_at)->format('d-m-Y H:i:s') }}
                         </div>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">User</label>
+                        <label class="form-label fw-bold">{{ __('ui.modules.user') }}</label>
                         <div>
-                            {{ $auditLog->user?->name ?? 'System' }}
+                            {{ $auditLog->user?->name ?? __('ui.modules.deleted_system') }}
                         </div>
                     </div>
 
                     <div class="col-md-6 mb-3">
-                        <label class="form-label fw-bold">Module</label>
+                        <label class="form-label fw-bold">{{ __('ui.modules.module') }}</label>
                         <div>
                             <span class="badge bg-primary">
                                 {{ $auditLog->module }}
@@ -61,7 +61,7 @@
                     </div>
 
                     <div class="col-md-12 mb-3">
-                        <label class="form-label fw-bold">Description</label>
+                        <label class="form-label fw-bold">{{ __('ui.modules.description') }}</label>
                         <div class="border rounded p-3 bg-light">
                             {{ $auditLog->description }}
                         </div>
@@ -117,7 +117,7 @@
                     </div>
 
                     <div class="col-md-12 mb-3">
-                        <label class="form-label fw-bold">User Agent</label>
+                        <label class="form-label fw-bold">{{ __('ui.modules.user_agent') }}</label>
                         <div class="border rounded p-2 bg-light text-break">
                             {{ $auditLog->user_agent ?? '-' }}
                         </div>
@@ -145,7 +145,7 @@
                             <pre class="mb-0 p-3" style="max-height: 500px; overflow:auto;"><code>{{ json_encode($auditLog->old_values, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</code></pre>
                         @else
                             <div class="p-3 text-muted">
-                                Tidak ada data perubahan sebelumnya.
+                                {{ __('ui.modules.no_previous_changes') }}
                             </div>
                         @endif
                     </div>
@@ -167,7 +167,7 @@
                             <pre class="mb-0 p-3" style="max-height: 500px; overflow:auto;"><code>{{ json_encode($auditLog->new_values, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE) }}</code></pre>
                         @else
                             <div class="p-3 text-muted">
-                                Tidak ada data perubahan setelahnya.
+                                {{ __('ui.modules.no_new_changes') }}
                             </div>
                         @endif
                     </div>

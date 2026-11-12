@@ -70,6 +70,10 @@ class ProductStoreRequest extends FormRequest
             'color' => ['nullable', 'string', 'max:80'],
             'size' => ['nullable', 'string', 'max:40'],
             'hs_code' => ['nullable', 'string', 'max:30'],
+            'composition' => ['nullable', 'string', 'max:255'],
+            'fabric_width_cm' => ['nullable', 'numeric', 'min:0'],
+            'fabric_weight_gsm' => ['nullable', 'numeric', 'min:0'],
+            'country_of_origin' => ['nullable', 'string', 'max:100'],
 
             'purchase_price' => [
                 'nullable',

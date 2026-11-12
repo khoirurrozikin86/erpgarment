@@ -29,6 +29,7 @@ class StockCardExport implements FromQuery, WithHeadings, WithMapping, ShouldAut
             'Kode Barang',
             'Nama Barang',
             'No. Dokumen',
+            'Lot / Roll',
             'Tipe Pergerakan',
             'Stok Masuk',
             'Stok Keluar',
@@ -46,6 +47,7 @@ class StockCardExport implements FromQuery, WithHeadings, WithMapping, ShouldAut
             $movement->product?->code,
             $movement->product?->name,
             $movement->goodsReceipt?->number ?? $movement->purchaseReturn?->number ?? $movement->customerReturn?->number ?? $movement->stockOpname?->number ?? $movement->delivery?->number ?? $movement->posSale?->number,
+            $movement->lotAllocations->map(fn ($allocation) => ($allocation->inventoryLot?->lot_number ?? '—') . ' (' . abs((float) $allocation->quantity) . ')')->implode(', '),
             match ($movement->movement_type) {
                 'purchase_receipt' => 'Penerimaan Barang',
                 'purchase_return' => 'Purchase Return',

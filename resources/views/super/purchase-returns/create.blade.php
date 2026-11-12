@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Catat Purchase Return')
+@section('title', __('ui.modules.purchase_return_create_title'))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb"><ol class="breadcrumb">
@@ -11,7 +11,7 @@
 
 @section('content')
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <div><h4 class="page-title mb-1">Catat Purchase Return</h4><span class="text-muted">Pilih penerimaan asal dan catat barang yang dikembalikan kepada supplier.</span></div>
+        <div><h4 class="page-title mb-1">{{ __('ui.modules.purchase_return_create_title') }}</h4><span class="text-muted">{{ __('ui.modules.purchase_return_create_help') }}</span></div>
         <a href="{{ route('super.purchase-returns.index') }}" class="btn btn-outline-secondary btn-sm"><i data-feather="arrow-left" class="icon-sm me-1"></i>{{ __('ui.common.back') }}</a>
     </div>
 
@@ -19,13 +19,13 @@
         @csrf
         <div class="card mb-3"><div class="card-header d-flex justify-content-between align-items-center">
             <h6 class="mb-0">{{ __('ui.common.source_receipt') }}</h6>
-            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#selectReceiptModal"><i data-feather="search" class="icon-sm me-1"></i>Cari Penerimaan</button>
+            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#selectReceiptModal"><i data-feather="search" class="icon-sm me-1"></i>{{ __('ui.modules.search_receipt') }}</button>
         </div><div class="card-body">
             <input type="hidden" name="goods_receipt_id" id="goods_receipt_id">
             <div class="row">
-                <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.common.number') }}</label><input id="selected_receipt_number" class="form-control" readonly placeholder="Pilih penerimaan asal"></div>
-                <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.common.purchase_order') }}</label><input id="selected_purchase_order" class="form-control" readonly placeholder="Otomatis dari penerimaan"></div>
-                <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.common.supplier') }}</label><input id="selected_supplier" class="form-control" readonly placeholder="Otomatis dari penerimaan"></div>
+                <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.common.number') }}</label><input id="selected_receipt_number" class="form-control" readonly placeholder="{{ __('ui.modules.choose_receipt_placeholder') }}"></div>
+                <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.common.purchase_order') }}</label><input id="selected_purchase_order" class="form-control" readonly placeholder="{{ __('ui.modules.auto_from_receipt') }}"></div>
+                <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.common.supplier') }}</label><input id="selected_supplier" class="form-control" readonly placeholder="{{ __('ui.modules.auto_from_receipt') }}"></div>
                 <div class="col-md-4 mb-3"><label class="form-label" for="returned_at">{{ __('ui.common.returned_date') }}</label><input type="datetime-local" name="returned_at" id="returned_at" class="form-control" value="{{ now()->format('Y-m-d\TH:i') }}" required></div>
             </div>
         </div></div>
@@ -33,17 +33,17 @@
         <div class="card mb-3"><div class="card-header"><h6 class="mb-0">{{ __('ui.common.returned_items') }}</h6></div><div class="card-body">
             <div class="table-responsive"><table class="table table-bordered align-middle">
                 <thead><tr><th>{{ __('ui.common.item') }}</th><th class="text-end">{{ __('ui.common.received') }}</th><th class="text-end">{{ __('ui.common.already_returned') }}</th><th class="text-end">{{ __('ui.common.returnable_remaining') }}</th><th style="width:180px">{{ __('ui.common.return_now') }}</th></tr></thead>
-                <tbody id="returnItems"><tr><td colspan="5" class="text-center text-muted py-4">Pilih penerimaan untuk memuat daftar barang.</td></tr></tbody>
+                <tbody id="returnItems"><tr><td colspan="5" class="text-center text-muted py-4">{{ __('ui.modules.choose_receipt_items') }}</td></tr></tbody>
             </table></div>
-            <div class="row"><div class="col-md-6 mb-3"><label class="form-label" for="reason">{{ __('ui.common.return_reason') }}</label><textarea name="reason" id="reason" class="form-control" rows="2" maxlength="2000" required placeholder="Contoh: barang rusak atau tidak sesuai pesanan"></textarea></div>
-                <div class="col-md-6 mb-3"><label class="form-label" for="notes">{{ __('ui.common.notes') }}</label><textarea name="notes" id="notes" class="form-control" rows="2" maxlength="5000" placeholder="Catatan tambahan untuk supplier"></textarea></div></div>
+            <div class="row"><div class="col-md-6 mb-3"><label class="form-label" for="reason">{{ __('ui.common.return_reason') }}</label><textarea name="reason" id="reason" class="form-control" rows="2" maxlength="2000" required placeholder="{{ __('ui.modules.return_reason_example') }}"></textarea></div>
+                <div class="col-md-6 mb-3"><label class="form-label" for="notes">{{ __('ui.common.notes') }}</label><textarea name="notes" id="notes" class="form-control" rows="2" maxlength="5000" placeholder="{{ __('ui.modules.supplier_notes_placeholder') }}"></textarea></div></div>
         </div></div>
-        <div class="d-flex justify-content-end gap-2"><a href="{{ route('super.purchase-returns.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('ui.common.cancel') }}</a><button type="submit" id="submitReturn" class="btn btn-primary btn-sm" disabled><i data-feather="corner-up-left" class="icon-sm me-1"></i>Simpan Retur</button></div>
+        <div class="d-flex justify-content-end gap-2"><a href="{{ route('super.purchase-returns.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('ui.common.cancel') }}</a><button type="submit" id="submitReturn" class="btn btn-primary btn-sm" disabled><i data-feather="corner-up-left" class="icon-sm me-1"></i>{{ __('ui.modules.save_return') }}</button></div>
     </form>
 
     <div class="modal fade" id="selectReceiptModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title">Pilih Penerimaan Barang</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div>
+            <div class="modal-header"><h5 class="modal-title">{{ __('ui.modules.choose_receipt') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div>
             <div class="modal-body"><div class="table-responsive"><table id="eligibleReceiptsTable" class="table table-bordered table-hover align-middle w-100">
                 <thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.common.number') }}</th><th>{{ __('ui.common.po_number') }}</th><th>{{ __('ui.common.supplier') }}</th><th>{{ __('ui.common.received_date') }}</th><th>{{ __('ui.common.row_count') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead>
             </table></div></div>
@@ -90,13 +90,13 @@
                     $('#returnItems').html(rows || '<tr><td colspan="5" class="text-center text-muted">{{ __('ui.common.no_returnable_items') }}</td></tr>');
                     $('#submitReturn').prop('disabled', !rows);
                     receiptModal.hide();
-                }).fail(() => Swal.fire({ icon: 'error', title: 'Gagal', text: 'Detail penerimaan tidak dapat dimuat.' }));
+                }).fail(() => Swal.fire({ icon: 'error', title: '{{ __('ui.modules.failure') }}', text: '{{ __('ui.modules.receipt_detail_failed') }}' }));
             });
 
             $('#purchaseReturnForm').on('submit', function(event) {
                 event.preventDefault();
                 if (!$('.return-quantity').toArray().some(input => Number(input.value || 0) > 0)) {
-                    Swal.fire({ icon: 'warning', title: 'Jumlah belum diisi', text: 'Masukkan jumlah retur untuk minimal satu barang.' });
+                    Swal.fire({ icon: 'warning', title: '{{ __('ui.modules.refund_quantity_required_title') }}', text: '{{ __('ui.modules.refund_quantity_required') }}' });
                     return;
                 }
                 const button = $('#submitReturn').prop('disabled', true);
@@ -104,11 +104,11 @@
                     url: @json(route('super.purchase-returns.store')),
                     method: 'POST',
                     data: $(this).serialize(),
-                    success: response => Swal.fire({ icon: 'success', title: 'Berhasil', text: response.message }).then(() => window.location.href = @json(route('super.purchase-returns.index'))),
+                    success: response => Swal.fire({ icon: 'success', title: '{{ __('ui.modules.success') }}', text: response.message }).then(() => window.location.href = @json(route('super.purchase-returns.index'))),
                     error: xhr => {
                         const errors = xhr.responseJSON?.errors;
-                        const message = errors ? Object.values(errors).flat().join('\n') : (xhr.responseJSON?.message || 'Purchase Return gagal disimpan.');
-                        Swal.fire({ icon: 'error', title: 'Gagal', text: message });
+                        const message = errors ? Object.values(errors).flat().join('\n') : (xhr.responseJSON?.message || '{{ __('ui.modules.return_save_failed') }}');
+                        Swal.fire({ icon: 'error', title: '{{ __('ui.modules.failure') }}', text: message });
                         button.prop('disabled', false);
                     }
                 });

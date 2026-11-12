@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MaterialRequestItem extends Model
 {
-    protected $fillable = ['product_id', 'quantity', 'note'];
+    protected $fillable = ['product_id', 'quantity', 'issued_quantity', 'note'];
 
     protected function casts(): array
     {
-        return ['quantity' => 'decimal:4'];
+        return ['quantity' => 'decimal:4', 'issued_quantity' => 'decimal:4'];
     }
 
     public function request(): BelongsTo

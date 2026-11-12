@@ -47,7 +47,7 @@ class StockCardController extends Controller
             $filters['from_date'] ?? null,
             $filters['to_date'] ?? null,
         ))
-            ->addColumn('reference_number', fn(StockMovement $movement) => $movement->goodsReceipt?->number ?? $movement->purchaseReturn?->number ?? $movement->customerReturn?->number ?? $movement->stockOpname?->number ?? $movement->delivery?->number ?? $movement->posSale?->number ?? '—')
+            ->addColumn('reference_number', fn(StockMovement $movement) => $movement->goodsReceipt?->number ?? $movement->purchaseReturn?->number ?? $movement->customerReturn?->number ?? $movement->stockOpname?->number ?? $movement->delivery?->number ?? $movement->posSale?->number ?? $movement->materialRequestItem?->request?->number ?? $movement->productionOrderStageEntry?->productionOrder?->number ?? '—')
             ->addColumn('movement_label', fn(StockMovement $movement) => match ($movement->movement_type) {
                 'purchase_receipt' => '<span class="badge bg-success">Penerimaan Barang</span>',
                 'purchase_return' => '<span class="badge bg-danger">Purchase Return</span>',
@@ -56,8 +56,13 @@ class StockCardController extends Controller
                 'stock_adjustment' => '<span class="badge bg-warning text-dark">Stock Opname</span>',
                 'sales_delivery' => '<span class="badge bg-danger">Delivery</span>',
                 'pos_sale' => '<span class="badge bg-danger">Penjualan POS</span>',
+                'material_issue' => '<span class="badge bg-warning text-dark">' . e(__('ui.workflow.material_issue_movement')) . '</span>',
+                'production_output' => '<span class="badge bg-success">' . e(__('ui.workflow.production_output_movement')) . '</span>',
                 default => '<span class="badge bg-secondary">' . e(ucfirst(str_replace('_', ' ', $movement->movement_type))) . '</span>',
             })
+            ->addColumn('lot_numbers', fn(StockMovement $movement) => $movement->lotAllocations
+                ->map(fn ($allocation) => ($allocation->inventoryLot?->lot_number ?? '—') . ' (' . number_format(abs((float) $allocation->quantity), 4, ',', '.') . ')')
+                ->implode(', ') ?: '—')
             ->addColumn('quantity_in', fn(StockMovement $movement) => (float) $movement->quantity > 0 ? number_format((float) $movement->quantity, 4, ',', '.') : '—')
             ->addColumn('quantity_out', fn(StockMovement $movement) => (float) $movement->quantity < 0 ? number_format(abs((float) $movement->quantity), 4, ',', '.') : '—')
             ->addColumn('balance_after', fn(StockMovement $movement) => number_format((float) $movement->quantity_after, 4, ',', '.'))

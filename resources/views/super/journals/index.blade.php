@@ -1,11 +1,11 @@
 @extends('layouts.admin')
-@section('title', __( 'ui.common.journal' ))
+@section('title', __('ui.common.journal'))
 @section('breadcrumb')<nav class="page-breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="#">{{ __('ui.common.accounting') }}</a></li><li class="breadcrumb-item active">{{ __('ui.common.journal') }}</li></ol></nav>@endsection
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-3"><div><h4 class="page-title mb-1">{{ __('ui.common.journal') }}</h4><span class="text-muted">Kelola jurnal manual yang seimbang, lalu posting untuk menguncinya.</span></div>@can('journal.create')<a href="{{ route('super.journals.create') }}" class="btn btn-primary btn-sm"><i data-feather="plus" class="icon-sm me-1"></i>Buat Jurnal</a>@endcan</div>
+    <div class="d-flex justify-content-between align-items-center mb-3"><div><h4 class="page-title mb-1">{{ __('ui.common.journal') }}</h4><span class="text-muted">{{ __('ui.modules.journal_subtitle') }}</span></div>@can('journal.create')<a href="{{ route('super.journals.create') }}" class="btn btn-primary btn-sm"><i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.modules.create_journal') }}</a>@endcan</div>
     @include('super.purchasing.date-filter')
-    <div class="card"><div class="card-body"><div class="table-responsive"><table id="journals-table" class="table table-bordered table-hover align-middle w-100"><thead><tr><th>{{ __('ui.common.no') }}</th><th>Nomor Jurnal</th><th>{{ __('ui.common.date') }}</th><th>{{ __('ui.common.description_label') }}</th><th>{{ __('ui.common.reference') }}</th><th class="text-end">{{ __('ui.common.debit') }}</th><th class="text-end">{{ __('ui.common.credit') }}</th><th>Baris</th><th>{{ __('ui.common.status') }}</th><th>{{ __('ui.common.actions') }}</th></tr></thead></table></div></div></div>
-    <div class="modal fade" id="journalDetailModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="journalDetailTitle">Detail Journal</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div><div class="modal-body" id="journalDetailBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ __('ui.common.close') }}</button></div></div></div></div>
+    <div class="card"><div class="card-body"><div class="table-responsive"><table id="journals-table" class="table table-bordered table-hover align-middle w-100"><thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.modules.journal_number') }}</th><th>{{ __('ui.common.date') }}</th><th>{{ __('ui.common.description_label') }}</th><th>{{ __('ui.common.reference') }}</th><th class="text-end">{{ __('ui.common.debit') }}</th><th class="text-end">{{ __('ui.common.credit') }}</th><th>{{ __('ui.common.item_count') }}</th><th>{{ __('ui.common.status') }}</th><th>{{ __('ui.common.actions') }}</th></tr></thead></table></div></div></div>
+    <div class="modal fade" id="journalDetailModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="journalDetailTitle">{{ __('ui.modules.journal_detail') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div><div class="modal-body" id="journalDetailBody"></div><div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ __('ui.common.close') }}</button></div></div></div></div>
 @endsection
 @push('scripts')
 <script>
@@ -33,26 +33,26 @@ $(function() {
         $.get($(this).data('url')).done(entry => {
             const rows = entry.lines.map(line => `<tr><td>${safe(line.code)} · ${safe(line.account)}</td><td>${safe(line.description)}</td><td class="text-end">${money(line.debit)}</td><td class="text-end">${money(line.credit)}</td></tr>`).join('');
             $('#journalDetailTitle').text(`Journal ${entry.number}`);
-            $('#journalDetailBody').html(`<dl class="row"><dt class="col-sm-3">{{ __('ui.common.date') }}</dt><dd class="col-sm-9">${safe(entry.journal_date)}</dd><dt class="col-sm-3">{{ __('ui.common.description_label') }}</dt><dd class="col-sm-9">${safe(entry.description)}</dd><dt class="col-sm-3">{{ __('ui.common.reference') }}</dt><dd class="col-sm-9">${safe(entry.reference_number)}</dd><dt class="col-sm-3">{{ __('ui.common.status') }}</dt><dd class="col-sm-9">${entry.status === 'posted' ? 'Posted' : 'Draft'}</dd><dt class="col-sm-3">{{ __('ui.common.created_by') }}</dt><dd class="col-sm-9">${safe(entry.creator)}</dd><dt class="col-sm-3">{{ __('ui.common.posted_by') }}</dt><dd class="col-sm-9">${safe(entry.poster)} · ${safe(entry.posted_at)}</dd></dl><div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>{{ __('ui.common.account') }}</th><th>{{ __('ui.common.description_label') }}</th><th class="text-end">{{ __('ui.common.debit') }}</th><th class="text-end">{{ __('ui.common.credit') }}</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><th colspan="2" class="text-end">{{ __('ui.common.total') }}</th><th class="text-end">${money(entry.total_debit)}</th><th class="text-end">${money(entry.total_credit)}</th></tr></tfoot></table></div>`);
+            $('#journalDetailBody').html(`<dl class="row"><dt class="col-sm-3">{{ __('ui.common.date') }}</dt><dd class="col-sm-9">${safe(entry.journal_date)}</dd><dt class="col-sm-3">{{ __('ui.common.description_label') }}</dt><dd class="col-sm-9">${safe(entry.description)}</dd><dt class="col-sm-3">{{ __('ui.common.reference') }}</dt><dd class="col-sm-9">${safe(entry.reference_number)}</dd><dt class="col-sm-3">{{ __('ui.common.status') }}</dt><dd class="col-sm-9">${entry.status === 'posted' ? '{{ __('ui.modules.posted_status') }}' : '{{ __('ui.modules.draft_status') }}'}</dd><dt class="col-sm-3">{{ __('ui.common.created_by') }}</dt><dd class="col-sm-9">${safe(entry.creator)}</dd><dt class="col-sm-3">{{ __('ui.common.posted_by') }}</dt><dd class="col-sm-9">${safe(entry.poster)} · ${safe(entry.posted_at)}</dd></dl><div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>{{ __('ui.common.account') }}</th><th>{{ __('ui.common.description_label') }}</th><th class="text-end">{{ __('ui.common.debit') }}</th><th class="text-end">{{ __('ui.common.credit') }}</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><th colspan="2" class="text-end">{{ __('ui.common.total') }}</th><th class="text-end">${money(entry.total_debit)}</th><th class="text-end">${money(entry.total_credit)}</th></tr></tfoot></table></div>`);
             modal.show();
-        }).fail(() => Swal.fire({ icon: 'error', title: 'Gagal', text: 'Detail jurnal tidak dapat dimuat.' }));
+        }).fail(() => Swal.fire({ icon: 'error', title: '{{ __('ui.modules.failure') }}', text: '{{ __('ui.modules.journal_detail_failed') }}' }));
     });
     $(document).on('click', '.btn-post-journal', function() {
         const button = $(this);
-        Swal.fire({ icon: 'question', title: `Posting ${button.data('number')}?`, text: 'Jurnal yang sudah diposting tidak dapat diedit atau dihapus.', showCancelButton: true, confirmButtonText: 'Posting', cancelButtonText: 'Batal' }).then(result => {
+        Swal.fire({ icon: 'question', title: `{{ __('ui.modules.posting') }} {{ __('ui.common.journal') }} ${button.data('number')}?`, text: '{{ __('ui.modules.journal_post_help') }}', showCancelButton: true, confirmButtonText: '{{ __('ui.modules.posting') }}', cancelButtonText: '{{ __('ui.modules.cancel') }}' }).then(result => {
             if (!result.isConfirmed) return;
             $.ajax({ url: button.data('url'), method: 'POST', data: { _token: @json(csrf_token()), _method: 'PUT' } })
-                .done(response => { table.ajax.reload(null, false); Swal.fire({ icon: 'success', title: 'Berhasil', text: response.message }); })
-                .fail(xhr => Swal.fire({ icon: 'error', title: 'Gagal', text: xhr.responseJSON?.message || 'Jurnal gagal diposting.' }));
+                .done(response => { table.ajax.reload(null, false); Swal.fire({ icon: 'success', title: '{{ __('ui.modules.success') }}', text: response.message }); })
+                .fail(xhr => Swal.fire({ icon: 'error', title: '{{ __('ui.modules.failure') }}', text: xhr.responseJSON?.message || '{{ __('ui.modules.journal_post_failed') }}' }));
         });
     });
     $(document).on('click', '.btn-delete-journal', function() {
         const button = $(this);
-        Swal.fire({ icon: 'warning', title: `Hapus draft ${button.data('number')}?`, showCancelButton: true, confirmButtonText: 'Hapus', cancelButtonText: 'Batal' }).then(result => {
+        Swal.fire({ icon: 'warning', title: `{{ __('ui.modules.delete') }} {{ __('ui.modules.draft_status') }} {{ __('ui.common.journal') }} ${button.data('number')}?`, showCancelButton: true, confirmButtonText: '{{ __('ui.modules.delete') }}', cancelButtonText: '{{ __('ui.modules.cancel') }}' }).then(result => {
             if (!result.isConfirmed) return;
             $.ajax({ url: button.data('url'), method: 'DELETE', data: { _token: @json(csrf_token()) } })
-                .done(response => { table.ajax.reload(null, false); Swal.fire({ icon: 'success', title: 'Berhasil', text: response.message }); })
-                .fail(xhr => Swal.fire({ icon: 'error', title: 'Gagal', text: xhr.responseJSON?.message || 'Draft jurnal gagal dihapus.' }));
+                .done(response => { table.ajax.reload(null, false); Swal.fire({ icon: 'success', title: '{{ __('ui.modules.success') }}', text: response.message }); })
+                .fail(xhr => Swal.fire({ icon: 'error', title: '{{ __('ui.modules.failure') }}', text: xhr.responseJSON?.message || '{{ __('ui.modules.draft_delete_failed') }}' }));
         });
     });
 });

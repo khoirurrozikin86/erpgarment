@@ -1,16 +1,16 @@
 @extends('layouts.admin')
-@section('title', 'Buat Delivery')
+@section('title', __('ui.modules.delivery_information'))
 @section('breadcrumb')<nav class="page-breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="#">{{ __('ui.common.sales') }}</a></li><li class="breadcrumb-item"><a href="{{ route('super.deliveries.index') }}">{{ __('ui.common.delivery') }}</a></li><li class="breadcrumb-item active">{{ __('ui.common.create') }}</li></ol></nav>@endsection
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-3"><div><h4 class="page-title mb-1">{{ __('ui.common.create_delivery') }}</h4><span class="text-muted">Kirim barang dari Sales Order yang sudah dikonfirmasi. Stok dikurangi setelah Delivery diposting.</span></div><a href="{{ route('super.deliveries.index') }}" class="btn btn-outline-secondary btn-sm"><i data-feather="arrow-left" class="icon-sm me-1"></i>{{ __('ui.common.back') }}</a></div>
-    <form id="deliveryForm"><div class="card"><div class="card-header"><h6 class="mb-0">Informasi Pengiriman</h6></div><div class="card-body">
-        <div class="row"><div class="col-md-6 mb-3"><label class="form-label">{{ __('ui.common.sales_order') }}<span class="text-danger">*</span></label><div class="input-group"><input type="hidden" id="sales_order_id"><input type="text" class="form-control" id="sales_order_number" placeholder="{{ __('ui.common.choose_confirmed_order') }}" readonly required><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#salesOrderPicker"><i data-feather="search" class="icon-sm me-1"></i>{{ __('ui.common.search_so') }}</button></div></div><div class="col-md-6 mb-3"><label class="form-label" for="delivered_at">Tanggal Pengiriman</label><input type="datetime-local" id="delivered_at" class="form-control" value="{{ now()->format('Y-m-d\TH:i') }}" required></div></div>
+    <div class="d-flex justify-content-between align-items-center mb-3"><div><h4 class="page-title mb-1">{{ __('ui.common.create_delivery') }}</h4><span class="text-muted">{{ __('ui.modules.delivery_create_help') }}</span></div><a href="{{ route('super.deliveries.index') }}" class="btn btn-outline-secondary btn-sm"><i data-feather="arrow-left" class="icon-sm me-1"></i>{{ __('ui.common.back') }}</a></div>
+    <form id="deliveryForm"><div class="card"><div class="card-header"><h6 class="mb-0">{{ __('ui.modules.delivery_information') }}</h6></div><div class="card-body">
+        <div class="row"><div class="col-md-6 mb-3"><label class="form-label">{{ __('ui.common.sales_order') }}<span class="text-danger">*</span></label><div class="input-group"><input type="hidden" id="sales_order_id"><input type="text" class="form-control" id="sales_order_number" placeholder="{{ __('ui.common.choose_confirmed_order') }}" readonly required><button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#salesOrderPicker"><i data-feather="search" class="icon-sm me-1"></i>{{ __('ui.common.search_so') }}</button></div></div><div class="col-md-6 mb-3"><label class="form-label" for="delivered_at">{{ __('ui.modules.delivery_date') }}</label><input type="datetime-local" id="delivered_at" class="form-control" value="{{ now()->format('Y-m-d\TH:i') }}" required></div></div>
         <div id="deliveryOrderInfo" class="alert alert-info d-none py-2"></div>
-        <div class="alert alert-warning py-2"><strong>Perhatian:</strong> Sistem membatasi jumlah sesuai stok yang tersedia. Ketersediaan akan diperiksa kembali saat posting.</div>
+        <div class="alert alert-warning py-2"><strong>Perhatian:</strong> {{ __('ui.modules.stock_delivery_warning') }}</div>
         <div class="table-responsive"><table class="table table-sm table-bordered align-middle"><thead><tr><th class="text-center" style="width:55px">{{ __('ui.common.send') }}</th><th>{{ __('ui.common.item') }}</th><th class="text-end">{{ __('ui.common.remaining_so') }}</th><th class="text-end">{{ __('ui.common.available_stock') }}</th><th style="width:150px">{{ __('ui.common.quantity_to_ship') }}</th></tr></thead><tbody id="deliveryItems"><tr><td colspan="5" class="text-center text-muted py-4">{{ __('ui.common.choose_order_to_load_items') }}</td></tr></tbody></table></div>
-        <div class="mt-3"><label class="form-label" for="delivery_notes">Catatan Pengiriman</label><textarea id="delivery_notes" class="form-control" rows="3" maxlength="5000"></textarea></div>
+        <div class="mt-3"><label class="form-label" for="delivery_notes">{{ __('ui.modules.delivery_notes') }}</label><textarea id="delivery_notes" class="form-control" rows="3" maxlength="5000"></textarea></div>
     </div><div class="card-footer d-flex justify-content-between"><a href="{{ route('super.deliveries.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('ui.common.cancel') }}</a><button type="submit" id="submitDelivery" class="btn btn-primary btn-sm" disabled><i data-feather="save" class="icon-sm me-1"></i>{{ __('ui.common.draft_delivery') }}</button></div></div></form>
-    <div class="modal fade" id="salesOrderPicker" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><div><h5 class="modal-title">Pilih Sales Order</h5><small class="text-muted">Menampilkan order yang sudah dikonfirmasi dan masih memiliki sisa pengiriman.</small></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div><div class="modal-body"><div class="table-responsive"><table id="eligibleSalesOrders" class="table table-bordered table-hover align-middle w-100"><thead><tr><th>{{ __('ui.common.so_number') }}</th><th>{{ __('ui.common.quotation') }}</th><th>{{ __('ui.common.customer') }}</th><th>{{ __('ui.common.order_date') }}</th><th>{{ __('ui.common.row_count') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead></table></div></div></div></div></div>
+    <div class="modal fade" id="salesOrderPicker" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><div><h5 class="modal-title">{{ __('ui.modules.choose_sales_order') }}</h5><small class="text-muted">{{ __('ui.modules.orders_with_remaining_delivery') }}</small></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div><div class="modal-body"><div class="table-responsive"><table id="eligibleSalesOrders" class="table table-bordered table-hover align-middle w-100"><thead><tr><th>{{ __('ui.common.so_number') }}</th><th>{{ __('ui.common.quotation') }}</th><th>{{ __('ui.common.customer') }}</th><th>{{ __('ui.common.order_date') }}</th><th>{{ __('ui.common.row_count') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead></table></div></div></div></div></div>
 @endsection
 @push('scripts')
 <script>
@@ -32,14 +32,14 @@ $(function() {
         const button = $(this), id = button.data('id');
         $('#sales_order_id').val(id); $('#sales_order_number').val(button.data('number'));
         $('#submitDelivery').prop('disabled', true);
-        $('#deliveryItems').html('<tr><td colspan="5" class="text-center text-muted">Memuat sisa barang dan stok...</td></tr>');
+        $('#deliveryItems').html('<tr><td colspan="5" class="text-center text-muted">{{ __('ui.modules.loading_remaining_stock') }}</td></tr>');
         $('#deliveryOrderInfo').addClass('d-none'); picker.hide();
         const sourceUrl = @json(route('super.deliveries.source', ['salesOrderId' => '__ID__']));
         $.get(sourceUrl.replace('__ID__', encodeURIComponent(id))).done(order => {
             $('#deliveryOrderInfo').removeClass('d-none').text(`SO ${order.number} · Customer: ${order.customer} · Quotation: ${order.quotation}`);
             const body = $('#deliveryItems').empty();
             if (!order.items.length) {
-                body.html('<tr><td colspan="5" class="text-center text-muted py-4">Semua jumlah SO sudah terkirim atau sedang dialokasikan ke draft Delivery.</td></tr>');
+                body.html('<tr><td colspan="5" class="text-center text-muted py-4">{{ __('ui.modules.all_order_items_delivered') }}</td></tr>');
                 recalculate();
                 return;
             }
@@ -52,11 +52,11 @@ $(function() {
                 row.append($('<td class="text-center">').append(checkbox));
                 row.append($('<td>').html(`<strong>${safe(item.code)}</strong> — ${safe(item.name)} <span class="text-muted">(${safe(item.unit)})</span>`));
                 row.append($('<td class="text-end">').text(`${item.remaining_quantity} ${item.unit}`));
-                row.append($('<td class="text-end">').text(item.track_stock ? `${item.available_stock} ${item.unit}` : 'Tidak dilacak'));
+                row.append($('<td class="text-end">').text(item.track_stock ? `${item.available_stock} ${item.unit}` : '{{ __('ui.modules.not_tracked') }}'));
                 row.append($('<td>').append(input)); body.append(row);
             });
             recalculate();
-        }).fail(xhr => Swal.fire({ icon: 'error', title: 'Gagal', text: xhr.responseJSON?.message || 'Sales Order tidak lagi tersedia untuk Delivery.' }));
+        }).fail(xhr => Swal.fire({ icon: 'error', title: '{{ __('ui.modules.failure') }}', text: xhr.responseJSON?.message || '{{ __('ui.modules.sales_order_not_available_for_delivery') }}' }));
     });
 
     function recalculate() {
@@ -83,8 +83,8 @@ $(function() {
         $.ajax({
             url: @json(route('super.deliveries.store')), method: 'POST',
             data: { _token: @json(csrf_token()), sales_order_id: $('#sales_order_id').val(), delivered_at: $('#delivered_at').val(), notes: $('#delivery_notes').val(), items },
-            success: response => Swal.fire({ icon: 'success', title: 'Berhasil', text: response.message }).then(() => window.location.href = response.url),
-            error: xhr => { const errors = xhr.responseJSON?.errors; Swal.fire({ icon: 'error', title: 'Gagal', text: errors ? Object.values(errors).flat().join('\n') : (xhr.responseJSON?.message || 'Draft Delivery gagal dibuat.') }); button.prop('disabled', false); }
+            success: response => Swal.fire({ icon: 'success', title: '{{ __('ui.modules.success') }}', text: response.message }).then(() => window.location.href = response.url),
+            error: xhr => { const errors = xhr.responseJSON?.errors; Swal.fire({ icon: 'error', title: '{{ __('ui.modules.failure') }}', text: errors ? Object.values(errors).flat().join('\n') : (xhr.responseJSON?.message || '{{ __('ui.modules.delivery_draft_create_failed') }}') }); button.prop('disabled', false); }
         });
     });
 });

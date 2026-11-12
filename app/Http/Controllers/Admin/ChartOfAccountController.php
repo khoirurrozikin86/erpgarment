@@ -25,9 +25,9 @@ class ChartOfAccountController extends Controller
         return DataTables::eloquent($query->builder())
             ->addColumn('parent_label', fn (ChartOfAccount $account) => $account->parent ? $account->parent->code . ' · ' . $account->parent->name : '—')
             ->addColumn('type_label', fn (ChartOfAccount $account) => $this->typeLabel($account->account_type))
-            ->addColumn('balance_label', fn (ChartOfAccount $account) => $account->normal_balance === 'debit' ? 'Debit' : 'Kredit')
-            ->addColumn('status_label', fn (ChartOfAccount $account) => $account->is_active ? '<span class="badge bg-success">Aktif</span>' : '<span class="badge bg-secondary">Nonaktif</span>')
-            ->addColumn('system_label', fn (ChartOfAccount $account) => $account->is_system ? '<span class="badge bg-light text-dark">Standar</span>' : '<span class="badge bg-info text-dark">Custom</span>')
+            ->addColumn('balance_label', fn (ChartOfAccount $account) => $account->normal_balance === 'debit' ? __('ui.modules.debit_balance') : __('ui.modules.credit_balance'))
+            ->addColumn('status_label', fn (ChartOfAccount $account) => $account->is_active ? '<span class="badge bg-success">' . e(__('ui.modules.active_status')) . '</span>' : '<span class="badge bg-secondary">' . e(__('ui.modules.inactive_status')) . '</span>')
+            ->addColumn('system_label', fn (ChartOfAccount $account) => $account->is_system ? '<span class="badge bg-light text-dark">' . e(__('ui.modules.standard')) . '</span>' : '<span class="badge bg-info text-dark">' . e(__('ui.modules.custom')) . '</span>')
             ->addColumn('actions', function (ChartOfAccount $account) {
                 if (!auth()->user()->can('chart-of-accounts.update')) return '—';
                 return '<button type="button" class="btn btn-sm btn-outline-primary btn-edit-chart-account" data-id="' . (int) $account->id . '"'
@@ -35,7 +35,7 @@ class ChartOfAccountController extends Controller
                     . ' data-type="' . e($account->account_type) . '" data-normal="' . e($account->normal_balance) . '"'
                     . ' data-parent="' . (int) ($account->parent_id ?? 0) . '" data-group="' . (int) $account->is_group . '"'
                     . ' data-active="' . (int) $account->is_active . '" data-description="' . e($account->description) . '"'
-                    . ' data-url="' . e(route('super.chart-of-accounts.update', $account)) . '" title="Edit"><i data-feather="edit-2"></i></button>';
+                    . ' data-url="' . e(route('super.chart-of-accounts.update', $account)) . '" title="' . e(__('ui.modules.edit')) . '"><i data-feather="edit-2"></i></button>';
             })
             ->rawColumns(['status_label', 'system_label', 'actions'])->toJson();
     }
@@ -44,14 +44,14 @@ class ChartOfAccountController extends Controller
     {
         $data = $request->validate($this->rules($request, $company));
         $account = $service->create($data);
-        return response()->json(['message' => "Akun {$account->code} berhasil dibuat."], 201);
+        return response()->json(['message' => __('ui.modules.account_created', ['code' => $account->code])], 201);
     }
 
     public function update(Request $request, ChartOfAccount $chartOfAccount, ChartOfAccountService $service, CompanyContext $company): JsonResponse
     {
         $data = $request->validate($this->rules($request, $company, $chartOfAccount));
         $account = $service->update($chartOfAccount, $data);
-        return response()->json(['message' => "Akun {$account->code} berhasil diperbarui."]);
+        return response()->json(['message' => __('ui.modules.account_updated', ['code' => $account->code])]);
     }
 
     private function rules(Request $request, CompanyContext $company, ?ChartOfAccount $account = null): array
@@ -73,6 +73,6 @@ class ChartOfAccountController extends Controller
 
     private function typeLabel(string $type): string
     {
-        return ['asset' => 'Aset', 'liability' => 'Kewajiban', 'equity' => 'Ekuitas', 'revenue' => 'Pendapatan', 'expense' => 'Beban'][$type] ?? $type;
+        return ['asset' => __('ui.modules.assets'), 'liability' => __('ui.modules.liabilities'), 'equity' => __('ui.modules.equity'), 'revenue' => __('ui.modules.revenue'), 'expense' => __('ui.modules.expenses')][$type] ?? $type;
     }
 }

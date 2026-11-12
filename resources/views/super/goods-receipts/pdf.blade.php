@@ -42,17 +42,24 @@
     <table class="meta">
         <tr><td class="label">{{ __('ui.common.purchase_order_number') }}</td><td>{{ $receipt->purchaseOrder?->number ?? '—' }}</td><td class="label">{{ __('ui.common.receipt_date') }}</td><td>{{ $receipt->received_at?->format('d/m/Y H:i') ?? '—' }}</td></tr>
         <tr><td class="label">{{ __('ui.common.supplier') }}</td><td>{{ $receipt->supplier?->name ?? 'Supplier dihapus' }}</td><td class="label">{{ __('ui.common.received_by') }}</td><td>{{ $receipt->receiver?->name ?? 'User dihapus' }}</td></tr>
+        @if ($receipt->customs_document_number)
+            <tr><td class="label">{{ __('ui.workflow.customs_document_code') }}</td><td>{{ $receipt->customs_document_code ?: '—' }}</td><td class="label">{{ __('ui.workflow.customs_document_number') }}</td><td>{{ $receipt->customs_document_number }} ({{ $receipt->customs_document_date?->format('d/m/Y') ?? '—' }})</td></tr>
+        @endif
+        @if ($receipt->customs_document_number)
+            <tr><td class="label">{{ __('ui.workflow.customs_document_code') }}</td><td>{{ $receipt->customs_document_code ?: '—' }}</td><td class="label">{{ __('ui.workflow.customs_document_number') }}</td><td>{{ $receipt->customs_document_number }} ({{ $receipt->customs_document_date?->format('d/m/Y') ?? '—' }})</td></tr>
+        @endif
         <tr><td class="label">{{ __('ui.common.supplier_address') }}</td><td>{{ $receipt->supplier?->address ?: '—' }}</td><td class="label">{{ __('ui.common.supplier_phone') }}</td><td>{{ $receipt->supplier?->phone ?: '—' }}</td></tr>
     </table>
 
     <table class="items">
-        <thead><tr><th class="center" style="width:32px">{{ __('ui.common.no') }}</th><th style="width:110px">{{ __('ui.common.code') }}</th><th>{{ __('ui.common.item_name') }}</th><th class="right" style="width:100px">Jumlah Diterima</th><th style="width:70px">{{ __('ui.common.unit') }}</th><th class="right" style="width:110px">{{ __('ui.common.unit_price') }}</th><th class="right" style="width:110px">{{ __('ui.common.subtotal') }}</th></tr></thead>
+        <thead><tr><th class="center" style="width:32px">{{ __('ui.common.no') }}</th><th style="width:110px">{{ __('ui.common.code') }}</th><th>{{ __('ui.common.item_name') }}</th><th>{{ __('ui.workflow.lot_roll') }}</th><th class="right" style="width:100px">Jumlah Diterima</th><th style="width:70px">{{ __('ui.common.unit') }}</th><th class="right" style="width:110px">{{ __('ui.common.unit_price') }}</th><th class="right" style="width:110px">{{ __('ui.common.subtotal') }}</th></tr></thead>
         <tbody>
             @forelse ($receipt->items as $item)
                 <tr>
                     <td class="center">{{ $loop->iteration }}</td>
                     <td>{{ $item->product?->code ?? '—' }}</td>
                     <td>{{ $item->product?->name ?? 'Barang dihapus' }}</td>
+                    <td>{{ $item->inventoryLot?->lot_number ?? '—' }}</td>
                     <td class="right">{{ number_format((float) $item->quantity, 4, ',', '.') }}</td>
                     <td>{{ $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—' }}</td>
                     <td class="right">Rp {{ number_format((float) $item->unit_price, 2, ',', '.') }}</td>

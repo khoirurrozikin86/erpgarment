@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Purchase Return')
+@section('title', __('ui.common.purchase_return'))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb"><ol class="breadcrumb">
@@ -12,7 +12,7 @@
 @section('content')
     <div class="row">
         <div class="d-flex justify-content-between align-items-center mb-3">
-            <div><h4 class="page-title mb-1">{{ __('ui.common.purchase_return') }}</h4><span class="text-muted">Catat barang yang dikembalikan kepada supplier dari penerimaan.</span></div>
+            <div><h4 class="page-title mb-1">{{ __('ui.common.purchase_return') }}</h4><span class="text-muted">{{ __('ui.modules.purchase_return_subtitle') }}</span></div>
             @can('purchase-returns.create')
                 <a href="{{ route('super.purchase-returns.create') }}" class="btn btn-primary btn-sm"><i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.common.record_return') }}</a>
             @endcan
@@ -21,7 +21,7 @@
             @include('super.purchasing.date-filter')
             <div class="card"><div class="card-body"><div class="table-responsive">
                 <table id="purchase-returns-table" class="table table-bordered table-hover align-middle w-100">
-                    <thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.common.return_number') }}</th><th>Nomor GR</th><th>{{ __('ui.common.supplier') }}</th><th>{{ __('ui.common.returned_date') }}</th><th>Total Nilai</th><th>{{ __('ui.common.recorded_by') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead>
+                    <thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.common.return_number') }}</th><th>{{ __('ui.modules.goods_receipt_number') }}</th><th>{{ __('ui.common.supplier') }}</th><th>{{ __('ui.common.returned_date') }}</th><th>{{ __('ui.modules.total_value') }}</th><th>{{ __('ui.common.recorded_by') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead>
                 </table>
             </div></div></div>
         </div>
@@ -29,7 +29,7 @@
 
     <div class="modal fade" id="viewPurchaseReturnModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title" id="viewPurchaseReturnTitle">Detail Purchase Return</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div>
+            <div class="modal-header"><h5 class="modal-title" id="viewPurchaseReturnTitle">{{ __('ui.modules.purchase_return_detail') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div>
             <div class="modal-body" id="viewPurchaseReturnBody"></div>
             <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ __('ui.common.close') }}</button></div>
         </div></div>
@@ -72,7 +72,7 @@
             $(document).on('click', '.btn-view-purchase-return', function() {
                 $.get($(this).data('url')).done(function(item) {
                     const rows = item.items.map(row => `<tr><td>${safe(row.code)} — ${safe(row.name)}</td><td class="text-end">${row.quantity} ${safe(row.unit)}</td><td class="text-end">${money(row.unit_price)}</td><td class="text-end">${money(row.line_total)}</td></tr>`).join('');
-                    $('#viewPurchaseReturnTitle').text(`Purchase Return ${item.number}`);
+                    $('#viewPurchaseReturnTitle').text(`{{ __('ui.modules.purchase_return_detail') }} ${item.number}`);
                     $('#viewPurchaseReturnBody').html(`
                         <dl class="row mb-3"><dt class="col-sm-3">{{ __('ui.common.source_receipt') }}</dt><dd class="col-sm-9">${safe(item.receipt)}</dd>
                         <dt class="col-sm-3">{{ __('ui.common.purchase_order') }}</dt><dd class="col-sm-9">${safe(item.purchase_order)}</dd>
@@ -81,9 +81,9 @@
                         <dt class="col-sm-3">{{ __('ui.common.recorded_by') }}</dt><dd class="col-sm-9">${safe(item.returner)}</dd>
                         <dt class="col-sm-3">{{ __('ui.common.reason') }}</dt><dd class="col-sm-9 text-break">${safe(item.reason)}</dd>
                         <dt class="col-sm-3">{{ __('ui.common.notes') }}</dt><dd class="col-sm-9 text-break">${safe(item.notes)}</dd></dl>
-                        <div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>{{ __('ui.common.item') }}</th><th class="text-end">Jumlah Retur</th><th class="text-end">{{ __('ui.common.unit_price') }}</th><th class="text-end">{{ __('ui.common.subtotal') }}</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><th colspan="3" class="text-end">{{ __('ui.common.return_total') }}</th><th class="text-end">${money(item.total_amount)}</th></tr></tfoot></table></div>`);
+                        <div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>{{ __('ui.common.item') }}</th><th class="text-end">Jumlah {{ __('ui.modules.returned') }}</th><th class="text-end">{{ __('ui.common.unit_price') }}</th><th class="text-end">{{ __('ui.common.subtotal') }}</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><th colspan="3" class="text-end">{{ __('ui.common.return_total') }}</th><th class="text-end">${money(item.total_amount)}</th></tr></tfoot></table></div>`);
                     modal.show();
-                }).fail(() => Swal.fire({ icon: 'error', title: 'Gagal', text: 'Detail purchase return tidak dapat dimuat.' }));
+                }).fail(() => Swal.fire({ icon: 'error', title: '{{ __('ui.modules.failure') }}', text: '{{ __('ui.modules.detail_failed_purchase_return') }}' }));
             });
         });
     </script>

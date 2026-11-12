@@ -23,7 +23,7 @@ class AccountPayableController extends Controller
     {
         $filters = $this->dateFilters($request);
         return DataTables::eloquent($query->receipts($filters['from_date'] ?? null, $filters['to_date'] ?? null))
-            ->addColumn('supplier_name', fn (GoodsReceipt $receipt) => $receipt->supplier?->name ?? 'Supplier dihapus')
+            ->addColumn('supplier_name', fn (GoodsReceipt $receipt) => $receipt->supplier?->name ?? __('ui.modules.supplier_deleted'))
             ->addColumn('purchase_order_number', fn (GoodsReceipt $receipt) => $receipt->purchaseOrder?->number ?? '—')
             ->addColumn('receipt_amount_value', fn (GoodsReceipt $receipt) => round((float) ($receipt->receipt_amount ?? 0), 2))
             ->addColumn('returned_amount_value', fn (GoodsReceipt $receipt) => round((float) ($receipt->returned_amount ?? 0), 2))
@@ -32,16 +32,16 @@ class AccountPayableController extends Controller
             ->addColumn('payment_status', function (GoodsReceipt $receipt) {
                 $paid = (float) ($receipt->paid_amount ?? 0);
                 $due = max(0, round((float) ($receipt->receipt_amount ?? 0) - (float) ($receipt->returned_amount ?? 0)));
-                if ($due <= $paid) return '<span class="badge bg-success">Lunas</span>';
-                return $paid > 0 ? '<span class="badge bg-info text-dark">Sebagian</span>' : '<span class="badge bg-warning text-dark">Belum Bayar</span>';
+                if ($due <= $paid) return '<span class="badge bg-success">' . e(__('ui.modules.paid_status')) . '</span>';
+                return $paid > 0 ? '<span class="badge bg-info text-dark">' . e(__('ui.modules.partial_status')) . '</span>' : '<span class="badge bg-warning text-dark">' . e(__('ui.modules.unpaid_status')) . '</span>';
             })
             ->addColumn('actions', function (GoodsReceipt $receipt) {
                 $due = max(0, round((float) ($receipt->receipt_amount ?? 0) - (float) ($receipt->returned_amount ?? 0) - (float) ($receipt->paid_amount ?? 0), 2));
                 $buttons = '';
                 if ($due > 0 && auth()->user()->can('account-payable.pay')) {
-                    $buttons .= '<button type="button" class="btn btn-sm btn-outline-success btn-pay-supplier" data-url="' . e(route('super.account-payable.payments.store', $receipt)) . '" data-number="' . e($receipt->number) . '" data-outstanding="' . $due . '" title="Catat Pembayaran"><i data-feather="dollar-sign"></i></button> ';
+                    $buttons .= '<button type="button" class="btn btn-sm btn-outline-success btn-pay-supplier" data-url="' . e(route('super.account-payable.payments.store', $receipt)) . '" data-number="' . e($receipt->number) . '" data-outstanding="' . $due . '" title="' . e(__('ui.modules.record_payment')) . '"><i data-feather="dollar-sign"></i></button> ';
                 }
-                $buttons .= '<button type="button" class="btn btn-sm btn-outline-secondary btn-supplier-payment-history" data-url="' . e(route('super.account-payable.payments.history', $receipt)) . '" data-number="' . e($receipt->number) . '" title="Riwayat Pembayaran"><i data-feather="clock"></i></button>';
+                $buttons .= '<button type="button" class="btn btn-sm btn-outline-secondary btn-supplier-payment-history" data-url="' . e(route('super.account-payable.payments.history', $receipt)) . '" data-number="' . e($receipt->number) . '" title="' . e(__('ui.modules.payment_history')) . '"><i data-feather="clock"></i></button>';
                 return $buttons;
             })
             ->rawColumns(['payment_status', 'actions'])->toJson();
@@ -57,7 +57,7 @@ class AccountPayableController extends Controller
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
         $payment = $service->pay($goodsReceipt, $data, (int) $request->user()->id);
-        return response()->json(['message' => "Pembayaran {$payment->number} berhasil dicatat.", 'payment_number' => $payment->number], 201);
+        return response()->json(['message' => __('ui.modules.payment_success', ['number' => $payment->number]), 'payment_number' => $payment->number], 201);
     }
 
     public function history(GoodsReceipt $goodsReceipt, AccountsPayableQuery $query): JsonResponse
@@ -67,14 +67,14 @@ class AccountPayableController extends Controller
         $returned = (float) $receipt->purchaseReturns()->sum('total_amount');
         $paid = (float) $receipt->supplierPayments->sum('amount');
         return response()->json([
-            'number' => $receipt->number, 'supplier' => $receipt->supplier?->name ?? 'Supplier dihapus',
+            'number' => $receipt->number, 'supplier' => $receipt->supplier?->name ?? __('ui.modules.supplier_deleted'),
             'total_amount' => round($gross, 2), 'returned_amount' => round($returned, 2),
             'paid_amount' => round($paid, 2), 'outstanding_amount' => max(0, round($gross - $returned - $paid, 2)),
             'payments' => $receipt->supplierPayments->map(fn ($payment) => [
                 'number' => $payment->number, 'payment_date' => $payment->payment_date?->format('d/m/Y'),
-                'amount' => (float) $payment->amount, 'account' => $payment->cashBankAccount?->name ?? 'Akun dihapus',
+                'amount' => (float) $payment->amount, 'account' => $payment->cashBankAccount?->name ?? __('ui.modules.account_deleted'),
                 'reference_number' => $payment->reference_number ?: '—', 'notes' => $payment->notes ?: '—',
-                'payer' => $payment->payer?->name ?? 'User dihapus',
+                'payer' => $payment->payer?->name ?? __('ui.modules.user_deleted'),
             ]),
         ]);
     }
@@ -84,7 +84,7 @@ class AccountPayableController extends Controller
         return $request->validate([
             'from_date' => ['nullable', 'date_format:Y-m-d'],
             'to_date' => ['nullable', 'date_format:Y-m-d', function ($attribute, $value, $fail) use ($request) {
-                if ($value && $request->input('from_date') && $value < $request->input('from_date')) $fail('Tanggal akhir harus sama atau setelah tanggal awal.');
+                if ($value && $request->input('from_date') && $value < $request->input('from_date')) $fail(__('ui.modules.date_end_invalid'));
             }],
         ]);
     }

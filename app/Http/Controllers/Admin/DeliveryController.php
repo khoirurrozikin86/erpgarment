@@ -25,18 +25,18 @@ class DeliveryController extends Controller
         $filters = $this->dateFilters($request);
         return DataTables::eloquent($query->builder($filters['from_date'] ?? null, $filters['to_date'] ?? null))
             ->addColumn('sales_order_number', fn (Delivery $delivery) => $delivery->salesOrder?->number ?? '—')
-            ->addColumn('customer_name', fn (Delivery $delivery) => $delivery->customer?->name ?? 'Customer dihapus')
-            ->addColumn('deliverer_name', fn (Delivery $delivery) => $delivery->deliverer?->name ?? 'User dihapus')
-            ->addColumn('status_label', fn (Delivery $delivery) => $delivery->status === 'posted' ? '<span class="badge bg-success">Diposting</span>' : '<span class="badge bg-secondary">Draft</span>')
+            ->addColumn('customer_name', fn (Delivery $delivery) => $delivery->customer?->name ?? __('ui.modules.customer_deleted'))
+            ->addColumn('deliverer_name', fn (Delivery $delivery) => $delivery->deliverer?->name ?? __('ui.modules.user_deleted'))
+            ->addColumn('status_label', fn (Delivery $delivery) => $delivery->status === 'posted' ? '<span class="badge bg-success">' . e(__('ui.modules.delivery_posted_status')) . '</span>' : '<span class="badge bg-secondary">' . e(__('ui.modules.draft_status')) . '</span>')
             ->addColumn('actions', function (Delivery $delivery) {
-                $buttons = '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-delivery" data-url="' . e(route('super.deliveries.show', $delivery)) . '" title="Detail"><i data-feather="eye"></i></button>';
-                $buttons .= ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.deliveries.pdf', $delivery)) . '" target="_blank" rel="noopener" title="Lihat PDF"><i data-feather="file-text"></i></a>';
-                $buttons .= ' <a class="btn btn-sm btn-outline-secondary" href="' . e(route('super.deliveries.pdf.download', $delivery)) . '" title="Unduh PDF"><i data-feather="download"></i></a>';
+                $buttons = '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-delivery" data-url="' . e(route('super.deliveries.show', $delivery)) . '" title="' . e(__('ui.modules.view_details')) . '"><i data-feather="eye"></i></button>';
+                $buttons .= ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.deliveries.pdf', $delivery)) . '" target="_blank" rel="noopener" title="' . e(__('ui.modules.view_pdf')) . '"><i data-feather="file-text"></i></a>';
+                $buttons .= ' <a class="btn btn-sm btn-outline-secondary" href="' . e(route('super.deliveries.pdf.download', $delivery)) . '" title="' . e(__('ui.modules.download_pdf')) . '"><i data-feather="download"></i></a>';
                 if ($delivery->status === 'draft' && auth()->user()->can('deliveries.post')) {
-                    $buttons .= ' <button type="button" class="btn btn-sm btn-success btn-post-delivery" data-url="' . e(route('super.deliveries.post', $delivery)) . '" data-number="' . e($delivery->number) . '" title="Posting Delivery"><i data-feather="check"></i></button>';
+                    $buttons .= ' <button type="button" class="btn btn-sm btn-success btn-post-delivery" data-url="' . e(route('super.deliveries.post', $delivery)) . '" data-number="' . e($delivery->number) . '" title="' . e(__('ui.modules.post_delivery_button')) . '"><i data-feather="check"></i></button>';
                 }
                 if ($delivery->status === 'draft' && auth()->user()->can('deliveries.create')) {
-                    $buttons .= ' <button type="button" class="btn btn-sm btn-outline-danger btn-delete-delivery" data-url="' . e(route('super.deliveries.destroy', $delivery)) . '" data-number="' . e($delivery->number) . '" title="Hapus Draft"><i data-feather="trash-2"></i></button>';
+                    $buttons .= ' <button type="button" class="btn btn-sm btn-outline-danger btn-delete-delivery" data-url="' . e(route('super.deliveries.destroy', $delivery)) . '" data-number="' . e($delivery->number) . '" title="' . e(__('ui.modules.delete_delivery_button')) . '"><i data-feather="trash-2"></i></button>';
                 }
                 return $buttons;
             })
@@ -47,8 +47,8 @@ class DeliveryController extends Controller
     {
         return DataTables::eloquent($query->eligibleOrders())
             ->addColumn('quotation_number', fn (SalesOrder $order) => $order->quotation?->number ?? '—')
-            ->addColumn('customer_name', fn (SalesOrder $order) => $order->customer?->name ?? 'Customer dihapus')
-            ->addColumn('actions', fn (SalesOrder $order) => '<button type="button" class="btn btn-sm btn-primary btn-select-delivery-order" data-id="' . (int) $order->id . '" data-number="' . e($order->number) . '"><i data-feather="check" class="icon-sm me-1"></i>Pilih</button>')
+            ->addColumn('customer_name', fn (SalesOrder $order) => $order->customer?->name ?? __('ui.modules.customer_deleted'))
+            ->addColumn('actions', fn (SalesOrder $order) => '<button type="button" class="btn btn-sm btn-primary btn-select-delivery-order" data-id="' . (int) $order->id . '" data-number="' . e($order->number) . '"><i data-feather="check" class="icon-sm me-1"></i>' . e(__('ui.modules.select')) . '</button>')
             ->rawColumns(['actions'])->toJson();
     }
 
@@ -69,7 +69,7 @@ class DeliveryController extends Controller
             'sales_order_item_id' => $item->id,
             'product_id' => $item->product_id,
             'code' => $item->product?->code ?? '—',
-            'name' => $item->product?->name ?? 'Barang dihapus',
+            'name' => $item->product?->name ?? __('ui.modules.item_deleted'),
             'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
             'ordered_quantity' => (float) $item->quantity,
             'delivered_quantity' => (float) $item->delivered_quantity,
@@ -81,7 +81,7 @@ class DeliveryController extends Controller
         return response()->json([
             'id' => $order->id,
             'number' => $order->number,
-            'customer' => $order->customer?->name ?? 'Customer dihapus',
+            'customer' => $order->customer?->name ?? __('ui.modules.customer_deleted'),
             'quotation' => $order->quotation?->number ?? '—',
             'items' => $items,
         ]);
@@ -98,7 +98,7 @@ class DeliveryController extends Controller
             'items.*.quantity' => ['required', 'numeric', 'gt:0', 'max:999999999999.9999'],
         ]);
         $delivery = $service->create($data, (int) $request->user()->id);
-        return response()->json(['message' => "Delivery {$delivery->number} berhasil dibuat sebagai draft. Periksa ketersediaan stok sebelum posting.", 'url' => route('super.deliveries.index')], 201);
+        return response()->json(['message' => __('ui.modules.delivery_saved', ['number' => $delivery->number]), 'url' => route('super.deliveries.index')], 201);
     }
 
     public function show(Delivery $delivery, DeliveryTableQuery $query): JsonResponse
@@ -107,14 +107,14 @@ class DeliveryController extends Controller
         return response()->json([
             'number' => $delivery->number,
             'sales_order' => $delivery->salesOrder?->number ?? '—',
-            'customer' => $delivery->customer?->name ?? 'Customer dihapus',
+            'customer' => $delivery->customer?->name ?? __('ui.modules.customer_deleted'),
             'delivered_at' => $delivery->delivered_at?->format('d/m/Y H:i'),
             'posted_at' => $delivery->posted_at?->format('d/m/Y H:i') ?? '—',
             'status' => $delivery->status,
-            'deliverer' => $delivery->deliverer?->name ?? 'User dihapus',
+            'deliverer' => $delivery->deliverer?->name ?? __('ui.modules.user_deleted'),
             'notes' => $delivery->notes ?: '—',
             'items' => $delivery->items->map(fn ($item) => [
-                'code' => $item->product?->code ?? '—', 'name' => $item->product?->name ?? 'Barang dihapus',
+                'code' => $item->product?->code ?? '—', 'name' => $item->product?->name ?? __('ui.modules.item_deleted'),
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
                 'quantity' => (float) $item->quantity,
             ]),
@@ -124,14 +124,14 @@ class DeliveryController extends Controller
     public function post(Request $request, Delivery $delivery, DeliveryService $service): JsonResponse
     {
         $delivery = $service->post($delivery, (int) $request->user()->id);
-        return response()->json(['message' => "Delivery {$delivery->number} berhasil diposting. Stok telah dikurangi dan dicatat pada Stock Card."]);
+        return response()->json(['message' => __('ui.modules.delivery_posted', ['number' => $delivery->number])]);
     }
 
     public function destroy(Delivery $delivery, DeliveryService $service): JsonResponse
     {
         $number = $delivery->number;
         $service->deleteDraft($delivery);
-        return response()->json(['message' => "Draft Delivery {$number} berhasil dihapus. Sisa barang dapat dibuatkan Delivery baru."]);
+        return response()->json(['message' => __('ui.modules.delivery_deleted', ['number' => $number])]);
     }
 
     public function pdf(Delivery $delivery, DeliveryTableQuery $query, CompanyPdfBrandingService $branding)
@@ -151,7 +151,7 @@ class DeliveryController extends Controller
         return $request->validate([
             'from_date' => ['nullable', 'date_format:Y-m-d'],
             'to_date' => ['nullable', 'date_format:Y-m-d', function ($attribute, $value, $fail) use ($request) {
-                if ($value && $request->input('from_date') && $value < $request->input('from_date')) $fail('Tanggal akhir harus sama atau setelah tanggal awal.');
+                if ($value && $request->input('from_date') && $value < $request->input('from_date')) $fail(__('ui.modules.date_end_invalid'));
             }],
         ]);
     }

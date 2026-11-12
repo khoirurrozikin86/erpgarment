@@ -44,12 +44,12 @@ class CustomerReturnController extends Controller
 
         return DataTables::eloquent($query->builder($filters['from_date'] ?? null, $filters['to_date'] ?? null))
             ->addColumn('invoice_number', fn(CustomerReturn $customerReturn) => $customerReturn->invoice?->number ?? '—')
-            ->addColumn('customer_name', fn(CustomerReturn $customerReturn) => $customerReturn->customer?->name ?? 'Customer dihapus')
-            ->addColumn('cash_account', fn(CustomerReturn $customerReturn) => $customerReturn->cashBankAccount?->name ?? 'Akun dihapus')
-            ->addColumn('returner_name', fn(CustomerReturn $customerReturn) => $customerReturn->returner?->name ?? 'User dihapus')
-            ->addColumn('actions', fn(CustomerReturn $customerReturn) => '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-customer-return" data-url="' . e(route('super.customer-returns.show', $customerReturn)) . '" title="Lihat rincian"><i data-feather="eye"></i></button>'
-                . ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.customer-returns.pdf', $customerReturn)) . '" target="_blank" rel="noopener" title="Lihat PDF"><i data-feather="file-text" class="icon-sm"></i></a>'
-                . ' <a class="btn btn-sm btn-outline-secondary" href="' . e(route('super.customer-returns.pdf.download', $customerReturn)) . '" title="Unduh PDF"><i data-feather="download"></i></a>')
+            ->addColumn('customer_name', fn(CustomerReturn $customerReturn) => $customerReturn->customer?->name ?? __('ui.modules.customer_deleted'))
+            ->addColumn('cash_account', fn(CustomerReturn $customerReturn) => $customerReturn->cashBankAccount?->name ?? __('ui.modules.account_deleted'))
+            ->addColumn('returner_name', fn(CustomerReturn $customerReturn) => $customerReturn->returner?->name ?? __('ui.modules.user_deleted'))
+            ->addColumn('actions', fn(CustomerReturn $customerReturn) => '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-customer-return" data-url="' . e(route('super.customer-returns.show', $customerReturn)) . '" title="' . e(__('ui.modules.view_details')) . '"><i data-feather="eye"></i></button>'
+                . ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.customer-returns.pdf', $customerReturn)) . '" target="_blank" rel="noopener" title="' . e(__('ui.modules.view_pdf')) . '"><i data-feather="file-text" class="icon-sm"></i></a>'
+                . ' <a class="btn btn-sm btn-outline-secondary" href="' . e(route('super.customer-returns.pdf.download', $customerReturn)) . '" title="' . e(__('ui.modules.download_pdf')) . '"><i data-feather="download"></i></a>')
             ->rawColumns(['actions'])
             ->toJson();
     }
@@ -57,8 +57,8 @@ class CustomerReturnController extends Controller
     public function eligible(CustomerReturnTableQuery $query): JsonResponse
     {
         return DataTables::eloquent($query->eligibleInvoices())
-            ->addColumn('customer_name', fn(SalesInvoice $invoice) => $invoice->customer?->name ?? 'Customer dihapus')
-            ->addColumn('actions', fn(SalesInvoice $invoice) => '<button type="button" class="btn btn-sm btn-primary btn-select-return-invoice" data-id="' . (int) $invoice->id . '"><i data-feather="check" class="icon-sm me-1"></i>Pilih</button>')
+            ->addColumn('customer_name', fn(SalesInvoice $invoice) => $invoice->customer?->name ?? __('ui.modules.customer_deleted'))
+            ->addColumn('actions', fn(SalesInvoice $invoice) => '<button type="button" class="btn btn-sm btn-primary btn-select-return-invoice" data-id="' . (int) $invoice->id . '"><i data-feather="check" class="icon-sm me-1"></i>' . e(__('ui.modules.select')) . '</button>')
             ->rawColumns(['actions'])
             ->toJson();
     }
@@ -70,14 +70,14 @@ class CustomerReturnController extends Controller
         return response()->json([
             'id' => $invoice->id,
             'number' => $invoice->number,
-            'customer' => $invoice->customer?->name ?? 'Customer dihapus',
+            'customer' => $invoice->customer?->name ?? __('ui.modules.customer_deleted'),
             'date' => $invoice->invoice_date?->format('d/m/Y'),
             'items' => $invoice->items
                 ->filter(fn($item) => (float) $item->quantity > (float) $item->returned_quantity)
                 ->map(fn($item) => [
                     'id' => $item->id,
                     'code' => $item->product?->code ?? '—',
-                    'name' => $item->product?->name ?? 'Barang dihapus',
+                    'name' => $item->product?->name ?? __('ui.modules.item_deleted'),
                     'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
                     'sold' => (float) $item->quantity,
                     'returned' => (float) $item->returned_quantity,
@@ -106,7 +106,7 @@ class CustomerReturnController extends Controller
         $customerReturn = $service->create($data, (int) $request->user()->id);
 
         return response()->json([
-            'message' => "Customer Return {$customerReturn->number} berhasil dicatat. Refund dibukukan dan stok barang retur diperbarui.",
+            'message' => __('ui.modules.customer_return_saved', ['number' => $customerReturn->number]),
             'id' => $customerReturn->id,
         ], 201);
     }
@@ -118,9 +118,9 @@ class CustomerReturnController extends Controller
         return response()->json([
             'number' => $customerReturn->number,
             'invoice' => $customerReturn->invoice?->number ?? '—',
-            'customer' => $customerReturn->customer?->name ?? 'Customer dihapus',
-            'cash_account' => $customerReturn->cashBankAccount?->name ?? 'Akun dihapus',
-            'returner' => $customerReturn->returner?->name ?? 'User dihapus',
+            'customer' => $customerReturn->customer?->name ?? __('ui.modules.customer_deleted'),
+            'cash_account' => $customerReturn->cashBankAccount?->name ?? __('ui.modules.account_deleted'),
+            'returner' => $customerReturn->returner?->name ?? __('ui.modules.user_deleted'),
             'returned_at' => $customerReturn->returned_at?->format('d/m/Y H:i') ?? '—',
             'reason' => $customerReturn->reason,
             'notes' => $customerReturn->notes ?: '—',
@@ -129,7 +129,7 @@ class CustomerReturnController extends Controller
             'total_amount' => (float) $customerReturn->total_amount,
             'items' => $customerReturn->items->map(fn($item) => [
                 'code' => $item->product?->code ?? '—',
-                'name' => $item->product?->name ?? 'Barang dihapus',
+                'name' => $item->product?->name ?? __('ui.modules.item_deleted'),
                 'quantity' => number_format((float) $item->quantity, 4, ',', '.'),
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
                 'unit_price' => (float) $item->unit_price,
@@ -164,7 +164,7 @@ class CustomerReturnController extends Controller
             'from_date' => ['nullable', 'date_format:Y-m-d'],
             'to_date' => ['nullable', 'date_format:Y-m-d', function ($attribute, $value, $fail) use ($request) {
                 if ($value && $request->input('from_date') && $value < $request->input('from_date')) {
-                    $fail('Tanggal akhir harus sama atau setelah tanggal awal.');
+                    $fail(__('ui.modules.date_end_invalid'));
                 }
             }],
         ]);

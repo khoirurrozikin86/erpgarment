@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="id">
+<html lang="{{ app()->getLocale() }}">
 
 <head>
     <meta charset="utf-8">
@@ -125,7 +125,7 @@
     ])
     <div class="header">
         <h1>{{ __('ui.common.customer_return') }}</h1>
-        <div class="muted">Retur barang dan refund kepada customer</div>
+        <div class="muted">{{ __('ui.modules.refund_to_customer') }}</div>
         <div class="document-no">{{ $customerReturn->number }}</div>
     </div>
 
@@ -138,14 +138,14 @@
         </tr>
         <tr>
             <td class="label">{{ __('ui.common.customer') }}</td>
-            <td>{{ $customerReturn->customer?->name ?? 'Customer dihapus' }}</td>
+            <td>{{ $customerReturn->customer?->name ?? __('ui.modules.customer_deleted') }}</td>
             <td class="label">{{ __('ui.common.refund_account') }}</td>
             <td>{{ $customerReturn->cashBankAccount?->code }} —
-                {{ $customerReturn->cashBankAccount?->name ?? 'Akun dihapus' }}</td>
+                {{ $customerReturn->cashBankAccount?->name ?? __('ui.modules.account_deleted') }}</td>
         </tr>
         <tr>
             <td class="label">{{ __('ui.common.recorded_by') }}</td>
-            <td>{{ $customerReturn->returner?->name ?? 'User dihapus' }}</td>
+            <td>{{ $customerReturn->returner?->name ?? __('ui.modules.user_deleted') }}</td>
             <td class="label">{{ __('ui.common.reason') }}</td>
             <td>{{ $customerReturn->reason }}</td>
         </tr>
@@ -169,7 +169,7 @@
                 <tr>
                     <td class="center">{{ $loop->iteration }}</td>
                     <td>{{ $item->product?->code ?? '—' }}</td>
-                    <td>{{ $item->product?->name ?? 'Barang dihapus' }}</td>
+                    <td>{{ $item->product?->name ?? __('ui.modules.item_deleted') }}</td>
                     <td class="right">{{ number_format((float) $item->quantity, 4, ',', '.') }}</td>
                     <td>{{ $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—' }}</td>
                     <td class="right">Rp {{ number_format((float) $item->unit_price, 2, ',', '.') }}</td>
@@ -189,7 +189,7 @@
                 <td class="right">Rp {{ number_format((float) $customerReturn->tax_amount, 2, ',', '.') }}</td>
             </tr>
             <tr class="total">
-                <td colspan="6" class="right">Total Refund</td>
+                <td colspan="6" class="right">{{ __('ui.modules.refund_total') }}</td>
                 <td class="right">Rp {{ number_format((float) $customerReturn->total_amount, 2, ',', '.') }}</td>
             </tr>
         </tbody>
@@ -199,7 +199,7 @@
         <div class="section-title">{{ __('ui.common.notes') }}</div>
         <div>{{ $customerReturn->notes }}</div>
     @endif
-    <div class="footer">Customer Return {{ $customerReturn->number }} · Dicetak pada {{ now()->format('d/m/Y H:i') }}.
+    <div class="footer">{{ __('ui.modules.customer_return_printed', ['number' => $customerReturn->number, 'date' => now()->format('d/m/Y H:i')]) }}
     </div>
 </body>
 

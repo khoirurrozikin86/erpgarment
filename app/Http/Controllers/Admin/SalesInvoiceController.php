@@ -25,22 +25,22 @@ class SalesInvoiceController extends Controller
         $filters = $this->dateFilters($request);
         return DataTables::eloquent($query->builder($filters['from_date'] ?? null, $filters['to_date'] ?? null))
             ->addColumn('delivery_number', fn (SalesInvoice $invoice) => $invoice->delivery?->number ?? '—')
-            ->addColumn('customer_name', fn (SalesInvoice $invoice) => $invoice->customer?->name ?? 'Customer dihapus')
+            ->addColumn('customer_name', fn (SalesInvoice $invoice) => $invoice->customer?->name ?? __('ui.modules.customer_deleted'))
             ->addColumn('status_label', fn (SalesInvoice $invoice) => $invoice->status === 'draft'
-                ? '<span class="badge bg-secondary">Draft</span>'
+                ? '<span class="badge bg-secondary">' . e(__('ui.modules.draft_status')) . '</span>'
                 : ($invoice->due_date && $invoice->due_date->toDateString() < today()->toDateString()
-                    ? '<span class="badge bg-warning text-dark">Jatuh Tempo</span>'
-                    : '<span class="badge bg-success">Diterbitkan</span>'))
+                    ? '<span class="badge bg-warning text-dark">' . e(__('ui.modules.invoice_overdue_status')) . '</span>'
+                    : '<span class="badge bg-success">' . e(__('ui.modules.invoice_issued_status')) . '</span>'))
             ->addColumn('actions', function (SalesInvoice $invoice) {
-                $buttons = '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-sales-invoice" data-url="' . e(route('super.sales-invoices.show', $invoice)) . '" title="Detail"><i data-feather="eye"></i></button>';
-                $buttons .= ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.sales-invoices.pdf', $invoice)) . '" target="_blank" rel="noopener" title="Lihat PDF"><i data-feather="file-text"></i></a>';
-                $buttons .= ' <a class="btn btn-sm btn-outline-secondary" href="' . e(route('super.sales-invoices.pdf.download', $invoice)) . '" title="Unduh PDF"><i data-feather="download"></i></a>';
-                $buttons .= ' <button type="button" class="btn btn-sm btn-outline-dark btn-sales-invoice-history" data-url="' . e(route('super.sales-invoices.emails', $invoice)) . '" title="Riwayat Email"><i data-feather="clock"></i></button>';
+                $buttons = '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-sales-invoice" data-url="' . e(route('super.sales-invoices.show', $invoice)) . '" title="' . e(__('ui.modules.view_details')) . '"><i data-feather="eye"></i></button>';
+                $buttons .= ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.sales-invoices.pdf', $invoice)) . '" target="_blank" rel="noopener" title="' . e(__('ui.modules.view_pdf')) . '"><i data-feather="file-text"></i></a>';
+                $buttons .= ' <a class="btn btn-sm btn-outline-secondary" href="' . e(route('super.sales-invoices.pdf.download', $invoice)) . '" title="' . e(__('ui.modules.download_pdf')) . '"><i data-feather="download"></i></a>';
+                $buttons .= ' <button type="button" class="btn btn-sm btn-outline-dark btn-sales-invoice-history" data-url="' . e(route('super.sales-invoices.emails', $invoice)) . '" title="' . e(__('ui.modules.invoice_email_history')) . '"><i data-feather="clock"></i></button>';
                 if ($invoice->status === 'draft' && auth()->user()->can('sales-invoices.issue')) {
-                    $buttons .= ' <button type="button" class="btn btn-sm btn-success btn-issue-sales-invoice" data-url="' . e(route('super.sales-invoices.issue', $invoice)) . '" data-number="' . e($invoice->number) . '" title="Terbitkan Invoice"><i data-feather="check"></i></button>';
+                    $buttons .= ' <button type="button" class="btn btn-sm btn-success btn-issue-sales-invoice" data-url="' . e(route('super.sales-invoices.issue', $invoice)) . '" data-number="' . e($invoice->number) . '" title="' . e(__('ui.modules.issue_invoice_button')) . '"><i data-feather="check"></i></button>';
                 }
                 if ($invoice->status === 'issued' && auth()->user()->can('sales-invoices.email')) {
-                    $buttons .= ' <button type="button" class="btn btn-sm btn-outline-primary btn-email-sales-invoice" data-url="' . e(route('super.sales-invoices.email', $invoice)) . '" data-email="' . e($invoice->customer?->email ?? '') . '" title="Kirim Invoice melalui Email"><i data-feather="mail"></i></button>';
+                    $buttons .= ' <button type="button" class="btn btn-sm btn-outline-primary btn-email-sales-invoice" data-url="' . e(route('super.sales-invoices.email', $invoice)) . '" data-email="' . e($invoice->customer?->email ?? '') . '" title="' . e(__('ui.modules.send_invoice_email')) . '"><i data-feather="mail"></i></button>';
                 }
                 return $buttons;
             })
@@ -51,8 +51,8 @@ class SalesInvoiceController extends Controller
     {
         return DataTables::eloquent($query->eligibleDeliveries())
             ->addColumn('sales_order_number', fn (Delivery $delivery) => $delivery->salesOrder?->number ?? '—')
-            ->addColumn('customer_name', fn (Delivery $delivery) => $delivery->customer?->name ?? 'Customer dihapus')
-            ->addColumn('actions', fn (Delivery $delivery) => '<button type="button" class="btn btn-sm btn-primary btn-select-invoice-delivery" data-id="' . (int) $delivery->id . '" data-number="' . e($delivery->number) . '"><i data-feather="check" class="icon-sm me-1"></i>Pilih</button>')
+            ->addColumn('customer_name', fn (Delivery $delivery) => $delivery->customer?->name ?? __('ui.modules.customer_deleted'))
+            ->addColumn('actions', fn (Delivery $delivery) => '<button type="button" class="btn btn-sm btn-primary btn-select-invoice-delivery" data-id="' . (int) $delivery->id . '" data-number="' . e($delivery->number) . '"><i data-feather="check" class="icon-sm me-1"></i>' . e(__('ui.modules.select')) . '</button>')
             ->rawColumns(['actions'])->toJson();
     }
 
@@ -71,7 +71,7 @@ class SalesInvoiceController extends Controller
             $total = round($net + $tax, 2);
             $subtotal += $net; $taxAmount += $tax;
             return [
-                'code' => $deliveryItem->product?->code ?? '—', 'name' => $deliveryItem->product?->name ?? 'Barang dihapus',
+                'code' => $deliveryItem->product?->code ?? '—', 'name' => $deliveryItem->product?->name ?? __('ui.modules.item_deleted'),
                 'unit' => $deliveryItem->product?->unit?->symbol ?: $deliveryItem->product?->unit?->name ?: '—',
                 'quantity' => $quantity, 'unit_price' => (float) ($orderItem?->unit_price ?? 0),
                 'discount_amount' => $discount, 'tax_rate' => $rate, 'line_total' => $total,
@@ -79,7 +79,7 @@ class SalesInvoiceController extends Controller
         });
         return response()->json([
             'id' => $delivery->id, 'number' => $delivery->number,
-            'sales_order' => $delivery->salesOrder?->number ?? '—', 'customer' => $delivery->customer?->name ?? 'Customer dihapus',
+            'sales_order' => $delivery->salesOrder?->number ?? '—', 'customer' => $delivery->customer?->name ?? __('ui.modules.customer_deleted'),
             'email' => $delivery->customer?->email ?? '', 'items' => $items,
             'subtotal' => round($subtotal, 2), 'tax_amount' => round($taxAmount, 2), 'total_amount' => round($subtotal + $taxAmount, 2),
         ]);
@@ -91,12 +91,12 @@ class SalesInvoiceController extends Controller
             'delivery_id' => ['required', 'integer', 'exists:deliveries,id'],
             'invoice_date' => ['required', 'date_format:Y-m-d'],
             'due_date' => ['nullable', 'date_format:Y-m-d', function ($attribute, $value, $fail) use ($request) {
-                if ($value && $request->input('invoice_date') && $value < $request->input('invoice_date')) $fail('Tanggal jatuh tempo harus sama atau setelah tanggal invoice.');
+                if ($value && $request->input('invoice_date') && $value < $request->input('invoice_date')) $fail(__('ui.modules.date_invoice_due_invalid'));
             }],
             'notes' => ['nullable', 'string', 'max:5000'],
         ]);
         $invoice = $service->create($data, (int) $request->user()->id);
-        return response()->json(['message' => "Sales Invoice {$invoice->number} berhasil dibuat sebagai draft.", 'url' => route('super.sales-invoices.index')], 201);
+        return response()->json(['message' => __('ui.modules.invoice_saved', ['number' => $invoice->number]), 'url' => route('super.sales-invoices.index')], 201);
     }
 
     public function show(SalesInvoice $salesInvoice, SalesInvoiceTableQuery $query): JsonResponse
@@ -104,13 +104,13 @@ class SalesInvoiceController extends Controller
         $invoice = $query->details($salesInvoice);
         return response()->json([
             'number' => $invoice->number, 'delivery' => $invoice->delivery?->number ?? '—', 'sales_order' => $invoice->salesOrder?->number ?? '—',
-            'customer' => $invoice->customer?->name ?? 'Customer dihapus', 'email' => $invoice->customer?->email ?? '—',
+            'customer' => $invoice->customer?->name ?? __('ui.modules.customer_deleted'), 'email' => $invoice->customer?->email ?? '—',
             'invoice_date' => $invoice->invoice_date?->format('d/m/Y'), 'due_date' => $invoice->due_date?->format('d/m/Y') ?? '—',
-            'status' => $invoice->status, 'creator' => $invoice->creator?->name ?? 'User dihapus', 'issuer' => $invoice->issuer?->name ?? '—',
+            'status' => $invoice->status, 'creator' => $invoice->creator?->name ?? __('ui.modules.user_deleted'), 'issuer' => $invoice->issuer?->name ?? '—',
             'issued_at' => $invoice->issued_at?->format('d/m/Y H:i') ?? '—', 'notes' => $invoice->notes ?: '—',
             'subtotal' => (float) $invoice->subtotal, 'tax_amount' => (float) $invoice->tax_amount, 'total_amount' => (float) $invoice->total_amount,
             'items' => $invoice->items->map(fn ($item) => [
-                'code' => $item->product?->code ?? '—', 'name' => $item->product?->name ?? 'Barang dihapus',
+                'code' => $item->product?->code ?? '—', 'name' => $item->product?->name ?? __('ui.modules.item_deleted'),
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—', 'quantity' => (float) $item->quantity,
                 'unit_price' => (float) $item->unit_price, 'discount_amount' => (float) $item->discount_amount,
                 'tax_rate' => (float) $item->tax_rate, 'line_total' => (float) $item->line_total,
@@ -121,7 +121,7 @@ class SalesInvoiceController extends Controller
     public function issue(Request $request, SalesInvoice $salesInvoice, SalesInvoiceService $service): JsonResponse
     {
         $invoice = $service->issue($salesInvoice, (int) $request->user()->id);
-        return response()->json(['message' => "Sales Invoice {$invoice->number} berhasil diterbitkan."]);
+        return response()->json(['message' => __('ui.modules.invoice_issued_message', ['number' => $invoice->number])]);
     }
 
     public function email(Request $request, SalesInvoice $salesInvoice, SalesInvoiceService $service): JsonResponse
@@ -133,9 +133,9 @@ class SalesInvoiceController extends Controller
             throw $exception;
         } catch (\Throwable $exception) {
             report($exception);
-            return response()->json(['message' => 'Email gagal dikirim. Periksa Email Setting dan log aplikasi.'], 500);
+            return response()->json(['message' => __('ui.modules.email_send_failed')], 500);
         }
-        return response()->json(['message' => "Sales Invoice {$salesInvoice->number} berhasil dikirim ke {$data['email']}."]);
+        return response()->json(['message' => __('ui.modules.email_sent_message', ['number' => $salesInvoice->number, 'email' => $data['email']])]);
     }
 
     public function emailHistory(SalesInvoice $salesInvoice): JsonResponse
@@ -144,7 +144,7 @@ class SalesInvoiceController extends Controller
             'number' => $salesInvoice->number,
             'emails' => $salesInvoice->emailLogs()->with('sender:id,name')->get()->map(fn ($log) => [
                 'recipient' => $log->recipient, 'subject' => $log->subject,
-                'sent_at' => $log->sent_at?->format('d/m/Y H:i:s'), 'sender' => $log->sender?->name ?? 'User dihapus',
+                'sent_at' => $log->sent_at?->format('d/m/Y H:i:s'), 'sender' => $log->sender?->name ?? __('ui.modules.user_deleted'),
             ]),
         ]);
     }
@@ -166,7 +166,7 @@ class SalesInvoiceController extends Controller
         return $request->validate([
             'from_date' => ['nullable', 'date_format:Y-m-d'],
             'to_date' => ['nullable', 'date_format:Y-m-d', function ($attribute, $value, $fail) use ($request) {
-                if ($value && $request->input('from_date') && $value < $request->input('from_date')) $fail('Tanggal akhir harus sama atau setelah tanggal awal.');
+                if ($value && $request->input('from_date') && $value < $request->input('from_date')) $fail(__('ui.modules.date_end_invalid'));
             }],
         ]);
     }

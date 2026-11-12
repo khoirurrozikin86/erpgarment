@@ -1,6 +1,6 @@
 @extends('layouts.admin')
 
-@section('title', 'Customer Return')
+@section('title', __('ui.common.customer_return'))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb">
@@ -15,8 +15,7 @@
     <div class="row">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
-                <h4 class="page-title mb-1">{{ __('ui.common.customer_return') }}</h4><span class="text-muted">Catat barang yang dikembalikan
-                    customer dan refund melalui kas/bank.</span>
+                <h4 class="page-title mb-1">{{ __('ui.common.customer_return') }}</h4><span class="text-muted">{{ __('ui.modules.customer_return_subtitle') }}</span>
             </div>
             @can('customer-returns.create')
                 <a href="{{ route('super.customer-returns.create') }}" class="btn btn-primary btn-sm"><i data-feather="plus"
@@ -53,7 +52,7 @@
         <div class="modal-dialog modal-xl modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="viewCustomerReturnTitle">Detail Customer Return</h5><button type="button"
+                    <h5 class="modal-title" id="viewCustomerReturnTitle">{{ __('ui.modules.customer_return_detail') }}</h5><button type="button"
                         class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button>
                 </div>
                 <div class="modal-body" id="viewCustomerReturnBody"></div>
@@ -154,7 +153,7 @@
                     const rows = item.items.map(row =>
                         `<tr><td>${safe(row.code)} — ${safe(row.name)}</td><td class="text-end">${row.quantity} ${safe(row.unit)}</td><td class="text-end">${money(row.unit_price)}</td><td class="text-end">${money(row.line_total)}</td></tr>`
                         ).join('');
-                    $('#viewCustomerReturnTitle').text(`Customer Return ${item.number}`);
+                    $('#viewCustomerReturnTitle').text(`{{ __('ui.modules.customer_return_title_number', ['number' => '__NUMBER__']) }}`.replace('__NUMBER__', item.number));
                     $('#viewCustomerReturnBody').html(
                         `
                         <dl class="row mb-3"><dt class="col-sm-3">{{ __('ui.common.source_invoice') }}</dt><dd class="col-sm-9">${safe(item.invoice)}</dd>
@@ -172,8 +171,8 @@
                     modal.show();
                 }).fail(() => Swal.fire({
                     icon: 'error',
-                    title: 'Gagal',
-                    text: 'Detail customer return tidak dapat dimuat.'
+                    title: '{{ __('ui.modules.failure') }}',
+                    text: '{{ __('ui.modules.detail_failed_customer_return') }}'
                 }));
             });
         });

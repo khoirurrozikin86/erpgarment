@@ -25,20 +25,20 @@ class SalesOrderController extends Controller
         $filters = $this->dateFilters($request);
         return DataTables::eloquent($query->builder($filters['from_date'] ?? null, $filters['to_date'] ?? null))
             ->addColumn('quotation_number', fn (SalesOrder $order) => $order->quotation?->number ?? '—')
-            ->addColumn('customer_name', fn (SalesOrder $order) => $order->customer?->name ?? 'Customer dihapus')
+            ->addColumn('customer_name', fn (SalesOrder $order) => $order->customer?->name ?? __('ui.modules.customer_deleted'))
             ->addColumn('status_label', fn (SalesOrder $order) => match ($order->status) {
-                'confirmed' => '<span class="badge bg-primary">Dikonfirmasi</span>',
-                'partially_delivered' => '<span class="badge bg-info text-dark">Dikirim Sebagian</span>',
-                'delivered' => '<span class="badge bg-success">Selesai Dikirim</span>',
-                'cancelled' => '<span class="badge bg-danger">Dibatalkan</span>',
-                default => '<span class="badge bg-secondary">Draft</span>',
+                'confirmed' => '<span class="badge bg-primary">' . e(__('ui.modules.order_confirmed_status')) . '</span>',
+                'partially_delivered' => '<span class="badge bg-info text-dark">' . e(__('ui.modules.order_delivered_partial_status')) . '</span>',
+                'delivered' => '<span class="badge bg-success">' . e(__('ui.modules.order_delivered_status')) . '</span>',
+                'cancelled' => '<span class="badge bg-danger">' . e(__('ui.modules.cancelled_status')) . '</span>',
+                default => '<span class="badge bg-secondary">' . e(__('ui.modules.draft_status')) . '</span>',
             })
             ->addColumn('actions', function (SalesOrder $order) {
-                $buttons = '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-sales-order" data-url="' . e(route('super.sales-orders.show', $order)) . '" title="Detail"><i data-feather="eye"></i></button>';
-                $buttons .= ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.sales-orders.pdf', $order)) . '" target="_blank" rel="noopener" title="Lihat PDF"><i data-feather="file-text"></i></a>';
-                $buttons .= ' <a class="btn btn-sm btn-outline-secondary" href="' . e(route('super.sales-orders.pdf.download', $order)) . '" title="Unduh PDF"><i data-feather="download"></i></a>';
+                $buttons = '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-sales-order" data-url="' . e(route('super.sales-orders.show', $order)) . '" title="' . e(__('ui.modules.view_details')) . '"><i data-feather="eye"></i></button>';
+                $buttons .= ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.sales-orders.pdf', $order)) . '" target="_blank" rel="noopener" title="' . e(__('ui.modules.view_pdf')) . '"><i data-feather="file-text"></i></a>';
+                $buttons .= ' <a class="btn btn-sm btn-outline-secondary" href="' . e(route('super.sales-orders.pdf.download', $order)) . '" title="' . e(__('ui.modules.download_pdf')) . '"><i data-feather="download"></i></a>';
                 if ($order->status === 'draft' && auth()->user()->can('sales-orders.confirm')) {
-                    $buttons .= ' <button type="button" class="btn btn-sm btn-success btn-confirm-sales-order" data-url="' . e(route('super.sales-orders.confirm', $order)) . '" data-number="' . e($order->number) . '" title="Konfirmasi Sales Order"><i data-feather="check"></i></button>';
+                    $buttons .= ' <button type="button" class="btn btn-sm btn-success btn-confirm-sales-order" data-url="' . e(route('super.sales-orders.confirm', $order)) . '" data-number="' . e($order->number) . '" title="' . e(__('ui.modules.confirm_order_button')) . '"><i data-feather="check"></i></button>';
                 }
                 return $buttons;
             })
@@ -48,8 +48,8 @@ class SalesOrderController extends Controller
     public function eligible(SalesOrderTableQuery $query): JsonResponse
     {
         return DataTables::eloquent($query->eligibleQuotations())
-            ->addColumn('customer_name', fn (SalesQuotation $quotation) => $quotation->customer?->name ?? 'Customer dihapus')
-            ->addColumn('actions', fn (SalesQuotation $quotation) => '<button type="button" class="btn btn-sm btn-primary btn-select-sales-quotation" data-id="' . (int) $quotation->id . '" data-number="' . e($quotation->number) . '"><i data-feather="check" class="icon-sm me-1"></i>Pilih</button>')
+            ->addColumn('customer_name', fn (SalesQuotation $quotation) => $quotation->customer?->name ?? __('ui.modules.customer_deleted'))
+            ->addColumn('actions', fn (SalesQuotation $quotation) => '<button type="button" class="btn btn-sm btn-primary btn-select-sales-quotation" data-id="' . (int) $quotation->id . '" data-number="' . e($quotation->number) . '"><i data-feather="check" class="icon-sm me-1"></i>' . e(__('ui.modules.select')) . '</button>')
             ->rawColumns(['actions'])->toJson();
     }
 
@@ -59,10 +59,10 @@ class SalesOrderController extends Controller
         return response()->json([
             'id' => $quotation->id,
             'number' => $quotation->number,
-            'customer' => $quotation->customer?->name ?? 'Customer dihapus',
+            'customer' => $quotation->customer?->name ?? __('ui.modules.customer_deleted'),
             'valid_until' => $quotation->valid_until?->format('d/m/Y') ?? '—',
             'items' => $quotation->items->map(fn ($item) => [
-                'code' => $item->product?->code ?? '—', 'name' => $item->product?->name ?? 'Barang dihapus',
+                'code' => $item->product?->code ?? '—', 'name' => $item->product?->name ?? __('ui.modules.item_deleted'),
                 'quantity' => $item->quantity, 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
                 'unit_price' => $item->unit_price, 'discount_amount' => $item->discount_amount,
                 'tax_rate' => $item->tax_rate, 'line_total' => $item->line_total,
@@ -77,12 +77,12 @@ class SalesOrderController extends Controller
             'sales_quotation_id' => ['required', 'integer', 'exists:sales_quotations,id'],
             'order_date' => ['required', 'date_format:Y-m-d'],
             'requested_delivery_at' => ['nullable', 'date_format:Y-m-d', function ($attribute, $value, $fail) use ($request) {
-                if ($value && $request->input('order_date') && $value < $request->input('order_date')) $fail('Tanggal pengiriman diminta harus sama atau setelah tanggal order.');
+                if ($value && $request->input('order_date') && $value < $request->input('order_date')) $fail(__('ui.modules.date_order_delivery_invalid'));
             }],
             'notes' => ['nullable', 'string', 'max:5000'],
         ]);
         $order = $service->create($data, (int) $request->user()->id);
-        return response()->json(['message' => "Sales Order {$order->number} berhasil dibuat sebagai draft.", 'url' => route('super.sales-orders.index')], 201);
+        return response()->json(['message' => __('ui.modules.sales_order_saved', ['number' => $order->number]), 'url' => route('super.sales-orders.index')], 201);
     }
 
     public function show(SalesOrder $salesOrder, SalesOrderTableQuery $query): JsonResponse
@@ -90,13 +90,13 @@ class SalesOrderController extends Controller
         $order = $query->details($salesOrder);
         return response()->json([
             'number' => $order->number, 'quotation' => $order->quotation?->number ?? '—',
-            'customer' => $order->customer?->name ?? 'Customer dihapus', 'order_date' => $order->order_date?->format('d/m/Y'),
+            'customer' => $order->customer?->name ?? __('ui.modules.customer_deleted'), 'order_date' => $order->order_date?->format('d/m/Y'),
             'requested_delivery_at' => $order->requested_delivery_at?->format('d/m/Y') ?? '—', 'status' => $order->status,
-            'creator' => $order->creator?->name ?? 'User dihapus', 'confirmer' => $order->confirmer?->name ?? '—',
+            'creator' => $order->creator?->name ?? __('ui.modules.user_deleted'), 'confirmer' => $order->confirmer?->name ?? '—',
             'confirmed_at' => $order->confirmed_at?->format('d/m/Y H:i') ?? '—', 'notes' => $order->notes ?: '—',
             'subtotal' => (float) $order->subtotal, 'tax_amount' => (float) $order->tax_amount, 'total_amount' => (float) $order->total_amount,
             'items' => $order->items->map(fn ($item) => [
-                'code' => $item->product?->code ?? '—', 'name' => $item->product?->name ?? 'Barang dihapus',
+                'code' => $item->product?->code ?? '—', 'name' => $item->product?->name ?? __('ui.modules.item_deleted'),
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
                 'quantity' => (float) $item->quantity, 'delivered_quantity' => (float) $item->delivered_quantity,
                 'unit_price' => (float) $item->unit_price, 'line_total' => (float) $item->line_total,
@@ -107,7 +107,7 @@ class SalesOrderController extends Controller
     public function confirm(Request $request, SalesOrder $salesOrder, SalesOrderService $service): JsonResponse
     {
         $order = $service->confirm($salesOrder, (int) $request->user()->id);
-        return response()->json(['message' => "Sales Order {$order->number} berhasil dikonfirmasi. Stok akan berubah saat Delivery diposting."]);
+        return response()->json(['message' => __('ui.modules.sales_order_confirmed', ['number' => $order->number])]);
     }
 
     public function pdf(SalesOrder $salesOrder, SalesOrderTableQuery $query, CompanyPdfBrandingService $branding)
@@ -127,7 +127,7 @@ class SalesOrderController extends Controller
         return $request->validate([
             'from_date' => ['nullable', 'date_format:Y-m-d'],
             'to_date' => ['nullable', 'date_format:Y-m-d', function ($attribute, $value, $fail) use ($request) {
-                if ($value && $request->input('from_date') && $value < $request->input('from_date')) $fail('Tanggal akhir harus sama atau setelah tanggal awal.');
+                if ($value && $request->input('from_date') && $value < $request->input('from_date')) $fail(__('ui.modules.date_end_invalid'));
             }],
         ]);
     }
