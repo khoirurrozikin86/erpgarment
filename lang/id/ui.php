@@ -197,6 +197,7 @@ return [
         'inventory_label' => 'Persediaan',
     ],
     'nav' => [
+        'item' => 'Item',
         'styles' => 'Style',
         'access' => 'ACCESS',
         'ppic' => 'PPIC',

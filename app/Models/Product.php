@@ -14,10 +14,7 @@ class Product extends Model
 
     protected $fillable = [
         'code',
-        'barcode',
-        'sku',
         'name',
-        'short_name',
         'category_id',
         'unit_id',
         'product_type',
@@ -25,46 +22,28 @@ class Product extends Model
         'style_code',
         'color',
         'size',
-        'hs_code',
-        'composition',
-        'fabric_width_cm',
-        'fabric_weight_gsm',
-        'country_of_origin',
         'purchase_price',
-        'sales_price',
         'min_stock',
         'max_stock',
         'reorder_point',
         'track_stock',
-        'taxable',
-        'tax_rate',
-        'allow_discount',
-        'allow_purchase',
-        'allow_sales',
-        'description',
         'is_active',
+        'is_available',
     ];
 
     protected function casts(): array
     {
         return [
             'purchase_price' => 'decimal:2',
-            'sales_price' => 'decimal:2',
 
             'min_stock' => 'decimal:4',
             'max_stock' => 'decimal:4',
             'reorder_point' => 'decimal:4',
 
-            'tax_rate' => 'decimal:2',
-            'fabric_width_cm' => 'decimal:2',
-            'fabric_weight_gsm' => 'decimal:2',
 
             'track_stock' => 'boolean',
-            'taxable' => 'boolean',
-            'allow_discount' => 'boolean',
-            'allow_purchase' => 'boolean',
-            'allow_sales' => 'boolean',
             'is_active' => 'boolean',
+            'is_available' => 'boolean',
         ];
     }
 

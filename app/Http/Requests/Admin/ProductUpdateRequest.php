@@ -28,30 +28,10 @@ class ProductUpdateRequest extends FormRequest
                 Rule::unique('products', 'code')->ignore($productId),
             ],
 
-            'barcode' => [
-                'nullable',
-                'string',
-                'max:100',
-                Rule::unique('products', 'barcode')->ignore($productId),
-            ],
-
-            'sku' => [
-                'nullable',
-                'string',
-                'max:100',
-                Rule::unique('products', 'sku')->ignore($productId),
-            ],
-
             'name' => [
                 'required',
                 'string',
                 'max:150',
-            ],
-
-            'short_name' => [
-                'nullable',
-                'string',
-                'max:100',
             ],
 
             'category_id' => [
@@ -72,22 +52,11 @@ class ProductUpdateRequest extends FormRequest
             ],
 
             'garment_item_type' => ['sometimes', 'required', Rule::in(['general', 'fabric', 'accessory', 'work_in_process', 'finished_good', 'packaging'])],
-            'style_code' => ['nullable', 'string', 'max:80'],
+            'style_code' => ['nullable', 'string', 'max:80', 'exists:styles,code'],
             'color' => ['nullable', 'string', 'max:80'],
             'size' => ['nullable', 'string', 'max:40'],
-            'hs_code' => ['nullable', 'string', 'max:30'],
-            'composition' => ['nullable', 'string', 'max:255'],
-            'fabric_width_cm' => ['nullable', 'numeric', 'min:0'],
-            'fabric_weight_gsm' => ['nullable', 'numeric', 'min:0'],
-            'country_of_origin' => ['nullable', 'string', 'max:100'],
 
             'purchase_price' => [
-                'nullable',
-                'numeric',
-                'min:0',
-            ],
-
-            'sales_price' => [
                 'nullable',
                 'numeric',
                 'min:0',
@@ -116,42 +85,12 @@ class ProductUpdateRequest extends FormRequest
                 'boolean',
             ],
 
-            'taxable' => [
-                'nullable',
-                'boolean',
-            ],
-
-            'tax_rate' => [
-                'nullable',
-                'numeric',
-                'min:0',
-                'max:100',
-            ],
-
-            'allow_discount' => [
-                'nullable',
-                'boolean',
-            ],
-
-            'allow_purchase' => [
-                'nullable',
-                'boolean',
-            ],
-
-            'allow_sales' => [
-                'nullable',
-                'boolean',
-            ],
-
-            'description' => [
-                'nullable',
-                'string',
-            ],
-
             'is_active' => [
                 'nullable',
                 'boolean',
             ],
+
+            'is_available' => ['required', 'boolean'],
 
             'primary_image_id' => [
                 'nullable',
@@ -190,19 +129,14 @@ class ProductUpdateRequest extends FormRequest
     {
         return [
             'code' => 'kode barang',
-            'barcode' => 'barcode',
-            'sku' => 'SKU',
             'name' => 'nama barang',
-            'short_name' => 'nama singkat',
             'category_id' => 'kategori',
             'unit_id' => 'satuan',
             'product_type' => 'tipe barang',
             'purchase_price' => 'harga beli',
-            'sales_price' => 'harga jual',
             'min_stock' => 'minimum stok',
             'max_stock' => 'maximum stok',
             'reorder_point' => 'reorder point',
-            'tax_rate' => 'tax rate',
             'images' => __('ui.workflow.image_field'),
             'images.*' => __('ui.workflow.image_field'),
         ];

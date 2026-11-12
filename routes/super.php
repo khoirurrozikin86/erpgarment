@@ -583,6 +583,10 @@ Route::middleware(['auth'])
                     ->name('dt');
 
                 Route::middleware('permission:products.view')
+                    ->get('/style-options', [ProductController::class, 'styleOptions'])
+                    ->name('style-options');
+
+                Route::middleware('permission:products.view')
                     ->get('/export', [ProductController::class, 'export'])
                     ->name('export');
 

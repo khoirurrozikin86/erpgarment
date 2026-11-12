@@ -18,6 +18,7 @@ class StyleTest extends TestCase
         $user = User::factory()->create();
         $permissions = collect(['view', 'create', 'update', 'delete'])
             ->map(fn (string $action) => Permission::firstOrCreate(['name' => "styles.{$action}", 'guard_name' => 'web']));
+        $permissions->push(Permission::firstOrCreate(['name' => 'products.view', 'guard_name' => 'web']));
         $user->givePermissionTo($permissions);
         $this->actingAs($user);
 
@@ -27,7 +28,10 @@ class StyleTest extends TestCase
         $this->assertStringContainsString('id="style-modal"', $html);
         $this->assertStringContainsString('id="btn-add-style"', $html);
         $this->assertStringContainsString('href="'.route('super.styles.index').'"', $html);
-        $this->assertStringContainsString(__('ui.nav.ppic'), $html);
+        $this->assertStringContainsString(__('ui.nav.master'), $html);
+        $this->assertStringContainsString('>Item</span>', $html);
+        $this->assertStringNotContainsString('ui.nav.item', $html);
+        $this->assertStringNotContainsString(__('ui.nav.ppic'), $html);
         $this->assertStringNotContainsString('style-description', $html);
 
         $this->postJson(route('super.styles.store'), ['code' => '13275N013C', 'name' => '13275N013C'])

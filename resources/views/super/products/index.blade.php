@@ -24,7 +24,7 @@
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div>
                 <h4 class="mb-1">{{ __('ui.common.item') }}</h4>
-                                <p class="text-muted mb-0">
+                <p class="text-muted mb-0">
                     {{ __('ui.master.items_subtitle') }}
                 </p>
             </div>
@@ -76,7 +76,7 @@
                                 <th>{{ __('ui.workflow.style_code') }}</th>
                                 <th>{{ __('ui.workflow.color') }}</th>
                                 <th>{{ __('ui.workflow.size') }}</th>
-                                <th>{{ __('ui.common.status') }}</th>
+                                <th>Available</th>
                                 <th width="70">{{ __('ui.common.actions') }}</th>
                             </tr>
                         </thead>
@@ -102,7 +102,8 @@
                             <h5 class="modal-title">{{ __('ui.workflow.import_items') }}</h5>
                             <small class="text-muted">{{ __('ui.workflow.select_filled_template') }}</small>
                         </div>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="{{ __('ui.common.close') }}"></button>
                     </div>
                     <div class="modal-body">
                         @error('file')
@@ -114,7 +115,8 @@
                         <div class="form-text">{{ __('ui.workflow.supported_file_format') }}</div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('ui.common.cancel') }}</button>
+                        <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">{{ __('ui.common.cancel') }}</button>
                         <button type="submit" class="btn btn-primary">
                             <i class="fas fa-file-import me-1"></i>{{ __('ui.workflow.import_items') }}</button>
                     </div>
@@ -130,9 +132,9 @@
 
     <div class="modal fade" id="productModal" tabindex="-1" aria-hidden="true">
 
-        <div class="modal-dialog modal-xl modal-dialog-scrollable product-modal-dialog">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable modal-lg">
 
-            <div class="modal-content product-modal-content">
+            <div class="modal-content">
 
                 <div class="modal-header">
                     <div>
@@ -140,7 +142,8 @@
                         <small class="text-muted">{{ __('ui.workflow.complete_item_information') }}</small>
                     </div>
 
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                        aria-label="{{ __('ui.common.close') }}"></button>
                 </div>
 
                 <form id="productForm">
@@ -148,7 +151,7 @@
                     <input type="hidden" id="product_id" name="product_id">
                     <input type="hidden" id="form_method" value="POST">
 
-                    <div class="modal-body product-modal-body">
+                    <div class="modal-body">
                         <div id="product-form-alert"></div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -161,71 +164,74 @@
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label" for="code">{{ __('ui.common.code') }} <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="code" name="code" maxlength="50" required>
+                                <label class="form-label" for="code">{{ __('ui.common.code') }} <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="code" name="code" maxlength="50"
+                                    required>
                             </div>
                             <div class="col-md-12 mb-3">
-                                <label class="form-label" for="name">{{ __('ui.common.item_name') }} <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="name" name="name" maxlength="150" required>
+                                <label class="form-label" for="name">{{ __('ui.common.item_name') }} <span
+                                        class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name"
+                                    maxlength="150" required>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label" for="unit_id">{{ __('ui.common.unit') }}</label>
                                 <select class="form-select" id="unit_id" name="unit_id">
                                     <option value="">{{ __('ui.workflow.choose_unit') }}</option>
                                     @foreach ($units as $unit)
-                                        <option value="{{ $unit->id }}">{{ $unit->name }}@if ($unit->symbol) ({{ $unit->symbol }})@endif</option>
+                                        <option value="{{ $unit->id }}">{{ $unit->name }}@if ($unit->symbol)
+                                                ({{ $unit->symbol }})
+                                            @endif
+                                        </option>
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label" for="style_code">{{ __('ui.workflow.style_code') }}</label>
-                                <input type="text" class="form-control" id="style_code" name="style_code" maxlength="80">
+                            <div class="col-md-6 mb-3 position-relative">
+                                <label class="form-label" for="style-search">{{ __('ui.workflow.style_code') }}</label>
+                                <input type="search" class="form-control" id="style-search" autocomplete="off"
+                                    placeholder="Cari kode atau nama style">
+                                <input type="hidden" id="style_code" name="style_code">
+                                <div id="style-search-results"
+                                    class="list-group position-absolute start-0 end-0 shadow-sm"
+                                    style="z-index:1080;max-height:220px;overflow-y:auto;display:none"></div>
+                                <div class="form-text">Pilih style dari master Style.</div>
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label" for="color">{{ __('ui.workflow.color') }}</label>
-                                <input type="text" class="form-control" id="color" name="color" maxlength="80">
+                                <input type="text" class="form-control" id="color" name="color"
+                                    maxlength="80">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label" for="size">{{ __('ui.workflow.size') }}</label>
-                                <input type="text" class="form-control" id="size" name="size" maxlength="40">
+                                <input type="text" class="form-control" id="size" name="size"
+                                    maxlength="40">
                             </div>
-                            <div class="col-12 mb-3">
-                                <div class="form-check form-switch">
-                                    <input type="hidden" name="is_active" value="0">
-                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" checked>
-                                    <label class="form-check-label" for="is_active">{{ __('ui.common.status') }}: {{ __('ui.common.active') }}</label>
-                                </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="is_available">Available</label>
+                                <select class="form-select" id="is_available" name="is_available" required>
+                                    <option value="1">Masih Ada</option>
+                                    <option value="0">Tidak Ada</option>
+                                </select>
                             </div>
                         </div>
 
-                        {{-- Atribut backend lama tetap dibawa saat edit agar data dan workflow existing terjaga. --}}
-                        <input type="hidden" id="barcode" name="barcode">
-                        <input type="hidden" id="sku" name="sku">
-                        <input type="hidden" id="short_name" name="short_name">
+                        {{-- Field operasional stok tetap tersimpan untuk alur inventory. --}}
                         <input type="hidden" id="product_type" name="product_type" value="stock">
                         <input type="hidden" id="garment_item_type" name="garment_item_type" value="general">
-                        <input type="hidden" id="hs_code" name="hs_code">
-                        <input type="hidden" id="composition" name="composition">
-                        <input type="hidden" id="country_of_origin" name="country_of_origin">
-                        <input type="hidden" id="fabric_width_cm" name="fabric_width_cm">
-                        <input type="hidden" id="fabric_weight_gsm" name="fabric_weight_gsm">
                         <input type="hidden" id="purchase_price" name="purchase_price" value="0">
-                        <input type="hidden" id="sales_price" name="sales_price" value="0">
                         <input type="hidden" id="min_stock" name="min_stock" value="0">
                         <input type="hidden" id="max_stock" name="max_stock" value="0">
                         <input type="hidden" id="reorder_point" name="reorder_point" value="0">
                         <input type="hidden" id="track_stock" name="track_stock" value="1">
-                        <input type="hidden" id="taxable" name="taxable" value="0">
-                        <input type="hidden" id="tax_rate" name="tax_rate" value="0">
-                        <input type="hidden" id="allow_discount" name="allow_discount" value="1">
-                        <input type="hidden" id="allow_purchase" name="allow_purchase" value="1">
-                        <input type="hidden" id="allow_sales" name="allow_sales" value="1">
-                        <input type="hidden" id="description" name="description">
+                        <input type="hidden" id="is_active" name="is_active" value="1">
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('ui.common.cancel') }}</button>
-                        <button type="submit" class="btn btn-primary" id="btn-save-product"><i class="fas fa-save me-1"></i>{{ __('ui.common.save') }}</button>
+                        <button type="button" class="btn btn-secondary"
+                            data-bs-dismiss="modal">{{ __('ui.common.cancel') }}</button>
+                        <button type="submit" class="btn btn-primary" id="btn-save-product"><i
+                                class="fas fa-save me-1"></i>{{ __('ui.common.save') }}</button>
                     </div>
                 </form>
 
@@ -243,147 +249,17 @@
             vertical-align: middle;
         }
 
-        .product-table-image {
-            width: 45px;
-            height: 45px;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 1px solid #dee2e6;
-        }
-
-        .product-modal-dialog {
-            max-width: 1100px;
-            height: calc(100vh - 30px);
-            margin: 15px auto;
-        }
-
-        .product-modal-content {
-            height: 100%;
-            max-height: calc(100vh - 30px);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .product-modal-content .modal-header,
-        .product-modal-content .modal-footer {
-            flex: 0 0 auto;
-        }
-
-        .product-modal-content form {
-            min-height: 0;
-            flex: 1 1 auto;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .product-modal-body {
-            min-height: 0;
-            flex: 1 1 auto;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding: 22px 24px;
-        }
-
-        .product-modal-body::-webkit-scrollbar {
-            width: 7px;
-        }
-
-        .product-modal-body::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-
-        .product-modal-body::-webkit-scrollbar-thumb {
-            background: #bdbdbd;
-            border-radius: 10px;
-        }
-
-        .product-section {
-            padding: 4px 0 22px;
-            margin-bottom: 22px;
-            border-bottom: 1px solid #e9ecef;
-        }
-
-        .product-section-title {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-            font-size: 15px;
-            margin-bottom: 16px;
-        }
-
-        .product-section-title i {
-            width: 20px;
-            text-align: center;
-            opacity: .75;
-        }
-
-        .product-switch {
-            min-height: 38px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .product-switch .form-check-input {
-            flex-shrink: 0;
-        }
-
-        .product-modal-content .modal-footer {
-            padding: 12px 24px;
-            background: #fff;
-            border-top: 1px solid #e9ecef;
-        }
-
-        .image-preview-wrapper {
-            position: relative;
-            display: inline-block;
-        }
-
-        .product-preview-image {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border-radius: 8px;
-            border: 1px solid #dee2e6;
-        }
-
-        @media (max-width: 991.98px) {
-            .product-modal-dialog {
-                max-width: 95%;
-                height: calc(100vh - 20px);
-                margin: 10px auto;
-            }
-
-            .product-modal-content {
-                max-height: calc(100vh - 20px);
-            }
-
-            .product-modal-body {
-                padding: 18px;
-            }
+        #productModal .modal-body {
+            padding: 1rem 1.25rem;
         }
 
         @media (max-width: 575.98px) {
-            .product-modal-dialog {
-                max-width: 100%;
-                width: 100%;
-                height: 100vh;
-                margin: 0;
+            #productModal .modal-dialog {
+                margin: .5rem;
             }
 
-            .product-modal-content {
-                height: 100vh;
-                max-height: 100vh;
-                border-radius: 0;
-            }
-
-            .product-modal-body {
-                padding: 16px;
-            }
-
-            .product-modal-content .modal-footer {
-                padding: 10px 16px;
+            #productModal .modal-body {
+                padding: 1rem;
             }
         }
     </style>
@@ -441,6 +317,72 @@
             const productModal =
                 new bootstrap.Modal(productModalElement);
 
+            const styleOptionsUrl = @json(route('super.products.style-options'));
+            let styleSearchTimer = null;
+
+            function setStylePicker(code) {
+                $('#style_code').val(code || '');
+                $('#style-search').val(code || '');
+                $('#style-search-results').hide().empty();
+                if (!code) return;
+                $.getJSON(styleOptionsUrl, {
+                    q: code
+                }).done(function(response) {
+                    const style = (response.data || []).find(item => item.code === code);
+                    if (style) $('#style-search').val(`${style.code} — ${style.name}`);
+                });
+            }
+
+            $('#style-search').on('keydown', function(event) {
+                if (event.key !== 'Enter') return;
+                event.preventDefault();
+                $('#style-search-results .style-search-option').first().trigger('click');
+            });
+
+            $('#style-search').on('input', function() {
+                const term = $(this).val().trim();
+                $('#style_code').val('');
+                clearTimeout(styleSearchTimer);
+                if (term.length < 1) {
+                    $('#style-search-results').hide().empty();
+                    return;
+                }
+                styleSearchTimer = setTimeout(function() {
+                    $.getJSON(styleOptionsUrl, {
+                        q: term
+                    }).done(function(response) {
+                        const results = $('#style-search-results').empty();
+                        (response.data || []).forEach(function(style) {
+                            $('<button>', {
+                                    type: 'button',
+                                    class: 'list-group-item list-group-item-action style-search-option'
+                                })
+                                .text(`${style.code} — ${style.name}`)
+                                .data('style', style)
+                                .appendTo(results);
+                        });
+                        if (!results.children().length) {
+                            $('<div>', {
+                                class: 'list-group-item text-muted'
+                            }).text('Style tidak ditemukan.').appendTo(results);
+                        }
+                        results.show();
+                    });
+                }, 200);
+            });
+
+            $('#style-search-results').on('click', '.style-search-option', function() {
+                const style = $(this).data('style');
+                $('#style_code').val(style.code);
+                $('#style-search').val(`${style.code} — ${style.name}`);
+                $('#style-search-results').hide().empty();
+            });
+            $(document).on('click', function(event) {
+                if (!$(event.target).closest('#style-search, #style-search-results').length) {
+                    $('#style-search-results').hide();
+                }
+            });
+
 
             // =========================================================
             // DATATABLE
@@ -457,8 +399,7 @@
                     type: "GET"
                 },
 
-                columns: [
-                    {
+                columns: [{
                         data: 'id',
                         name: 'id',
                         orderable: false,
@@ -467,15 +408,53 @@
                             return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
-                    { data: 'category_name', name: 'category.name', defaultContent: '-' },
-                    { data: 'code', name: 'code' },
-                    { data: 'name', name: 'name' },
-                    { data: 'unit_name', name: 'unit.name', defaultContent: '-' },
-                    { data: 'style_code', name: 'style_code', defaultContent: '-' },
-                    { data: 'color', name: 'color', defaultContent: '-' },
-                    { data: 'size', name: 'size', defaultContent: '-' },
-                    { data: 'status', name: 'is_active', orderable: true, searchable: false, className: 'text-center' },
-                    { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-center' }
+                    {
+                        data: 'category_name',
+                        name: 'category.name',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'code',
+                        name: 'code'
+                    },
+                    {
+                        data: 'name',
+                        name: 'name'
+                    },
+                    {
+                        data: 'unit_name',
+                        name: 'unit.name',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'style_code',
+                        name: 'style_code',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'color',
+                        name: 'color',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'size',
+                        name: 'size',
+                        defaultContent: '-'
+                    },
+                    {
+                        data: 'availability',
+                        name: 'is_available',
+                        orderable: true,
+                        searchable: false,
+                        className: 'text-center'
+                    },
+                    {
+                        data: 'actions',
+                        name: 'actions',
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
+                    }
                 ],
 
                 order: [
@@ -580,25 +559,20 @@
 
                 $('#product_type').val('stock');
                 $('#garment_item_type').val('general');
-                $('#style_code, #color, #size, #hs_code').val('');
-                $('#composition, #country_of_origin, #fabric_width_cm, #fabric_weight_gsm').val('');
+                $('#style_code, #color, #size').val('');
+
 
                 $('#purchase_price').val('0');
-                $('#sales_price').val('0');
 
                 $('#min_stock').val('0');
                 $('#max_stock').val('0');
                 $('#reorder_point').val('0');
 
-                $('#tax_rate').val('0');
-
                 $('#track_stock').val('1');
-                $('#allow_discount').val('1');
-                $('#allow_purchase').val('1');
-                $('#allow_sales').val('1');
-                $('#is_active').prop('checked', true);
-
-                $('#taxable').val('0');
+                $('#is_active').val('1');
+                $('#is_available').val('1');
+                $('#style-search').val('');
+                $('#style-search-results').hide().empty();
 
                 $('#images').val('');
                 selectedImageFiles = createImageTransfer();
@@ -768,10 +742,7 @@
                 $('#product_id').val(payload.id);
 
                 $('#code').val(payload.code);
-                $('#barcode').val(payload.barcode);
-                $('#sku').val(payload.sku);
                 $('#name').val(payload.name);
-                $('#short_name').val(payload.short_name);
 
                 $('#category_id').val(payload.category_id);
                 $('#unit_id').val(payload.unit_id);
@@ -781,14 +752,8 @@
                 $('#style_code').val(payload.style_code || '');
                 $('#color').val(payload.color || '');
                 $('#size').val(payload.size || '');
-                $('#hs_code').val(payload.hs_code || '');
-                $('#composition').val(payload.composition || '');
-                $('#country_of_origin').val(payload.country_of_origin || '');
-                $('#fabric_width_cm').val(payload.fabric_width_cm || '');
-                $('#fabric_weight_gsm').val(payload.fabric_weight_gsm || '');
 
                 $('#purchase_price').val(payload.purchase_price);
-                $('#sales_price').val(payload.sales_price);
 
                 $('#min_stock').val(payload.min_stock);
                 $('#max_stock').val(payload.max_stock);
@@ -796,22 +761,9 @@
 
                 $('#track_stock').val(payload.track_stock ? '1' : '0');
 
-                $('#taxable').val(payload.taxable ? '1' : '0');
-
-                $('#tax_rate').val(payload.tax_rate);
-
-                $('#allow_discount').val(payload.allow_discount ? '1' : '0');
-
-                $('#allow_purchase').val(payload.allow_purchase ? '1' : '0');
-
-                $('#allow_sales').val(payload.allow_sales ? '1' : '0');
-
-                $('#is_active').prop(
-                    'checked',
-                    Boolean(payload.is_active)
-                );
-
-                $('#description').val(payload.description);
+                $('#is_active').val(payload.is_active ? '1' : '0');
+                $('#is_available').val(payload.is_available ? '1' : '0');
+                setStylePicker(payload.style_code || '');
 
                 renderExistingImages(payload.images || []);
 
@@ -936,7 +888,8 @@
                         $('#btn-save-product')
                             .prop('disabled', false)
                             .html(
-                                '<i class="fas fa-save me-1"></i> ' + @json(__('ui.common.save'))
+                                '<i class="fas fa-save me-1"></i> ' +
+                                @json(__('ui.common.save'))
                             );
 
                     }

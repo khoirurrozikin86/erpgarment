@@ -19,6 +19,7 @@ class ImporterTest extends TestCase
             ->map(fn (string $action) => Permission::create(['name' => "importers.{$action}", 'guard_name' => 'web']));
         $permissions->push(Permission::create(['name' => 'company.view', 'guard_name' => 'web']));
         $permissions->push(Permission::create(['name' => 'suppliers.view', 'guard_name' => 'web']));
+        $permissions->push(Permission::firstOrCreate(['name' => 'purchase-orders.view', 'guard_name' => 'web']));
         $permissions->push(Permission::create(['name' => 'pricelists.view', 'guard_name' => 'web']));
         $user->givePermissionTo($permissions);
         $this->actingAs($user);
@@ -32,12 +33,15 @@ class ImporterTest extends TestCase
         $this->assertStringContainsString('PENGATURAN', $html);
         $settingsPosition = strpos($html, 'PENGATURAN');
         $companyPosition = strpos($html, route('super.companies.index'));
+        $masterPosition = strpos($html, __('ui.nav.master'));
         $ppicPosition = strpos($html, __('ui.nav.ppic'));
         $this->assertNotFalse($settingsPosition);
         $this->assertNotFalse($companyPosition);
+        $this->assertNotFalse($masterPosition);
         $this->assertNotFalse($ppicPosition);
         $this->assertLessThan($companyPosition, $settingsPosition);
-        $this->assertLessThan($ppicPosition, $companyPosition);
+        $this->assertLessThan($masterPosition, $companyPosition);
+        $this->assertLessThan($ppicPosition, $masterPosition);
         $this->postJson(route('super.importers.store'), [
             'tax_number' => '01.234.567.8-999.000',
             'name' => 'PT Importir Contoh',
@@ -62,6 +66,7 @@ class ImporterTest extends TestCase
         $this->deleteJson(route('super.importers.destroy', $importer))->assertOk();
         $this->assertDatabaseMissing('importers', ['id' => $importer->id]);
         $this->assertDatabaseHas('audit_logs', ['module' => 'IMPORTER', 'action' => 'DELETE']);
+        $this->assertDatabaseCount('audit_logs', 3);
     }
 
     public function test_importer_name_is_required_and_routes_require_permissions(): void

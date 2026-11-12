@@ -34,7 +34,7 @@
                             {{ __('ui.modules.date_from') }}
                         </label>
 
-                        <input type="date" class="form-control" id="date_from" value="{{ now()->format('Y-m-d') }}">
+                        <input type="date" class="form-control" id="date_from">
                     </div>
 
                     {{-- Date To --}}
@@ -43,7 +43,7 @@
                             {{ __('ui.modules.date_to') }}
                         </label>
 
-                        <input type="date" class="form-control" id="date_to" value="{{ now()->format('Y-m-d') }}">
+                        <input type="date" class="form-control" id="date_to">
                     </div>
 
                     {{-- {{ __('ui.modules.module') }} --}}
@@ -54,11 +54,9 @@
 
                         <select class="form-select" id="module">
                             <option value="">{{ __('ui.common.all_modules') }}</option>
-                            <option value="AUTH">AUTH</option>
-                            <option value="USER">USER</option>
-                            <option value="ROLE">ROLE</option>
-                            <option value="PERMISSION">PERMISSION</option>
-                            <option value="SETTING">SETTING</option>
+                            @foreach ($modules as $module)
+                                <option value="{{ $module }}">{{ $module }}</option>
+                            @endforeach
                         </select>
                     </div>
 
@@ -68,18 +66,9 @@
 
                         <select class="form-select" id="action">
                             <option value="">{{ __('ui.modules.all_actions') }}</option>
-                            <option value="CREATE">CREATE</option>
-                            <option value="UPDATE">UPDATE</option>
-                            <option value="DELETE">DELETE</option>
-                            <option value="ASSIGN">ASSIGN</option>
-                            <option value="UNASSIGN">UNASSIGN</option>
-                            <option value="IMPORT">IMPORT</option>
-                            <option value="EXPORT">EXPORT</option>
-                            <option value="SCAN">SCAN</option>
-                            <option value="SCAN_FAILED">SCAN FAILED</option>
-                            <option value="LOGIN">LOGIN</option>
-                            <option value="LOGOUT">LOGOUT</option>
-                            <option value="LOGIN_FAILED">LOGIN FAILED</option>
+                            @foreach ($actions as $action)
+                                <option value="{{ $action }}">{{ str_replace('_', ' ', $action) }}</option>
+                            @endforeach
                         </select>
                     </div>
 
@@ -316,8 +305,8 @@
 
             $('#btn-reset').on('click', function() {
 
-                $('#date_from').val('{{ now()->format('Y-m-d') }}');
-                $('#date_to').val('{{ now()->format('Y-m-d') }}');
+                $('#date_from').val('');
+                $('#date_to').val('');
 
                 $('#module').val('');
                 $('#action').val('');

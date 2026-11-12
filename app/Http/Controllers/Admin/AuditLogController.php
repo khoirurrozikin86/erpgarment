@@ -19,7 +19,10 @@ class AuditLogController extends Controller
      */
     public function index()
     {
-        return view('super.audit-logs.index');
+        $modules = AuditLog::query()->distinct()->orderBy('module')->pluck('module');
+        $actions = AuditLog::query()->distinct()->orderBy('action')->pluck('action');
+
+        return view('super.audit-logs.index', compact('modules', 'actions'));
     }
 
     /**

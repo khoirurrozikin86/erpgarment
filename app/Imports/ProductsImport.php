@@ -2,70 +2,55 @@
 
 namespace App\Imports;
 
+use App\Domain\Products\Services\ProductService;
 use App\Models\Category;
-use App\Models\Product;
 use App\Models\Unit;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 
-class ProductsImport implements ToCollection, WithHeadingRow, WithValidation
+class ProductsImport implements ToCollection, WithHeadingRow, WithValidation, SkipsEmptyRows
 {
+    public function __construct(private ProductService $service) {}
+
     public function collection(Collection $rows): void
     {
         DB::transaction(function () use ($rows) {
             foreach ($rows as $index => $row) {
                 $data = $row->toArray();
-                $categoryName = trim((string) ($data['category_name'] ?? ''));
-                $unitName = trim((string) ($data['unit_name'] ?? ''));
+                $categoryName = $this->nullableString($data['kategori'] ?? null);
+                $unitName = $this->nullableString($data['satuan'] ?? null);
                 $rowNumber = $index + 2;
 
-                $category = $categoryName === '' ? null : Category::query()
+                $category = $categoryName === null ? null : Category::query()
                     ->whereRaw('LOWER(name) = ?', [Str::lower($categoryName)])->first();
-                $unit = $unitName === '' ? null : Unit::query()
-                    ->whereRaw('LOWER(name) = ?', [Str::lower($unitName)])->first();
+                $unitSearchName = $unitName === null ? null : preg_replace('/\s*\([^)]*\)\s*$/', '', $unitName);
+                $unit = $unitSearchName === null ? null : Unit::query()
+                    ->whereRaw('LOWER(name) = ?', [Str::lower($unitSearchName)])->first();
 
-                if ($categoryName !== '' && !$category) {
+                if ($categoryName !== null && ! $category) {
                     throw new \RuntimeException("Kategori '{$categoryName}' pada baris {$rowNumber} tidak ditemukan.");
                 }
-                if ($unitName !== '' && !$unit) {
+                if ($unitName !== null && ! $unit) {
                     throw new \RuntimeException("Satuan '{$unitName}' pada baris {$rowNumber} tidak ditemukan.");
                 }
 
-                Product::create([
-                    'code' => trim((string) $data['code']),
-                    'barcode' => $this->nullableString($data['barcode'] ?? null),
-                    'sku' => $this->nullableString($data['sku'] ?? null),
-                    'name' => trim((string) $data['name']),
-                    'short_name' => $this->nullableString($data['short_name'] ?? null),
+                $this->service->create([
+                    'code' => trim((string) ($data['kode_barang'] ?? '')),
+                    'name' => trim((string) ($data['nama_barang'] ?? '')),
                     'category_id' => $category?->id,
                     'unit_id' => $unit?->id,
-                    'product_type' => strtolower(trim((string) ($data['product_type'] ?? 'stock'))) ?: 'stock',
-                    'garment_item_type' => strtolower(trim((string) ($data['garment_item_type'] ?? 'general'))) ?: 'general',
-                    'style_code' => $this->nullableString($data['style_code'] ?? null),
-                    'color' => $this->nullableString($data['color'] ?? null),
-                    'size' => $this->nullableString($data['size'] ?? null),
-                    'hs_code' => $this->nullableString($data['hs_code'] ?? null),
-                    'composition' => $this->nullableString($data['composition'] ?? null),
-                    'fabric_width_cm' => $data['fabric_width_cm'] ?? null,
-                    'fabric_weight_gsm' => $data['fabric_weight_gsm'] ?? null,
-                    'country_of_origin' => $this->nullableString($data['country_of_origin'] ?? null),
-                    'purchase_price' => $data['purchase_price'] ?? 0,
-                    'sales_price' => $data['sales_price'] ?? 0,
-                    'min_stock' => $data['min_stock'] ?? 0,
-                    'max_stock' => $data['max_stock'] ?? 0,
-                    'reorder_point' => $data['reorder_point'] ?? 0,
-                    'track_stock' => $this->booleanValue($data['track_stock'] ?? 1),
-                    'taxable' => $this->booleanValue($data['taxable'] ?? 0),
-                    'tax_rate' => $data['tax_rate'] ?? 0,
-                    'allow_discount' => $this->booleanValue($data['allow_discount'] ?? 1),
-                    'allow_purchase' => $this->booleanValue($data['allow_purchase'] ?? 1),
-                    'allow_sales' => $this->booleanValue($data['allow_sales'] ?? 1),
-                    'description' => $this->nullableString($data['description'] ?? null),
-                    'is_active' => $this->booleanValue($data['is_active'] ?? 1),
+                    'product_type' => 'stock',
+                    'garment_item_type' => 'general',
+                    'style_code' => $this->nullableString($data['kode_style'] ?? null),
+                    'color' => $this->nullableString($data['warna'] ?? null),
+                    'size' => $this->nullableString($data['ukuran'] ?? null),
+                    'is_active' => true,
+                    'is_available' => $this->availableValue($data['available'] ?? null),
                 ]);
             }
         });
@@ -74,36 +59,14 @@ class ProductsImport implements ToCollection, WithHeadingRow, WithValidation
     public function rules(): array
     {
         return [
-            '*.code' => ['required', 'string', 'max:50', 'distinct', 'unique:products,code'],
-            '*.barcode' => ['nullable', 'string', 'max:100', 'distinct', 'unique:products,barcode'],
-            '*.sku' => ['nullable', 'string', 'max:100', 'distinct', 'unique:products,sku'],
-            '*.name' => ['required', 'string', 'max:150'],
-            '*.short_name' => ['nullable', 'string', 'max:100'],
-            '*.category_name' => ['nullable', 'string'],
-            '*.unit_name' => ['nullable', 'string'],
-            '*.product_type' => ['nullable', 'in:stock,service'],
-            '*.garment_item_type' => ['nullable', 'in:general,fabric,accessory,work_in_process,finished_good,packaging'],
-            '*.style_code' => ['nullable', 'string', 'max:80'],
-            '*.color' => ['nullable', 'string', 'max:80'],
-            '*.size' => ['nullable', 'string', 'max:40'],
-            '*.hs_code' => ['nullable', 'string', 'max:30'],
-            '*.composition' => ['nullable', 'string', 'max:255'],
-            '*.fabric_width_cm' => ['nullable', 'numeric', 'min:0'],
-            '*.fabric_weight_gsm' => ['nullable', 'numeric', 'min:0'],
-            '*.country_of_origin' => ['nullable', 'string', 'max:100'],
-            '*.purchase_price' => ['nullable', 'numeric', 'min:0'],
-            '*.sales_price' => ['nullable', 'numeric', 'min:0'],
-            '*.min_stock' => ['nullable', 'numeric', 'min:0'],
-            '*.max_stock' => ['nullable', 'numeric', 'min:0'],
-            '*.reorder_point' => ['nullable', 'numeric', 'min:0'],
-            '*.track_stock' => ['nullable', 'in:0,1'],
-            '*.taxable' => ['nullable', 'in:0,1'],
-            '*.tax_rate' => ['nullable', 'numeric', 'between:0,100'],
-            '*.allow_discount' => ['nullable', 'in:0,1'],
-            '*.allow_purchase' => ['nullable', 'in:0,1'],
-            '*.allow_sales' => ['nullable', 'in:0,1'],
-            '*.description' => ['nullable', 'string'],
-            '*.is_active' => ['nullable', 'in:0,1'],
+            '*.kategori' => ['nullable', 'string', 'max:100'],
+            '*.kode_barang' => ['required', 'string', 'max:50', 'distinct', 'unique:products,code'],
+            '*.nama_barang' => ['required', 'string', 'max:150'],
+            '*.satuan' => ['nullable', 'string', 'max:50'],
+            '*.warna' => ['nullable', 'string', 'max:80'],
+            '*.ukuran' => ['nullable', 'string', 'max:40'],
+            '*.available' => ['nullable', 'in:Available,Unavailable,Masih Ada,Tidak Ada,Masih ada,Tidak ada,available,unavailable,1,0,true,false,yes,no,ya,tidak'],
+            '*.kode_style' => ['nullable', 'string', 'max:80', 'exists:styles,code'],
         ];
     }
 
@@ -113,8 +76,16 @@ class ProductsImport implements ToCollection, WithHeadingRow, WithValidation
         return $value === '' ? null : $value;
     }
 
-    private function booleanValue(mixed $value): bool
+    private function availableValue(mixed $value): bool
     {
-        return in_array(strtolower(trim((string) $value)), ['1', 'true', 'yes', 'ya', 'aktif'], true);
+        if (is_bool($value)) {
+            return $value;
+        }
+
+        if ($value === null || trim((string) $value) === '') {
+            return true;
+        }
+
+        return in_array(Str::lower(trim((string) $value)), ['1', 'true', 'yes', 'ya', 'available', 'masih ada'], true);
     }
 }

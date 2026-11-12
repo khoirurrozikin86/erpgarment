@@ -6,6 +6,7 @@ use Spatie\Permission\Middleware\{RoleMiddleware, PermissionMiddleware, RoleOrPe
 use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\SetCompanyContext;
 use App\Http\Middleware\SetLocale;
+use App\Http\Middleware\AuditMutationRequests;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -25,6 +26,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             SetLocale::class,
             SetCompanyContext::class,
+            AuditMutationRequests::class,
         ]);
 
 

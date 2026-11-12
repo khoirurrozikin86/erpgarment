@@ -68,9 +68,9 @@
                 <li class="nav-item"><a href="{{ route('super.settings.document-numbering') }}" class="nav-link {{ request()->routeIs('super.settings.document-numbering') ? 'active' : '' }}"><i class="link-icon" data-feather="hash"></i><span class="link-title">{{ __('ui.nav.document_numbering') }}</span></a></li>
             @endcan
 
-            {{-- Master operasional lain dan pengadaan dikelompokkan ke PPIC. --}}
-            @canany(['suppliers.view', 'customers.view', 'styles.view', 'products.view', 'boms.view', 'stock-opnames.view', 'material-requests.view', 'purchase-requests.view', 'purchase-orders.view'])
-                <li class="nav-item nav-category">{{ __('ui.nav.ppic') }}</li>
+            {{-- Master data operasional dipisahkan dari PPIC. --}}
+            @canany(['suppliers.view', 'customers.view', 'styles.view', 'products.view', 'boms.view'])
+                <li class="nav-item nav-category">{{ __('ui.nav.master') }}</li>
             @endcanany
             @can('suppliers.view')
                 <li class="nav-item"><a href="{{ route('super.suppliers.index') }}" class="nav-link {{ request()->routeIs('super.suppliers.*') ? 'active' : '' }}"><i class="link-icon" data-feather="truck"></i><span class="link-title">{{ __('ui.nav.suppliers') }}</span></a></li>
@@ -82,14 +82,16 @@
                 <li class="nav-item"><a href="{{ route('super.styles.index') }}" class="nav-link {{ request()->routeIs('super.styles.*') ? 'active' : '' }}"><i class="link-icon" data-feather="tag"></i><span class="link-title">{{ __('ui.nav.styles') }}</span></a></li>
             @endcan
             @can('products.view')
-                <li class="nav-item"><a href="{{ route('super.products.index') }}" class="nav-link {{ request()->routeIs('super.products.*') ? 'active' : '' }}"><i class="link-icon" data-feather="package"></i><span class="link-title">{{ __('ui.nav.products') }}</span></a></li>
+                <li class="nav-item"><a href="{{ route('super.products.index') }}" class="nav-link {{ request()->routeIs('super.products.*') ? 'active' : '' }}"><i class="link-icon" data-feather="package"></i><span class="link-title">{{ __('ui.nav.item') }}</span></a></li>
             @endcan
             @can('boms.view')
                 <li class="nav-item"><a href="{{ route('super.boms.index') }}" class="nav-link {{ request()->routeIs('super.boms.*') ? 'active' : '' }}"><i class="link-icon" data-feather="git-branch"></i><span class="link-title">BOM</span></a></li>
             @endcan
-            @can('stock-opnames.view')
-                <li class="nav-item"><a href="{{ route('super.stock-opnames.index') }}" class="nav-link {{ request()->routeIs('super.stock-opnames.*') ? 'active' : '' }}"><i class="link-icon" data-feather="clipboard"></i><span class="link-title">{{ __('ui.nav.stock_opname') }}</span></a></li>
-            @endcan
+
+            {{-- PPIC berisi perencanaan/pengadaan dan bukan master data. --}}
+            @canany(['stock-opnames.view', 'material-requests.view', 'purchase-requests.view', 'purchase-orders.view'])
+                <li class="nav-item nav-category">{{ __('ui.nav.ppic') }}</li>
+            @endcanany
             @can('material-requests.view')
                 <li class="nav-item"><a href="{{ route('super.material-requests.index') }}" class="nav-link {{ request()->routeIs('super.material-requests.*') ? 'active' : '' }}"><i class="link-icon" data-feather="clipboard"></i><span class="link-title">{{ __('ui.nav.material_requests') }}</span></a></li>
             @endcan
@@ -101,9 +103,12 @@
             @endcan
 
             {{-- Referensi: gudang dan persediaan. --}}
-            @canany(['goods-receipts.view', 'purchase-returns.view', 'stocks.view', 'stock-card.view'])
+            @canany(['goods-receipts.view', 'purchase-returns.view', 'stocks.view', 'stock-card.view', 'stock-opnames.view'])
                 <li class="nav-item nav-category">{{ __('ui.nav.warehouse_inventory') }}</li>
             @endcanany
+            @can('stock-opnames.view')
+                <li class="nav-item"><a href="{{ route('super.stock-opnames.index') }}" class="nav-link {{ request()->routeIs('super.stock-opnames.*') ? 'active' : '' }}"><i class="link-icon" data-feather="clipboard"></i><span class="link-title">{{ __('ui.nav.stock_opname') }}</span></a></li>
+            @endcan
             @can('goods-receipts.view')
                 <li class="nav-item"><a href="{{ route('super.goods-receipts.index') }}" class="nav-link {{ request()->routeIs('super.goods-receipts.*') ? 'active' : '' }}"><i class="link-icon" data-feather="package"></i><span class="link-title">{{ __('ui.nav.goods_receipts') }}</span></a></li>
             @endcan

@@ -49,38 +49,31 @@ class BillOfMaterialSeeder extends Seeder
                 'DEMO-ANG-PANT-M' => [
                     'name' => 'Angkle Pants — Anchor Grey — M', 'category' => 'FG', 'unit' => 'PCS',
                     'garment_item_type' => 'finished_good', 'style_code' => 'DEMO-ANG-PANT',
-                    'color' => 'Anchor Grey', 'size' => 'M', 'allow_purchase' => false, 'allow_sales' => true,
-                    'description' => 'Sample finished garment for BOM demonstration. Review and replace with company master data.',
+                    'color' => 'Anchor Grey', 'size' => 'M',
                 ],
                 'DEMO-FAB-MAIN' => [
                     'name' => 'Demo Main Fabric', 'category' => 'FAB', 'unit' => 'MTR',
                     'garment_item_type' => 'fabric', 'style_code' => null, 'color' => null, 'size' => null,
-                    'allow_purchase' => true, 'allow_sales' => false, 'description' => 'Demo BOM component; verify fabric specification and consumption.',
                 ],
                 'DEMO-FAB-POCKET' => [
                     'name' => 'Demo Pocketing Fabric', 'category' => 'FAB', 'unit' => 'MTR',
                     'garment_item_type' => 'fabric', 'style_code' => null, 'color' => null, 'size' => null,
-                    'allow_purchase' => true, 'allow_sales' => false, 'description' => 'Demo BOM component; verify fabric specification and consumption.',
                 ],
                 'DEMO-ACC-ZIP' => [
                     'name' => 'Demo Trouser Zipper', 'category' => 'ACC', 'unit' => 'PCS',
                     'garment_item_type' => 'accessory', 'style_code' => null, 'color' => null, 'size' => null,
-                    'allow_purchase' => true, 'allow_sales' => false, 'description' => 'Demo BOM component; verify type and specification.',
                 ],
                 'DEMO-ACC-THREAD' => [
                     'name' => 'Demo Sewing Thread', 'category' => 'ACC', 'unit' => 'MTR',
                     'garment_item_type' => 'accessory', 'style_code' => null, 'color' => null, 'size' => null,
-                    'allow_purchase' => true, 'allow_sales' => false, 'description' => 'Demo BOM component; verify thread specification and consumption.',
                 ],
                 'DEMO-ACC-LABEL' => [
                     'name' => 'Demo Garment Label', 'category' => 'ACC', 'unit' => 'PCS',
                     'garment_item_type' => 'accessory', 'style_code' => null, 'color' => null, 'size' => null,
-                    'allow_purchase' => true, 'allow_sales' => false, 'description' => 'Demo BOM component; verify label content and quantity.',
                 ],
                 'DEMO-PACK-BAG' => [
                     'name' => 'Demo Polybag', 'category' => 'PACK', 'unit' => 'PCS',
                     'garment_item_type' => 'packaging', 'style_code' => null, 'color' => null, 'size' => null,
-                    'allow_purchase' => true, 'allow_sales' => false, 'description' => 'Demo BOM component; verify packaging specification.',
                 ],
             ];
 
@@ -93,7 +86,6 @@ class BillOfMaterialSeeder extends Seeder
                     ['code' => $code],
                     [
                         'name' => $data['name'],
-                        'short_name' => $data['name'],
                         'category_id' => $category->id,
                         'unit_id' => $unit->id,
                         'product_type' => 'stock',
@@ -102,17 +94,10 @@ class BillOfMaterialSeeder extends Seeder
                         'color' => $data['color'],
                         'size' => $data['size'],
                         'purchase_price' => 0,
-                        'sales_price' => 0,
                         'min_stock' => 0,
                         'max_stock' => 0,
                         'reorder_point' => 0,
                         'track_stock' => true,
-                        'taxable' => false,
-                        'tax_rate' => 0,
-                        'allow_discount' => false,
-                        'allow_purchase' => $data['allow_purchase'],
-                        'allow_sales' => $data['allow_sales'],
-                        'description' => $data['description'],
                         'is_active' => true,
                     ],
                 );

@@ -14,7 +14,7 @@ Label **Terlihat** berasal langsung dari menu/form/tabel pada screenshot; **Infe
 - **Terlihat** — kelola pengguna dengan ID pengguna, sandi, nama, telepon, jabatan, departemen dan atasan.
 - **Terlihat** — kelola importer, exporter, supplier, customer, style, barang dan BOM; data barang menampilkan kategori, kode, nama, satuan, style, color, size, status ketersediaan.
 - **Diimplementasikan (2026-11-13)** — master Importir: daftar DataTable, tambah/ubah/hapus dengan hak akses, field NPWP/nama/alamat/APIP/status, dan audit log. Validasi NPWP/APIP serta hubungan dokumen BC belum ditetapkan.
-- **Penyesuaian UI** — form dan tabel Master Barang menampilkan field referensi kategori, kode, nama, satuan, style, color, size, dan status. Atribut internal lain tetap tersimpan untuk menjaga integrasi ERP existing.
+- **Penyesuaian UI** — form dan tabel Master Barang menampilkan field referensi kategori, kode, nama, satuan, style, color, size, dan status. Field internal yang masih dipakai proses stok, BOM, produksi, dan purchasing tetap disimpan; field legacy yang tidak dipakai dihapus lewat migration `2026_11_13_000011_remove_unused_product_fields`.
 - **Terlihat** — BOM menyediakan daftar style/barang jadi dan aksi Detail/Input.
 - **NEEDS CONFIRMATION** — aturan kode otomatis, field wajib, penghapusan master yang telah dipakai, peran/department, variasi item, import data dan versi BOM.
 
@@ -94,3 +94,10 @@ Label **Terlihat** berasal langsung dari menu/form/tabel pada screenshot; **Infe
 - CRUD Style menyediakan field wajib `Kode Style` dan `Nama Style` sesuai image17; permission `styles.view/create/update/delete` mengatur akses.
 - Style muncul di grup sidebar PPIC. Style yang dipakai oleh barang tidak dapat dihapus atau diganti kodenya.
 - Belum ada relasi foreign key ke barang: data `style_code` pada barang existing dipertahankan sebagai teks untuk menghindari migrasi data di luar permintaan.
+
+
+## Master Item — export dan import
+
+- Export, template import, dan importer menggunakan kolom: Kategori, Kode Barang, Nama Barang, Satuan, Kode Style, Warna, Ukuran, Available.
+- Kategori dan satuan pada file dicocokkan ke master berdasarkan nama (tidak peka huruf besar/kecil); nilai yang tidak ditemukan ditolak. Kode barang wajib unik. Field internal di luar referensi diberi default aman saat import dan pencatatan memakai service/audit produk.
+- Style dicari dari master Style dan dipilih dari hasil pencarian database. Field Available terpisah dari status aktif sistem; daftar menampilkan nilai Masih Ada/Tidak Ada. Modal Item diperkecil menjadi ukuran Bootstrap `modal-lg` dan tetap dapat di-scroll pada layar kecil.

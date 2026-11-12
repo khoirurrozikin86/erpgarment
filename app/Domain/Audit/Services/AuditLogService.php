@@ -25,9 +25,10 @@ class AuditLogService
         ?Model $model = null,
         ?array $oldValues = null,
         ?array $newValues = null,
+        ?int $userId = null,
     ): AuditLog {
         $data = new AuditLogData(
-            userId: Auth::id(),
+            userId: $userId ?? Auth::id(),
 
             action: strtoupper($action),
 
@@ -45,11 +46,15 @@ class AuditLogService
 
             method: Request::method(),
 
-            url: Request::fullUrl(),
+            url: Request::url(),
 
             userAgent: Request::userAgent(),
         );
 
-        return ($this->create)($data);
+        $log = ($this->create)($data);
+
+        request()->attributes->set('audit_logged', true);
+
+        return $log;
     }
 }

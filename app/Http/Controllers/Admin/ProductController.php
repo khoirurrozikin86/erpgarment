@@ -9,6 +9,7 @@ use App\Http\Requests\Admin\ProductStoreRequest;
 use App\Http\Requests\Admin\ProductUpdateRequest;
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\Style;
 use App\Models\Unit;
 use App\Exports\ProductsExport;
 use App\Imports\ProductsImport;
@@ -65,7 +66,7 @@ class ProductController extends Controller
         ]);
 
         try {
-            Excel::import(new ProductsImport(), $request->file('file'));
+            Excel::import(new ProductsImport($this->service), $request->file('file'));
         } catch (ExcelValidationException $exception) {
             $messages = collect($exception->failures())
                 ->flatMap(fn($failure) => $failure->errors())
@@ -84,10 +85,29 @@ class ProductController extends Controller
             return back()->withErrors(['file' => $exception->getMessage()]);
         } catch (\Throwable $exception) {
             report($exception);
-            return back()->withErrors(['file' => 'Import gagal. Periksa format file dan pastikan kode, barcode, serta SKU tidak duplikat.']);
+            return back()->withErrors(['file' => 'Import gagal. Periksa format file dan pastikan kode barang tidak duplikat.']);
         }
 
         return redirect()->route('super.products.index')->with('import_success', 'Data barang berhasil diimpor.');
+    }
+
+    public function styleOptions(Request $request): JsonResponse
+    {
+        $search = trim((string) $request->query('q', ''));
+        if ($search === '') {
+            return response()->json(['data' => []]);
+        }
+
+        $styles = Style::query()
+            ->where(function ($query) use ($search) {
+                $query->where('code', 'like', "%{$search}%")
+                    ->orWhere('name', 'like', "%{$search}%");
+            })
+            ->orderBy('code')
+            ->limit(20)
+            ->get(['code', 'name']);
+
+        return response()->json(['data' => $styles]);
     }
 
     public function dt(ProductTableQuery $query): JsonResponse
@@ -108,9 +128,9 @@ class ProductController extends Controller
                         : '');
             })
 
-            ->addColumn('status', fn (Product $product) => $product->is_active
-                ? '<span class="badge bg-success">' . e(__('ui.common.active')) . '</span>'
-                : '<span class="badge bg-secondary">' . e(__('ui.common.inactive')) . '</span>')
+            ->addColumn('availability', fn (Product $product) => $product->is_available
+                ? '<span class="badge bg-success">Masih Ada</span>'
+                : '<span class="badge bg-secondary">Tidak Ada</span>')
 
             ->addColumn('actions', function (Product $product) {
                 $actions = [
@@ -125,10 +145,7 @@ class ProductController extends Controller
                         'payload' => [
                             'id' => $product->id,
                             'code' => $product->code,
-                            'barcode' => $product->barcode,
-                            'sku' => $product->sku,
                             'name' => $product->name,
-                            'short_name' => $product->short_name,
                             'category_id' => $product->category_id,
                             'unit_id' => $product->unit_id,
                             'product_type' => $product->product_type,
@@ -136,24 +153,13 @@ class ProductController extends Controller
                             'style_code' => $product->style_code,
                             'color' => $product->color,
                             'size' => $product->size,
-                            'hs_code' => $product->hs_code,
-                            'composition' => $product->composition,
-                            'fabric_width_cm' => $product->fabric_width_cm,
-                            'fabric_weight_gsm' => $product->fabric_weight_gsm,
-                            'country_of_origin' => $product->country_of_origin,
                             'purchase_price' => $product->purchase_price,
-                            'sales_price' => $product->sales_price,
                             'min_stock' => $product->min_stock,
                             'max_stock' => $product->max_stock,
                             'reorder_point' => $product->reorder_point,
                             'track_stock' => (bool) $product->track_stock,
-                            'taxable' => (bool) $product->taxable,
-                            'tax_rate' => $product->tax_rate,
-                            'allow_discount' => (bool) $product->allow_discount,
-                            'allow_purchase' => (bool) $product->allow_purchase,
-                            'allow_sales' => (bool) $product->allow_sales,
-                            'description' => $product->description,
                             'is_active' => (bool) $product->is_active,
+                            'is_available' => (bool) $product->is_available,
                         ],
                     ],
                     [
@@ -179,7 +185,7 @@ class ProductController extends Controller
                 )->render();
             })
 
-            ->rawColumns(['status', 'actions'])
+            ->rawColumns(['availability', 'actions'])
 
             ->toJson();
     }

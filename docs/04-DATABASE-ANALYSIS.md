@@ -68,3 +68,15 @@ Tabel `customers` menyimpan kode, nama, alamat, contact person, telepon, fax, em
 ### Master Style — implementasi sesuai image17
 
 Tabel `styles` menyimpan `id`, `code` (unik), `name`, timestamps. Form referensi hanya menunjukkan kode dan nama. Barang existing menyimpan `style_code` sebagai teks; penghapusan Style ditolak bila kode dipakai barang, dan perubahan kode ditolak untuk menjaga kaitan tersebut. Migrasi relasional ke `style_id` belum dilakukan karena berada di luar scope CRUD referensi.
+
+### Ketersediaan Item
+
+Kolom `products.is_available` adalah status ketersediaan yang terlihat pada referensi sebagai `Masih Ada`; kolom ini terpisah dari `products.is_active` yang masih dipakai untuk mengaktifkan item pada workflow aplikasi. Item lama diberi default tersedia melalui migration `2026_11_13_000010_add_is_available_to_products_table`. Pilihan Style pada Item mencari kode/nama dari tabel `styles`; penyimpanan tetap memakai `style_code` untuk menjaga kompatibilitas schema dan transaksi yang ada.
+
+### Field Item yang Dipertahankan dan Dihapus
+
+Field master Item mengikuti form referensi: `code`, `name`, `category_id`, `unit_id`, `style_code`, `color`, `size`, dan `is_available`. `garment_item_type` serta `product_type` dipertahankan sebagai klasifikasi internal yang dipakai BOM/produksi dan pencatatan stok. `purchase_price`, `min_stock`, `max_stock`, `reorder_point`, `track_stock`, dan `is_active` tetap dipakai proses inventory/purchasing. Kolom lama yang tidak dipakai kode aktif dan tidak ditampilkan pada referensi dihapus lewat migration forward `2026_11_13_000011_remove_unused_product_fields`; migrasi ini menghapus nilai lama pada kolom-kolom tersebut.
+
+### Migration POS dan Outlet
+
+Source migration khusus Outlet, Ticket QR, User Outlet, Scan Record, dan POS dihapus setelah cakupannya dinyatakan di luar inventory. Migration `2026_11_13_000005_remove_pos_ticket_outlet_modules` dipertahankan sebagai migration forward untuk menghapus tabel dan foreign key dari database yang telah menjalankan migration lama. Data ledger inventory tetap disimpan; hanya relasi POS yang dilepas.
