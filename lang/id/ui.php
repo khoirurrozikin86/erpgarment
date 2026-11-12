@@ -117,6 +117,9 @@ return [
         'quotation_printed' => 'Penawaran :number · Dicetak :date', 'order_printed' => 'Pesanan Penjualan :number · Dicetak :date', 'delivery_printed' => 'Pengiriman :number · Dicetak :date', 'invoice_printed' => 'Faktur Penjualan :number · Dicetak :date', 'customer_return_printed' => 'Retur Pelanggan :number · Dicetak :date',
     ],
     'master' => [
+        'importers' => 'Importir', 'importer_subtitle' => 'Kelola data importir.', 'add_importer' => 'Tambah Importir', 'edit_importer' => 'Ubah Importir',
+        'tax_number' => 'NPWP', 'importer_created' => 'Data importir berhasil dibuat.', 'importer_updated' => 'Data importir berhasil diperbarui.',
+        'importer_deleted' => 'Data importir berhasil dihapus.', 'delete_importer_confirmation' => 'Hapus data importir ini?',
         'category_title' => 'Kategori', 'category_subtitle' => 'Kelola kategori barang dan bahan.',
         'unit_title' => 'Satuan', 'unit_subtitle' => 'Kelola satuan barang dan bahan.',
         'supplier_subtitle' => 'Kelola data pemasok.', 'customer_subtitle' => 'Kelola data pelanggan.',
@@ -191,6 +194,12 @@ return [
         'inventory_label' => 'Persediaan',
     ],
     'nav' => [
+        'settings_access' => 'PENGATURAN & AKSES',
+        'ppic_purchasing' => 'PPIC & PENGADAAN',
+        'warehouse_inventory' => 'GUDANG & PERSEDIAAN',
+        'production' => 'PRODUKSI',
+        'sales_shipping' => 'PENJUALAN & PENGIRIMAN',
+        'bc_operational_reports' => 'LAPORAN BC & OPERASIONAL',
         'main' => 'UTAMA',
         'access_control' => 'AKSES PENGGUNA',
         'users' => 'Pengguna',

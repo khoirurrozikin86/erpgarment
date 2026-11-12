@@ -118,6 +118,9 @@ return [
         'quotation_printed' => 'Quotation :number · Printed :date', 'order_printed' => 'Sales Order :number · Printed :date', 'delivery_printed' => 'Delivery :number · Printed :date', 'invoice_printed' => 'Sales Invoice :number · Printed :date', 'customer_return_printed' => 'Customer Return :number · Printed :date',
     ],
     'master' => [
+        'importers' => 'Importers', 'importer_subtitle' => 'Manage importer records.', 'add_importer' => 'Add Importer', 'edit_importer' => 'Edit Importer',
+        'tax_number' => 'Tax Number', 'importer_created' => 'Importer created successfully.', 'importer_updated' => 'Importer updated successfully.',
+        'importer_deleted' => 'Importer deleted successfully.', 'delete_importer_confirmation' => 'Delete this importer?',
         'category_title' => 'Categories', 'category_subtitle' => 'Manage item and material categories.',
         'unit_title' => 'Units', 'unit_subtitle' => 'Manage item and material units.',
         'supplier_subtitle' => 'Manage supplier records.', 'customer_subtitle' => 'Manage customer records.',
@@ -192,6 +195,12 @@ return [
         'inventory_label' => 'Inventory',
     ],
     'nav' => [
+        'settings_access' => 'SETTINGS & ACCESS',
+        'ppic_purchasing' => 'PPIC & PROCUREMENT',
+        'warehouse_inventory' => 'WAREHOUSE & INVENTORY',
+        'production' => 'PRODUCTION',
+        'sales_shipping' => 'SALES & SHIPPING',
+        'bc_operational_reports' => 'CUSTOMS & OPERATIONAL REPORTS',
         'main' => 'MAIN',
         'access_control' => 'USER ACCESS',
         'users' => 'Users',

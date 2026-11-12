@@ -28,6 +28,12 @@ Ini adalah model konseptual dari layar, bukan skema final. Nama tabel, kardinali
 
 ## Pertanyaan schema — NEEDS CONFIRMATION
 
+### Importir yang telah diimplementasikan
+
+Tabel `importers` memiliki `id`, `tax_number` (NPWP), `name`, `address`, `apip`, `is_active`, dan timestamps. Kolom NPWP dan APIP nullable; nama wajib; status aktif default true. Relasi ke dokumen BC masuk belum dibuat karena modul BC belum diimplementasikan dan kardinalitasnya perlu dikonfirmasi.
+
+**NEEDS CONFIRMATION:** format/keunikan NPWP, makna dan format APIP, apakah satu perusahaan atau lebih dapat memakai master bersama, dan aturan penghapusan setelah terpakai.
+
 1. Apakah satu perusahaan/gudang saja, atau multi-company/multi-location? Apakah saldo dipisah lokasi, lot, warna/ukuran?
 2. Apakah item berupa kombinasi master `barang` + `style/color/size` atau setiap SKU adalah barang tersendiri? Screenshot master memuat kategori, kode, nama, satuan, style, warna, ukuran.
 3. Apakah MO/PO/GRN/BC memiliki header dan detail; berapa pola relasi (partial receipt, beberapa BC per GRN, satu BC untuk banyak GRN)?

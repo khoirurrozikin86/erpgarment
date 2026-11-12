@@ -13,6 +13,7 @@ Label **Terlihat** berasal langsung dari menu/form/tabel pada screenshot; **Infe
 
 - **Terlihat** — kelola pengguna dengan ID pengguna, sandi, nama, telepon, jabatan, departemen dan atasan.
 - **Terlihat** — kelola importer, exporter, supplier, customer, style, barang dan BOM; data barang menampilkan kategori, kode, nama, satuan, style, color, size, status ketersediaan.
+- **Diimplementasikan (2026-11-13)** — master Importir: daftar DataTable, tambah/ubah/hapus dengan hak akses, field NPWP/nama/alamat/APIP/status, dan audit log. Validasi NPWP/APIP serta hubungan dokumen BC belum ditetapkan.
 - **Terlihat** — BOM menyediakan daftar style/barang jadi dan aksi Detail/Input.
 - **NEEDS CONFIRMATION** — aturan kode otomatis, field wajib, penghapusan master yang telah dipakai, peran/department, variasi item, import data dan versi BOM.
 

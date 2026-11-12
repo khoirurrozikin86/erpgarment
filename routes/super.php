@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\{
     CategoryController,
     UnitController,
     SupplierController,
+    ImporterController,
     CustomerController,
     ProductController,
     BillOfMaterialController,
@@ -358,6 +359,14 @@ Route::middleware(['auth'])
             Route::middleware('permission:suppliers.delete')
                 ->delete('/{supplier}', [SupplierController::class, 'destroy'])
                 ->name('destroy');
+        });
+
+        Route::prefix('importers')->name('importers.')->group(function () {
+            Route::middleware('permission:importers.view')->get('/', [ImporterController::class, 'index'])->name('index');
+            Route::middleware('permission:importers.view')->get('/dt', [ImporterController::class, 'dt'])->name('dt');
+            Route::middleware('permission:importers.create')->post('/', [ImporterController::class, 'store'])->name('store');
+            Route::middleware('permission:importers.update')->put('/{importer}', [ImporterController::class, 'update'])->name('update');
+            Route::middleware('permission:importers.delete')->delete('/{importer}', [ImporterController::class, 'destroy'])->name('destroy');
         });
 
 

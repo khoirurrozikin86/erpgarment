@@ -2,6 +2,8 @@
 
 Rencana ini mengurutkan dependensi proses, bukan persetujuan untuk mulai coding. Project telah memiliki fondasi Laravel dan beberapa domain ERP: master produk/supplier/customer/unit, BOM, permintaan dan PO, GRN/stok, retur, stock opname, production order/stage, inventory lot serta role/permission. Periksa implementasi aktual sebelum membuat ulang komponen; dokumentasi screenshot menambah kebutuhan IT Inventory seperti BC, approval, stage garment lengkap, subcontract dan laporan terkait.
 
+Persetujuan implementasi diberikan pengguna pada 2026-11-13. Progres per modul dicatat di [IMPLEMENTATION-PROGRESS.md](IMPLEMENTATION-PROGRESS.md); implementasi tetap satu modul per instruksi.
+
 ## Tahap 0 — Validasi analisis dan aturan
 
 1. Minta persetujuan atas dokumentasi dan urutan ini sebelum implementasi fitur baru.
