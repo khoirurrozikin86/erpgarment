@@ -1,5 +1,11 @@
 # Referensi UI dari Screenshot
 
+## Master Supplier — referensi image13 dan image14
+
+- Daftar: `No`, `Kode`, `Nama`, `Alamat`, `Contact Person`, `Telepon`, `Email`, `Fax`, `Negara`, `Aksi`; tersedia `Export Excel` dan `Tambah Data`.
+- Form: `Kode Supplier`, `Nama Supplier`, `Alamat`, `Kontak Person`, `Telepon`, `Fax`, `Email`, dan `Negara` (pilihan negara), dengan tombol `Simpan` dan `Impor Data`.
+- Field lain seperti jenis, NPWP, termin pembayaran, website, rincian bank, kota/provinsi, dan catatan tidak tampak pada referensi Supplier.
+
 ## Pola tata letak
 
 - Aplikasi web desktop dengan navbar horizontal abu-abu gelap, nama perusahaan di kiri, menu dropdown; pilihan bahasa/user tampak di kanan pada sebagian layar.

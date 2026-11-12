@@ -17,6 +17,9 @@ class ImporterTest extends TestCase
         $user = User::factory()->create();
         $permissions = collect(['view', 'create', 'update', 'delete'])
             ->map(fn (string $action) => Permission::create(['name' => "importers.{$action}", 'guard_name' => 'web']));
+        $permissions->push(Permission::create(['name' => 'company.view', 'guard_name' => 'web']));
+        $permissions->push(Permission::create(['name' => 'suppliers.view', 'guard_name' => 'web']));
+        $permissions->push(Permission::create(['name' => 'pricelists.view', 'guard_name' => 'web']));
         $user->givePermissionTo($permissions);
         $this->actingAs($user);
 
@@ -25,7 +28,16 @@ class ImporterTest extends TestCase
         $this->assertStringContainsString('id="importer-modal"', $html);
         $this->assertGreaterThan(strpos($html, 'jquery.dataTables.js'), strpos($html, '$(document).ready(function ()'));
         $this->assertStringContainsString('href="'.route('super.importers.index').'"', $html);
+        $this->assertStringNotContainsString('/super/pricelists', $html);
         $this->assertStringContainsString('PENGATURAN', $html);
+        $settingsPosition = strpos($html, 'PENGATURAN');
+        $companyPosition = strpos($html, route('super.companies.index'));
+        $ppicPosition = strpos($html, __('ui.nav.ppic'));
+        $this->assertNotFalse($settingsPosition);
+        $this->assertNotFalse($companyPosition);
+        $this->assertNotFalse($ppicPosition);
+        $this->assertLessThan($companyPosition, $settingsPosition);
+        $this->assertLessThan($ppicPosition, $companyPosition);
         $this->postJson(route('super.importers.store'), [
             'tax_number' => '01.234.567.8-999.000',
             'name' => 'PT Importir Contoh',

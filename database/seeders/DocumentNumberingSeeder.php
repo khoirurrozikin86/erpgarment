@@ -32,30 +32,6 @@ class DocumentNumberingSeeder extends Seeder
                 'prefix' => 'PRT',
             ],
             [
-                'document_type' => 'sales_order',
-                'prefix' => 'SO',
-            ],
-            [
-                'document_type' => 'sales_quotation',
-                'prefix' => 'QUO',
-            ],
-            [
-                'document_type' => 'delivery_order',
-                'prefix' => 'DO',
-            ],
-            [
-                'document_type' => 'sales_invoice',
-                'prefix' => 'INV',
-            ],
-            [
-                'document_type' => 'customer_return',
-                'prefix' => 'CRT',
-            ],
-            [
-                'document_type' => 'customer_payment',
-                'prefix' => 'RCPT',
-            ],
-            [
                 'document_type' => 'supplier_payment',
                 'prefix' => 'PAY',
             ],

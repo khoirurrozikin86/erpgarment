@@ -55,13 +55,9 @@
                         <select class="form-select" id="module">
                             <option value="">{{ __('ui.common.all_modules') }}</option>
                             <option value="AUTH">AUTH</option>
-                            <option value="OUTLET">OUTLET</option>
                             <option value="USER">USER</option>
                             <option value="ROLE">ROLE</option>
                             <option value="PERMISSION">PERMISSION</option>
-                            <option value="USER_OUTLET">USER OUTLET</option>
-                            <option value="TICKET_QRCODE">TICKET QRCODE</option>
-                            <option value="SCAN_RECORD">SCAN RECORD</option>
                             <option value="SETTING">SETTING</option>
                         </select>
                     </div>

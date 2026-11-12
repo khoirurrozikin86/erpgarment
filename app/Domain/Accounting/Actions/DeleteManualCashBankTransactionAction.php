@@ -17,8 +17,8 @@ class DeleteManualCashBankTransactionAction
     {
         DB::transaction(function () use ($transaction, $userId) {
             $transaction = CashBankTransaction::query()->where('company_id', $this->company->id())->lockForUpdate()->findOrFail($transaction->id);
-            if ($transaction->sales_invoice_payment_id || $transaction->supplier_payment_id || $transaction->customer_return_id || $transaction->pos_sale_void_id || $transaction->pos_session_id || $transaction->pos_sale_id) {
-                throw ValidationException::withMessages(['transaction' => 'Mutasi otomatis dari Account Receivable/Payable/POS/Customer Return tidak dapat dihapus dari halaman Cash & Bank.']);
+            if ($transaction->supplier_payment_id) {
+                throw ValidationException::withMessages(['transaction' => 'Mutasi otomatis dari Payable tidak dapat dihapus dari halaman Cash & Bank.']);
             }
 
             $oldValues = $transaction->toArray();

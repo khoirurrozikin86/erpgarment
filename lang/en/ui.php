@@ -118,6 +118,9 @@ return [
         'quotation_printed' => 'Quotation :number · Printed :date', 'order_printed' => 'Sales Order :number · Printed :date', 'delivery_printed' => 'Delivery :number · Printed :date', 'invoice_printed' => 'Sales Invoice :number · Printed :date', 'customer_return_printed' => 'Customer Return :number · Printed :date',
     ],
     'master' => [
+        'exporters' => 'Exporters', 'exporter_subtitle' => 'Manage exporter records.', 'add_exporter' => 'Add Exporter', 'edit_exporter' => 'Edit Exporter',
+        'exporter_created' => 'Exporter created successfully.', 'exporter_updated' => 'Exporter updated successfully.',
+        'exporter_deleted' => 'Exporter deleted successfully.', 'delete_exporter_confirmation' => 'Delete this exporter?',
         'importers' => 'Importers', 'importer_subtitle' => 'Manage importer records.', 'add_importer' => 'Add Importer', 'edit_importer' => 'Edit Importer',
         'tax_number' => 'Tax Number', 'importer_created' => 'Importer created successfully.', 'importer_updated' => 'Importer updated successfully.',
         'importer_deleted' => 'Importer deleted successfully.', 'delete_importer_confirmation' => 'Delete this importer?',
@@ -195,6 +198,8 @@ return [
         'inventory_label' => 'Inventory',
     ],
     'nav' => [
+        'access' => 'ACCESS',
+        'ppic' => 'PPIC',
         'settings_access' => 'SETTINGS & ACCESS',
         'ppic_purchasing' => 'PPIC & PROCUREMENT',
         'warehouse_inventory' => 'WAREHOUSE & INVENTORY',
@@ -252,6 +257,7 @@ return [
         'document_numbering' => 'Document Numbering',
     ],
     'common' => [
+        'select' => 'Select',
         'cash_in' => 'Cash In',
         'login' => 'Log in',
         'logout' => 'Log out',

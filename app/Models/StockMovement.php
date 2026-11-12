@@ -13,14 +13,8 @@ class StockMovement extends Model
         'goods_receipt_item_id',
         'purchase_return_id',
         'purchase_return_item_id',
-        'customer_return_id',
-        'customer_return_item_id',
         'stock_opname_id',
         'stock_opname_item_id',
-        'delivery_id',
-        'delivery_item_id',
-        'pos_sale_id',
-        'pos_sale_item_id',
         'material_request_item_id',
         'production_order_stage_entry_id',
         'created_by',
@@ -64,25 +58,11 @@ class StockMovement extends Model
         return $this->belongsTo(PurchaseReturn::class);
     }
 
-    public function customerReturn(): BelongsTo
-    {
-        return $this->belongsTo(CustomerReturn::class);
-    }
-
     public function stockOpname(): BelongsTo
     {
         return $this->belongsTo(StockOpname::class);
     }
 
-    public function delivery(): BelongsTo
-    {
-        return $this->belongsTo(Delivery::class);
-    }
-
-    public function posSale(): BelongsTo
-    {
-        return $this->belongsTo(PosSale::class, 'pos_sale_id');
-    }
 
     public function materialRequestItem(): BelongsTo
     {

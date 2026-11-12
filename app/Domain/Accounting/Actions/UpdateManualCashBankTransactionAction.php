@@ -19,8 +19,8 @@ class UpdateManualCashBankTransactionAction
     {
         return DB::transaction(function () use ($transaction, $data, $userId) {
             $transaction = CashBankTransaction::query()->where('company_id', $this->company->id())->lockForUpdate()->findOrFail($transaction->id);
-            if ($transaction->sales_invoice_payment_id || $transaction->supplier_payment_id || $transaction->customer_return_id || $transaction->pos_sale_void_id || $transaction->pos_session_id || $transaction->pos_sale_id) {
-                throw ValidationException::withMessages(['transaction' => 'Mutasi otomatis dari Account Receivable/Payable/POS/Customer Return dikelola melalui sumber transaksinya.']);
+            if ($transaction->supplier_payment_id) {
+                throw ValidationException::withMessages(['transaction' => 'Mutasi otomatis dari Payable dikelola melalui sumber transaksinya.']);
             }
 
             $account = CashBankAccount::query()->where('company_id', $this->company->id())->where('is_active', true)->find($data->attributes['cash_bank_account_id']);

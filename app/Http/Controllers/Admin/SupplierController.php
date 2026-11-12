@@ -20,18 +20,16 @@ class SupplierController extends Controller
 {
     public function index()
     {
-        return view('super.suppliers.index');
+        $countries = collect(config('countries'))->union(
+            Supplier::query()->whereNotNull('country')->distinct()->orderBy('country')->pluck('country')->mapWithKeys(fn (string $country) => [$country => $country])->all()
+        )->sort(SORT_NATURAL | SORT_FLAG_CASE)->values();
+
+        return view('super.suppliers.index', compact('countries'));
     }
 
     public function dt(SupplierTableQuery $q)
     {
         return DataTables::eloquent($q->builder())
-
-            ->addColumn('status', function (Supplier $supplier) {
-                return $supplier->is_active
-                    ? __('ui.master.status_active')
-                    : __('ui.master.status_inactive');
-            })
 
             ->addColumn('actions', function (Supplier $supplier) {
 
@@ -46,27 +44,10 @@ class SupplierController extends Controller
                             $supplier->getRouteKey()
                         ),
 
-                        'payload' => [
-                            'id' => $supplier->id,
-                            'code' => $supplier->code,
-                            'name' => $supplier->name,
-                            'supplier_type' => $supplier->supplier_type,
-                            'contact_person' => $supplier->contact_person,
-                            'phone' => $supplier->phone,
-                            'email' => $supplier->email,
-                            'website' => $supplier->website,
-                            'tax_number' => $supplier->tax_number,
-                            'address' => $supplier->address,
-                            'city' => $supplier->city,
-                            'province' => $supplier->province,
-                            'postal_code' => $supplier->postal_code,
-                            'payment_term' => $supplier->payment_term,
-                            'bank_name' => $supplier->bank_name,
-                            'bank_account_number' => $supplier->bank_account_number,
-                            'bank_account_name' => $supplier->bank_account_name,
-                            'notes' => $supplier->notes,
-                            'is_active' => $supplier->is_active,
-                        ],
+                        'payload' => $supplier->only([
+                            'id', 'code', 'name', 'address', 'contact_person',
+                            'phone', 'fax', 'email', 'country', 'is_active',
+                        ]),
                     ],
 
                     [
@@ -89,10 +70,7 @@ class SupplierController extends Controller
                 )->render();
             })
 
-            ->rawColumns([
-                'status',
-                'actions',
-            ])
+            ->rawColumns(['actions'])
 
             ->toJson();
     }

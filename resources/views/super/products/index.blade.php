@@ -69,18 +69,13 @@
                         <thead>
                             <tr>
                                 <th width="50">{{ __('ui.common.no') }}</th>
-                                <th width="70">{{ __('ui.workflow.image') }}</th>
-                                <th>{{ __('ui.common.code') }}</th>
-                                <th>{{ __('ui.workflow.barcode') }}</th>
-                                <th>{{ __('ui.workflow.sku') }}</th>
-                                <th>{{ __('ui.common.item_name') }}</th>
                                 <th>{{ __('ui.common.category') }}</th>
+                                <th>{{ __('ui.common.code') }}</th>
+                                <th>{{ __('ui.common.item_name') }}</th>
                                 <th>{{ __('ui.common.unit') }}</th>
-                                <th class="text-end">{{ __('ui.workflow.current_stock') }}</th>
-                                <th>{{ __('ui.common.type') }}</th>
-                                <th>{{ __('ui.workflow.garment_type') }}</th>
-                                <th>{{ __('ui.common.purchase_price') }}</th>
-                                <th>{{ __('ui.common.selling_price') }}</th>
+                                <th>{{ __('ui.workflow.style_code') }}</th>
+                                <th>{{ __('ui.workflow.color') }}</th>
+                                <th>{{ __('ui.workflow.size') }}</th>
                                 <th>{{ __('ui.common.status') }}</th>
                                 <th width="70">{{ __('ui.common.actions') }}</th>
                             </tr>
@@ -148,389 +143,90 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button>
                 </div>
 
-                <form id="productForm" enctype="multipart/form-data">
-
+                <form id="productForm">
                     @csrf
-
                     <input type="hidden" id="product_id" name="product_id">
-
                     <input type="hidden" id="form_method" value="POST">
 
                     <div class="modal-body product-modal-body">
-
                         <div id="product-form-alert"></div>
-
-                        {{-- BASIC INFORMATION --}}
-                        <h6 class="fw-bold mb-3">{{ __('ui.workflow.basic_item_information') }}</h6>
-
                         <div class="row">
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">{{ __('ui.common.code') }}<span class="text-danger">*</span>
-                                </label>
-
-                                <input type="text" class="form-control" id="code" name="code" maxlength="50"
-                                    required>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">{{ __('ui.workflow.barcode') }}</label>
-
-                                <input type="text" class="form-control" id="barcode" name="barcode"
-                                    maxlength="100">
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">{{ __('ui.workflow.sku') }}</label>
-
-                                <input type="text" class="form-control" id="sku" name="sku"
-                                    maxlength="100">
-                            </div>
-
-                            <div class="col-md-8 mb-3">
-                                <label class="form-label">{{ __('ui.common.item_name') }}<span class="text-danger">*</span>
-                                </label>
-
-                                <input type="text" class="form-control" id="name" name="name"
-                                    maxlength="150" required>
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">{{ __('ui.workflow.short_name') }}</label>
-
-                                <input type="text" class="form-control" id="short_name" name="short_name"
-                                    maxlength="100">
-                            </div>
-
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ __('ui.common.category') }}</label>
-
+                                <label class="form-label" for="category_id">{{ __('ui.common.category') }}</label>
                                 <select class="form-select" id="category_id" name="category_id">
-
                                     <option value="">{{ __('ui.workflow.choose_category') }}</option>
-
                                     @foreach ($categories as $category)
-                                        <option value="{{ $category->id }}">
-                                            {{ $category->name }}
-                                        </option>
+                                        <option value="{{ $category->id }}">{{ $category->name }}</option>
                                     @endforeach
-
                                 </select>
                             </div>
-
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ __('ui.common.unit') }}</label>
-
+                                <label class="form-label" for="code">{{ __('ui.common.code') }} <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="code" name="code" maxlength="50" required>
+                            </div>
+                            <div class="col-md-12 mb-3">
+                                <label class="form-label" for="name">{{ __('ui.common.item_name') }} <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" maxlength="150" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="unit_id">{{ __('ui.common.unit') }}</label>
                                 <select class="form-select" id="unit_id" name="unit_id">
-
                                     <option value="">{{ __('ui.workflow.choose_unit') }}</option>
-
                                     @foreach ($units as $unit)
-                                        <option value="{{ $unit->id }}">
-                                            {{ $unit->name }}
-                                            @if ($unit->symbol)
-                                                ({{ $unit->symbol }})
-                                            @endif
-                                        </option>
+                                        <option value="{{ $unit->id }}">{{ $unit->name }}@if ($unit->symbol) ({{ $unit->symbol }})@endif</option>
                                     @endforeach
-
-                                </select>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ __('ui.workflow.product_type') }}</label>
-
-                                <select class="form-select" id="product_type" name="product_type">
-
-                                    <option value="stock">{{ __('ui.workflow.stock') }}</option>
-
-                                    <option value="service">{{ __('ui.workflow.service') }}</option>
-
-                                </select>
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ __('ui.workflow.garment_item_type') }}</label>
-                                <select class="form-select" id="garment_item_type" name="garment_item_type">
-                                    <option value="general">{{ __('ui.common.general') }}</option>
-                                    <option value="fabric">{{ __('ui.workflow.fabric') }}</option>
-                                    <option value="accessory">{{ __('ui.workflow.accessory') }}</option>
-                                    <option value="work_in_process">{{ __('ui.workflow.work_in_process') }}</option>
-                                    <option value="finished_good">{{ __('ui.workflow.finished_good') }}</option>
-                                    <option value="packaging">{{ __('ui.workflow.packaging') }}</option>
                                 </select>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ __('ui.workflow.style_code') }}</label>
+                                <label class="form-label" for="style_code">{{ __('ui.workflow.style_code') }}</label>
                                 <input type="text" class="form-control" id="style_code" name="style_code" maxlength="80">
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">{{ __('ui.workflow.color') }}</label>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="color">{{ __('ui.workflow.color') }}</label>
                                 <input type="text" class="form-control" id="color" name="color" maxlength="80">
                             </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">{{ __('ui.workflow.size') }}</label>
-                                <input type="text" class="form-control" id="size" name="size" maxlength="40" placeholder="{{ __('ui.workflow.size_example') }}">
-                            </div>
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">{{ __('ui.workflow.hs_code') }}</label>
-                                <input type="text" class="form-control" id="hs_code" name="hs_code" maxlength="30">
-                            </div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ __('ui.workflow.material_composition') }}</label>
-                                <input type="text" class="form-control" id="composition" name="composition" maxlength="255" placeholder="{{ __('ui.workflow.material_composition_example') }}">
+                                <label class="form-label" for="size">{{ __('ui.workflow.size') }}</label>
+                                <input type="text" class="form-control" id="size" name="size" maxlength="40">
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ __('ui.workflow.country_of_origin') }}</label>
-                                <input type="text" class="form-control" id="country_of_origin" name="country_of_origin" maxlength="100">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ __('ui.workflow.fabric_width_cm') }}</label>
-                                <input type="number" class="form-control" id="fabric_width_cm" name="fabric_width_cm" min="0" step="0.01">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ __('ui.workflow.fabric_weight_gsm') }}</label>
-                                <input type="number" class="form-control" id="fabric_weight_gsm" name="fabric_weight_gsm" min="0" step="0.01">
-                            </div>
-
-                        </div>
-
-
-                        <hr>
-
-
-                        {{-- COST AND OPTIONAL COMMERCIAL PRICE --}}
-                        <h6 class="fw-bold mb-3">{{ __('ui.workflow.cost_and_commercial_settings') }}</h6>
-
-                        <div class="row">
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ __('ui.common.purchase_price') }}</label>
-
-                                <input type="number" class="form-control" id="purchase_price" name="purchase_price"
-                                    min="0" step="0.01" value="0">
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ __('ui.workflow.optional_selling_price') }}</label>
-
-                                <input type="number" class="form-control" id="sales_price" name="sales_price"
-                                    min="0" step="0.01" value="0">
-                            </div>
-
-                        </div>
-
-
-                        <hr>
-
-
-                        {{-- STOCK --}}
-                        <h6 class="fw-bold mb-3">{{ __('ui.workflow.stock_settings') }}</h6>
-
-                        <div class="row">
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">{{ __('ui.workflow.minimum_stock') }}</label>
-
-                                <input type="number" class="form-control" id="min_stock" name="min_stock"
-                                    min="0" step="0.0001" value="0">
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">{{ __('ui.workflow.maximum_stock') }}</label>
-
-                                <input type="number" class="form-control" id="max_stock" name="max_stock"
-                                    min="0" step="0.0001" value="0">
-                            </div>
-
-                            <div class="col-md-4 mb-3">
-                                <label class="form-label">{{ __('ui.workflow.reorder_point') }}</label>
-
-                                <input type="number" class="form-control" id="reorder_point" name="reorder_point"
-                                    min="0" step="0.0001" value="0">
-                            </div>
-
-                        </div>
-
-
-                        <hr>
-
-
-                        {{-- TAX --}}
-                        <h6 class="fw-bold mb-3">{{ __('ui.common.tax') }}</h6>
-
-                        <div class="row">
-
-                            <div class="col-md-6 mb-3">
-
-                                <div class="form-check form-switch mt-2">
-
-                                    <input type="hidden" name="taxable" value="0">
-
-                                    <input class="form-check-input" type="checkbox" id="taxable" name="taxable"
-                                        value="1">
-
-                                    <label class="form-check-label" for="taxable">{{ __('ui.workflow.taxable_item') }}</label>
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-md-6 mb-3">
-
-                                <label class="form-label">{{ __('ui.workflow.tax_rate') }}</label>
-
-                                <input type="number" class="form-control" id="tax_rate" name="tax_rate"
-                                    min="0" max="100" step="0.01" value="0">
-
-                            </div>
-
-                        </div>
-
-
-                        <hr>
-
-
-                        {{-- SETTINGS --}}
-                        <h6 class="fw-bold mb-3">{{ __('ui.workflow.settings_label') }}</h6>
-
-                        <div class="row">
-
-                            <div class="col-md-3 mb-3">
-
+                            <div class="col-12 mb-3">
                                 <div class="form-check form-switch">
-
-                                    <input type="hidden" name="track_stock" value="0">
-
-                                    <input class="form-check-input" type="checkbox" id="track_stock" name="track_stock"
-                                        value="1" checked>
-
-                                    <label class="form-check-label" for="track_stock">{{ __('ui.workflow.track_stock') }}</label>
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-md-3 mb-3">
-
-                                <div class="form-check form-switch">
-
-                                    <input type="hidden" name="allow_discount" value="0">
-
-                                    <input class="form-check-input" type="checkbox" id="allow_discount"
-                                        name="allow_discount" value="1" checked>
-
-                                    <label class="form-check-label" for="allow_discount">{{ __('ui.workflow.allow_discount') }}</label>
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-md-3 mb-3">
-
-                                <div class="form-check form-switch">
-
-                                    <input type="hidden" name="allow_purchase" value="0">
-
-                                    <input class="form-check-input" type="checkbox" id="allow_purchase"
-                                        name="allow_purchase" value="1" checked>
-
-                                    <label class="form-check-label" for="allow_purchase">{{ __('ui.workflow.allow_purchase') }}</label>
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-md-3 mb-3">
-
-                                <div class="form-check form-switch">
-
-                                    <input type="hidden" name="allow_sales" value="0">
-
-                                    <input class="form-check-input" type="checkbox" id="allow_sales" name="allow_sales"
-                                        value="1" checked>
-
-                                    <label class="form-check-label" for="allow_sales">{{ __('ui.workflow.allow_sales') }}</label>
-
-                                </div>
-
-                            </div>
-
-                            <div class="col-md-3 mb-3">
-
-                                <div class="form-check form-switch">
-
                                     <input type="hidden" name="is_active" value="0">
-
-                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
-                                        value="1" checked>
-
-                                    <label class="form-check-label" for="is_active">{{ __('ui.common.active') }}</label>
-
+                                    <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1" checked>
+                                    <label class="form-check-label" for="is_active">{{ __('ui.common.status') }}: {{ __('ui.common.active') }}</label>
                                 </div>
-
                             </div>
-
                         </div>
 
-
-                        <hr>
-
-
-                        {{-- DESCRIPTION --}}
-                        <h6 class="fw-bold mb-3">{{ __('ui.common.description') }}</h6>
-
-                        <div class="mb-3">
-
-                            <textarea class="form-control" id="description" name="description" rows="4"
-                                placeholder="{{ __('ui.workflow.item_description_placeholder') }}"></textarea>
-
-                        </div>
-
-
-                        <hr>
-
-
-                        {{-- IMAGES --}}
-                        <h6 class="fw-bold mb-3">{{ __('ui.workflow.product_images_heading') }}</h6>
-
-                        <div class="mb-3">
-
-                            <label class="form-label">{{ __('ui.workflow.upload_product_images') }}</label>
-
-                            <div class="d-flex flex-wrap align-items-center gap-2">
-                                <label for="images" class="btn btn-outline-primary btn-sm mb-0">
-                                    <i class="fas fa-images me-1"></i>{{ __('ui.workflow.choose_images') }}
-                                </label>
-                                <span id="selected-images-label" class="small text-muted">{{ __('ui.workflow.no_images_selected') }}</span>
-                            </div>
-                            <input type="file" class="visually-hidden" id="images" name="images[]"
-                                accept="image/jpeg,image/png,image/webp" multiple>
-
-                            <input type="hidden" id="primary_image_id" name="primary_image_id" value="">
-                            <div id="deleted-image-inputs"></div>
-
-                            <small class="form-text d-block mt-1">{{ __('ui.workflow.image_upload_hint') }}</small>
-
-                        </div>
-
-                        <div id="image-preview" class="row g-2"></div>
-
-                        <div id="existing-images" class="row g-2"></div>
-
+                        {{-- Atribut backend lama tetap dibawa saat edit agar data dan workflow existing terjaga. --}}
+                        <input type="hidden" id="barcode" name="barcode">
+                        <input type="hidden" id="sku" name="sku">
+                        <input type="hidden" id="short_name" name="short_name">
+                        <input type="hidden" id="product_type" name="product_type" value="stock">
+                        <input type="hidden" id="garment_item_type" name="garment_item_type" value="general">
+                        <input type="hidden" id="hs_code" name="hs_code">
+                        <input type="hidden" id="composition" name="composition">
+                        <input type="hidden" id="country_of_origin" name="country_of_origin">
+                        <input type="hidden" id="fabric_width_cm" name="fabric_width_cm">
+                        <input type="hidden" id="fabric_weight_gsm" name="fabric_weight_gsm">
+                        <input type="hidden" id="purchase_price" name="purchase_price" value="0">
+                        <input type="hidden" id="sales_price" name="sales_price" value="0">
+                        <input type="hidden" id="min_stock" name="min_stock" value="0">
+                        <input type="hidden" id="max_stock" name="max_stock" value="0">
+                        <input type="hidden" id="reorder_point" name="reorder_point" value="0">
+                        <input type="hidden" id="track_stock" name="track_stock" value="1">
+                        <input type="hidden" id="taxable" name="taxable" value="0">
+                        <input type="hidden" id="tax_rate" name="tax_rate" value="0">
+                        <input type="hidden" id="allow_discount" name="allow_discount" value="1">
+                        <input type="hidden" id="allow_purchase" name="allow_purchase" value="1">
+                        <input type="hidden" id="allow_sales" name="allow_sales" value="1">
+                        <input type="hidden" id="description" name="description">
                     </div>
-
 
                     <div class="modal-footer">
-
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{{ __('ui.common.cancel') }}</button>
-
-                        <button type="submit" class="btn btn-primary" id="btn-save-product">
-
-                            <i class="fas fa-save me-1"></i>{{ __('ui.common.save') }}</button>
-
+                        <button type="submit" class="btn btn-primary" id="btn-save-product"><i class="fas fa-save me-1"></i>{{ __('ui.common.save') }}</button>
                     </div>
-
                 </form>
 
             </div>
@@ -762,110 +458,24 @@
                 },
 
                 columns: [
-
                     {
                         data: 'id',
                         name: 'id',
                         orderable: false,
                         searchable: false,
                         render: function(data, type, row, meta) {
-                            return meta.row +
-                                meta.settings._iDisplayStart +
-                                1;
+                            return meta.row + meta.settings._iDisplayStart + 1;
                         }
                     },
-
-                    {
-                        data: 'image',
-                        name: 'image',
-                        orderable: false,
-                        searchable: false
-                    },
-
-                    {
-                        data: 'code',
-                        name: 'code'
-                    },
-
-                    {
-                        data: 'barcode',
-                        name: 'barcode',
-                        defaultContent: '-'
-                    },
-
-                    {
-                        data: 'sku',
-                        name: 'sku',
-                        defaultContent: '-'
-                    },
-
-                    {
-                        data: 'name',
-                        name: 'name'
-                    },
-
-                    {
-                        data: 'category_name',
-                        name: 'category.name',
-                        defaultContent: '-'
-                    },
-
-                    {
-                        data: 'unit_name',
-                        name: 'unit.name',
-                        defaultContent: '-'
-                    },
-
-                    {
-                        data: 'current_stock',
-                        name: 'stock.quantity',
-                        className: 'text-end',
-                        orderable: false,
-                        searchable: false
-                    },
-
-                    {
-                        data: 'product_type_label',
-                        name: 'product_type',
-                        orderable: true,
-                        searchable: true
-                    },
-
-                    {
-                        data: 'garment_item_type_label',
-                        name: 'garment_item_type',
-                        orderable: true,
-                        searchable: true
-                    },
-
-                    {
-                        data: 'purchase_price_formatted',
-                        name: 'purchase_price',
-                        className: 'text-end'
-                    },
-
-                    {
-                        data: 'sales_price_formatted',
-                        name: 'sales_price',
-                        className: 'text-end'
-                    },
-
-                    {
-                        data: 'status',
-                        name: 'is_active',
-                        orderable: true,
-                        searchable: false,
-                        className: 'text-center'
-                    },
-
-                    {
-                        data: 'actions',
-                        name: 'actions',
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
-                    }
-
+                    { data: 'category_name', name: 'category.name', defaultContent: '-' },
+                    { data: 'code', name: 'code' },
+                    { data: 'name', name: 'name' },
+                    { data: 'unit_name', name: 'unit.name', defaultContent: '-' },
+                    { data: 'style_code', name: 'style_code', defaultContent: '-' },
+                    { data: 'color', name: 'color', defaultContent: '-' },
+                    { data: 'size', name: 'size', defaultContent: '-' },
+                    { data: 'status', name: 'is_active', orderable: true, searchable: false, className: 'text-center' },
+                    { data: 'actions', name: 'actions', orderable: false, searchable: false, className: 'text-center' }
                 ],
 
                 order: [
@@ -982,13 +592,13 @@
 
                 $('#tax_rate').val('0');
 
-                $('#track_stock').prop('checked', true);
-                $('#allow_discount').prop('checked', true);
-                $('#allow_purchase').prop('checked', true);
-                $('#allow_sales').prop('checked', true);
+                $('#track_stock').val('1');
+                $('#allow_discount').val('1');
+                $('#allow_purchase').val('1');
+                $('#allow_sales').val('1');
                 $('#is_active').prop('checked', true);
 
-                $('#taxable').prop('checked', false);
+                $('#taxable').val('0');
 
                 $('#images').val('');
                 selectedImageFiles = createImageTransfer();
@@ -1184,32 +794,17 @@
                 $('#max_stock').val(payload.max_stock);
                 $('#reorder_point').val(payload.reorder_point);
 
-                $('#track_stock').prop(
-                    'checked',
-                    Boolean(payload.track_stock)
-                );
+                $('#track_stock').val(payload.track_stock ? '1' : '0');
 
-                $('#taxable').prop(
-                    'checked',
-                    Boolean(payload.taxable)
-                );
+                $('#taxable').val(payload.taxable ? '1' : '0');
 
                 $('#tax_rate').val(payload.tax_rate);
 
-                $('#allow_discount').prop(
-                    'checked',
-                    Boolean(payload.allow_discount)
-                );
+                $('#allow_discount').val(payload.allow_discount ? '1' : '0');
 
-                $('#allow_purchase').prop(
-                    'checked',
-                    Boolean(payload.allow_purchase)
-                );
+                $('#allow_purchase').val(payload.allow_purchase ? '1' : '0');
 
-                $('#allow_sales').prop(
-                    'checked',
-                    Boolean(payload.allow_sales)
-                );
+                $('#allow_sales').val(payload.allow_sales ? '1' : '0');
 
                 $('#is_active').prop(
                     'checked',

@@ -26,7 +26,7 @@ class CashBankQuery
     public function transactions(?string $fromDate = null, ?string $toDate = null): Builder
     {
         $query = CashBankTransaction::query()->where('company_id', $this->company->id())
-            ->with(['account:id,code,name,type', 'counterAccount:id,code,name', 'payment.invoice:id,number', 'supplierPayment.goodsReceipt:id,number', 'customerReturn:id,number', 'posSession:id,number', 'posSale:id,number', 'posSaleVoid:id,number', 'creator:id,name'])
+            ->with(['account:id,code,name,type', 'counterAccount:id,code,name', 'supplierPayment.goodsReceipt:id,number', 'creator:id,name'])
             ->orderByDesc('transaction_date')->orderByDesc('id');
         return $this->applyDateRange($query, 'transaction_date', $fromDate, $toDate);
     }

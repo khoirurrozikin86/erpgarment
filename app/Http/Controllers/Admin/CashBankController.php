@@ -47,14 +47,12 @@ class CashBankController extends Controller
 
         return DataTables::eloquent($query->transactions($filters['from_date'] ?? null, $filters['to_date'] ?? null))
             ->addColumn('account_name', fn($transaction) => $transaction->account?->name ?? __('ui.modules.account_deleted'))
-            ->addColumn('counter_account_name', fn($transaction) => $transaction->pos_sale_void_id ? __('ui.modules.pos_void_source') : ($transaction->customer_return_id ? __('ui.modules.sales_return_source') : ($transaction->sales_invoice_payment_id ? __('ui.modules.receivable_source') : ($transaction->supplier_payment_id ? __('ui.modules.payable_source') : ($transaction->pos_session_id ? __('ui.modules.pos_source') : ($transaction->counterAccount ? $transaction->counterAccount->code . ' · ' . $transaction->counterAccount->name : '—'))))))
+            ->addColumn('counter_account_name', function ($transaction) {
+                if ($transaction->supplier_payment_id) return __('ui.modules.payable_source');
+                return $transaction->counterAccount ? $transaction->counterAccount->code . ' · ' . $transaction->counterAccount->name : '—';
+            })
             ->addColumn('source_number', function ($transaction) {
-                if ($transaction->posSaleVoid?->number) return __('ui.modules.pos_void_number', ['number' => $transaction->posSaleVoid->number]);
-                if ($transaction->customerReturn?->number) return __('ui.modules.customer_return_number', ['number' => $transaction->customerReturn->number]);
-                if ($transaction->payment?->invoice?->number) return $transaction->payment->invoice->number;
                 if ($transaction->supplierPayment?->goodsReceipt?->number) return __('ui.modules.receipt_number_prefix', ['number' => $transaction->supplierPayment->goodsReceipt->number]);
-                if ($transaction->posSale?->number) return __('ui.modules.pos_number_prefix', ['number' => $transaction->posSale->number]);
-                if ($transaction->posSession?->number) return __('ui.modules.pos_number_prefix', ['number' => $transaction->posSession->number]);
                 return __('ui.modules.manual_source');
             })
             ->addColumn('direction_label', fn($transaction) => $transaction->direction === 'in'
@@ -63,8 +61,8 @@ class CashBankController extends Controller
             ->addColumn('amount_signed', fn($transaction) => ($transaction->direction === 'out' ? -1 : 1) * (float) $transaction->amount)
             ->addColumn('creator_name', fn($transaction) => $transaction->creator?->name ?? '—')
             ->addColumn('actions', function ($transaction) {
-                if ($transaction->sales_invoice_payment_id || $transaction->supplier_payment_id || $transaction->customer_return_id || $transaction->pos_sale_void_id || $transaction->pos_session_id || $transaction->pos_sale_id) {
-                    $title = $transaction->pos_sale_void_id ? __('ui.modules.managed_pos_void') : ($transaction->customer_return_id ? __('ui.modules.managed_customer_return') : ($transaction->sales_invoice_payment_id ? __('ui.modules.managed_receivable') : ($transaction->supplier_payment_id ? __('ui.modules.managed_payable') : __('ui.modules.managed_pos'))));
+                if ($transaction->supplier_payment_id) {
+                    $title = __('ui.modules.managed_payable');
                     return '<span class="text-muted" title="' . e($title) . '"><i data-feather="link-2"></i></span>';
                 }
 

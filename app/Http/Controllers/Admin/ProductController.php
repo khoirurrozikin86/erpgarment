@@ -108,81 +108,9 @@ class ProductController extends Controller
                         : '');
             })
 
-            ->addColumn('current_stock', function (Product $product) {
-                if (!$product->track_stock) {
-                    return '—';
-                }
-
-                return number_format((float) ($product->stock?->quantity ?? 0), 4, ',', '.');
-            })
-
-            ->addColumn('product_type_label', function (Product $product) {
-                return match ($product->product_type) {
-                    'stock' => '<span class="badge bg-primary">' . __('ui.workflow.stock') . '</span>',
-                    'service' => '<span class="badge bg-info">' . __('ui.workflow.service') . '</span>',
-                    default => '<span class="badge bg-secondary">'
-                        . e($product->product_type)
-                        . '</span>',
-                };
-            })
-
-            ->addColumn('garment_item_type_label', function (Product $product) {
-                return match ($product->garment_item_type) {
-                    'fabric' => __('ui.workflow.fabric'),
-                    'accessory' => __('ui.workflow.accessory'),
-                    'work_in_process' => 'WIP',
-                    'finished_good' => __('ui.workflow.finished_good'),
-                    'packaging' => __('ui.workflow.packaging'),
-                    default => __('ui.common.general'),
-                };
-            })
-
-            ->addColumn('status', function (Product $product) {
-                return $product->is_active
-                    ? '<span class="badge bg-success">' . __('ui.common.active') . '</span>'
-                    : '<span class="badge bg-secondary">' . __('ui.common.inactive') . '</span>';
-            })
-
-            ->addColumn('image', function (Product $product) {
-                if (!$product->primaryImage) {
-                    return '<div class="text-center">
-                                <span class="text-muted">
-                                    <i class="fas fa-image"></i>
-                                </span>
-                            </div>';
-                }
-
-                $url = asset('storage/' . $product->primaryImage->path);
-
-                return '<div class="text-center">
-                            <img src="' . e($url) . '"
-                                alt="' . e($product->name) . '"
-                                style="
-                                    width:45px;
-                                    height:45px;
-                                    object-fit:cover;
-                                    border-radius:6px;
-                                ">
-                        </div>';
-            })
-
-            ->addColumn('purchase_price_formatted', function (Product $product) {
-                return 'Rp ' . number_format(
-                    (float) $product->purchase_price,
-                    0,
-                    ',',
-                    '.'
-                );
-            })
-
-            ->addColumn('sales_price_formatted', function (Product $product) {
-                return 'Rp ' . number_format(
-                    (float) $product->sales_price,
-                    0,
-                    ',',
-                    '.'
-                );
-            })
+            ->addColumn('status', fn (Product $product) => $product->is_active
+                ? '<span class="badge bg-success">' . e(__('ui.common.active')) . '</span>'
+                : '<span class="badge bg-secondary">' . e(__('ui.common.inactive')) . '</span>')
 
             ->addColumn('actions', function (Product $product) {
                 $actions = [
@@ -226,17 +154,6 @@ class ProductController extends Controller
                             'allow_sales' => (bool) $product->allow_sales,
                             'description' => $product->description,
                             'is_active' => (bool) $product->is_active,
-                            'images' => $product->images
-                                ->map(function ($image) {
-                                    return [
-                                        'id' => $image->id,
-                                        'path' => asset('storage/' . $image->path),
-                                        'file_name' => $image->file_name,
-                                        'is_primary' => (bool) $image->is_primary,
-                                    ];
-                                })
-                                ->values()
-                                ->all(),
                         ],
                     ],
                     [
@@ -262,13 +179,7 @@ class ProductController extends Controller
                 )->render();
             })
 
-            ->rawColumns([
-                'image',
-                'product_type_label',
-                'garment_item_type_label',
-                'status',
-                'actions',
-            ])
+            ->rawColumns(['status', 'actions'])
 
             ->toJson();
     }

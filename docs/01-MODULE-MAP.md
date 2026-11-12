@@ -20,7 +20,7 @@ Referensi: `IT INVENTORY.docx`, berisi 192 objek gambar berurutan `image1.png`â€
 
 ## Peta navigasi tampak
 
-Menu utama pada screenshot memperlihatkan Pengaturan, PPIC, BC Masuk, Gudang, Produksi, Bahan Sisa & Mesin, Subkon, BC Keluar, dan Laporan BC. Tiap menu menurunkan halaman-halaman yang tercantum di atas. Screenshot memperlihatkan perpindahan melalui menu dan tombol `Detail`; beberapa transaksi memiliki form administrasi terpisah. Detail relasi route atau URL tidak tersedia.
+Menu utama pada screenshot memperlihatkan Pengaturan, PPIC, BC Masuk, Gudang, Produksi, Bahan Sisa & Mesin, Subkon, BC Keluar, dan Laporan BC. Master Importir dan Exportir telah memiliki CRUD dasar; relasi keduanya ke dokumen BC masih menunggu implementasi dan konfirmasi cardinality. Tiap menu menurunkan halaman-halaman yang tercantum di atas. Screenshot memperlihatkan perpindahan melalui menu dan tombol `Detail`; beberapa transaksi memiliki form administrasi terpisah. Detail relasi route atau URL tidak tersedia.
 
 ## Batas cakupan
 

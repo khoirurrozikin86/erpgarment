@@ -14,6 +14,7 @@ Label **Terlihat** berasal langsung dari menu/form/tabel pada screenshot; **Infe
 - **Terlihat** — kelola pengguna dengan ID pengguna, sandi, nama, telepon, jabatan, departemen dan atasan.
 - **Terlihat** — kelola importer, exporter, supplier, customer, style, barang dan BOM; data barang menampilkan kategori, kode, nama, satuan, style, color, size, status ketersediaan.
 - **Diimplementasikan (2026-11-13)** — master Importir: daftar DataTable, tambah/ubah/hapus dengan hak akses, field NPWP/nama/alamat/APIP/status, dan audit log. Validasi NPWP/APIP serta hubungan dokumen BC belum ditetapkan.
+- **Penyesuaian UI** — form dan tabel Master Barang menampilkan field referensi kategori, kode, nama, satuan, style, color, size, dan status. Atribut internal lain tetap tersimpan untuk menjaga integrasi ERP existing.
 - **Terlihat** — BOM menyediakan daftar style/barang jadi dan aksi Detail/Input.
 - **NEEDS CONFIRMATION** — aturan kode otomatis, field wajib, penghapusan master yang telah dipakai, peran/department, variasi item, import data dan versi BOM.
 
@@ -60,3 +61,22 @@ Label **Terlihat** berasal langsung dari menu/form/tabel pada screenshot; **Infe
 - Approval menampilkan status dan identitas/waktu persetujuan.
 - Laporan periode dapat ditelusuri ke baris transaksi dan hasil ekspor konsisten dengan filter yang ditampilkan.
 - Kriteria rinci harus ditulis setelah jawaban untuk semua `NEEDS CONFIRMATION` yang memengaruhi data, saldo, dokumen pabean atau approval.
+
+
+## Keputusan scope lanjutan — 2026-11-13
+
+- Price Lists, Sales Quotation, Sales Order beserta alur turunan Delivery, Sales Invoice, Customer Return, dan Piutang dihapus sesuai arahan pengguna. Database migration akan menghapus tabel serta data dokumen tersebut.
+- Kas/bank, mutasi stok, dan jurnal tetap dipertahankan sebagai ledger historis. Referensi ke dokumen sumber yang dihapus dilepas; saldo tidak dihitung ulang.
+- POS, Ticket QR Code, Outlet, assignment outlet ke pengguna, dan riwayat scan kini juga dihapus atas instruksi lanjutan. Baris ledger kas/stok dan jurnal tetap dipertahankan; relasi sumber POS dilepas.
+
+- **Diimplementasikan (2026-11-13)** — master Exportir dengan DataTable, modal tambah/ubah, hapus, validasi nama wajib, permission CRUD, dan audit log. Field sementara: NPWP, nama, alamat, status; APIP tidak ditampilkan. NPWP/alamat/identitas khusus Exportir dan relasi BC keluar masih **NEEDS CONFIRMATION**.
+
+
+- **Keputusan scope lanjutan (2026-11-13)** — POS, sesi kasir, Ticket QR Code, Outlet, assignment user-outlet, dan scan record dihapus beserta tabel/data operasionalnya. Tabel kas/bank, mutasi stok, dan jurnal tetap ada; kolom relasi POS dilepas agar histori saldo tidak berubah.
+
+
+## Master Supplier — penyesuaian referensi
+
+- CRUD, daftar, validasi, impor, ekspor, dan template memakai delapan field: kode, nama, alamat, contact person, telepon, fax, email, negara.
+- `is_active` tetap menjadi status internal untuk kebutuhan alur pembelian; edit mempertahankan status tersebut tanpa menampilkan kontrol status di form. Supplier baru aktif secara default.
+- Field supplier lain yang sebelumnya ada di aplikasi dihapus karena tidak tampak pada referensi.

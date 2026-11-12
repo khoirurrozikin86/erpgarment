@@ -13,31 +13,21 @@ use App\Http\Controllers\Admin\{
     UnitController,
     SupplierController,
     ImporterController,
+    ExporterController,
     CustomerController,
     ProductController,
     BillOfMaterialController,
     ProductionOrderController,
-    PriceListController,
     MaterialRequestController,
     PurchaseRequestController,
     PurchaseOrderController,
     GoodsReceiptController,
     PurchaseReturnController,
-    SalesQuotationController,
-    SalesOrderController,
-    DeliveryController,
-    SalesInvoiceController,
-    CustomerReturnController,
-    AccountReceivableController,
     CashBankController,
     AccountPayableController,
-    PosSessionController,
-    PosController,
     ChartOfAccountController,
     JournalEntryController,
     ProfitLossController,
-    SalesReportController,
-    PosSalesReportController,
     PurchaseReportController,
     InventoryReportController,
     CashBankReportController,
@@ -369,6 +359,14 @@ Route::middleware(['auth'])
             Route::middleware('permission:importers.delete')->delete('/{importer}', [ImporterController::class, 'destroy'])->name('destroy');
         });
 
+        Route::prefix('exporters')->name('exporters.')->group(function () {
+            Route::middleware('permission:exporters.view')->get('/', [ExporterController::class, 'index'])->name('index');
+            Route::middleware('permission:exporters.view')->get('/dt', [ExporterController::class, 'dt'])->name('dt');
+            Route::middleware('permission:exporters.create')->post('/', [ExporterController::class, 'store'])->name('store');
+            Route::middleware('permission:exporters.update')->put('/{exporter}', [ExporterController::class, 'update'])->name('update');
+            Route::middleware('permission:exporters.delete')->delete('/{exporter}', [ExporterController::class, 'destroy'])->name('destroy');
+        });
+
 
         Route::prefix('material-requests')->name('material-requests.')->group(function () {
             Route::middleware('permission:material-requests.view')->get('/', [MaterialRequestController::class, 'index'])->name('index');
@@ -445,103 +443,11 @@ Route::middleware(['auth'])
             Route::middleware('permission:purchase-returns.view')->get('/{purchaseReturn}/pdf/download', [PurchaseReturnController::class, 'downloadPdf'])->name('pdf.download');
         });
 
-        Route::prefix('sales-quotations')->name('sales-quotations.')->group(function () {
-            Route::middleware('permission:sales-quotations.view')->get('/', [SalesQuotationController::class, 'index'])->name('index');
-            Route::middleware('permission:sales-quotations.view')->get('/dt', [SalesQuotationController::class, 'dt'])->name('dt');
-            Route::middleware('permission:sales-quotations.create')->get('/products/dt', [SalesQuotationController::class, 'productsDt'])->name('products.dt');
-            Route::middleware('permission:sales-quotations.create')->get('/create', [SalesQuotationController::class, 'create'])->name('create');
-            Route::middleware('permission:sales-quotations.create')->post('/', [SalesQuotationController::class, 'store'])->name('store');
-            Route::middleware('permission:sales-quotations.view')->get('/{salesQuotation}', [SalesQuotationController::class, 'show'])->name('show');
-            Route::middleware('permission:sales-quotations.view')->get('/{salesQuotation}/emails', [SalesQuotationController::class, 'emailHistory'])->name('emails');
-            Route::middleware('permission:sales-quotations.view')->get('/{salesQuotation}/pdf', [SalesQuotationController::class, 'pdf'])->name('pdf');
-            Route::middleware('permission:sales-quotations.view')->get('/{salesQuotation}/pdf/download', [SalesQuotationController::class, 'downloadPdf'])->name('pdf.download');
-            Route::middleware('permission:sales-quotations.issue')->put('/{salesQuotation}/issue', [SalesQuotationController::class, 'issue'])->name('issue');
-            Route::middleware('permission:sales-quotations.review')->put('/{salesQuotation}/review', [SalesQuotationController::class, 'review'])->name('review');
-            Route::middleware('permission:sales-quotations.email')->post('/{salesQuotation}/email', [SalesQuotationController::class, 'email'])->name('email');
-        });
-
-        Route::prefix('sales-orders')->name('sales-orders.')->group(function () {
-            Route::middleware('permission:sales-orders.view')->get('/', [SalesOrderController::class, 'index'])->name('index');
-            Route::middleware('permission:sales-orders.view')->get('/dt', [SalesOrderController::class, 'dt'])->name('dt');
-            Route::middleware('permission:sales-orders.create')->get('/quotations/eligible', [SalesOrderController::class, 'eligible'])->name('eligible');
-            Route::middleware('permission:sales-orders.create')->get('/quotations/eligible/{quotationId}', [SalesOrderController::class, 'source'])->whereNumber('quotationId')->name('source');
-            Route::middleware('permission:sales-orders.create')->get('/create', [SalesOrderController::class, 'create'])->name('create');
-            Route::middleware('permission:sales-orders.create')->post('/', [SalesOrderController::class, 'store'])->name('store');
-            Route::middleware('permission:sales-orders.view')->get('/{salesOrder}', [SalesOrderController::class, 'show'])->name('show');
-            Route::middleware('permission:sales-orders.view')->get('/{salesOrder}/pdf', [SalesOrderController::class, 'pdf'])->name('pdf');
-            Route::middleware('permission:sales-orders.view')->get('/{salesOrder}/pdf/download', [SalesOrderController::class, 'downloadPdf'])->name('pdf.download');
-            Route::middleware('permission:sales-orders.confirm')->put('/{salesOrder}/confirm', [SalesOrderController::class, 'confirm'])->name('confirm');
-        });
-
-        Route::prefix('deliveries')->name('deliveries.')->group(function () {
-            Route::middleware('permission:deliveries.view')->get('/', [DeliveryController::class, 'index'])->name('index');
-            Route::middleware('permission:deliveries.view')->get('/dt', [DeliveryController::class, 'dt'])->name('dt');
-            Route::middleware('permission:deliveries.create')->get('/sales-orders/eligible', [DeliveryController::class, 'eligible'])->name('eligible');
-            Route::middleware('permission:deliveries.create')->get('/sales-orders/eligible/{salesOrderId}', [DeliveryController::class, 'source'])->whereNumber('salesOrderId')->name('source');
-            Route::middleware('permission:deliveries.create')->get('/create', [DeliveryController::class, 'create'])->name('create');
-            Route::middleware('permission:deliveries.create')->post('/', [DeliveryController::class, 'store'])->name('store');
-            Route::middleware('permission:deliveries.view')->get('/{delivery}', [DeliveryController::class, 'show'])->name('show');
-            Route::middleware('permission:deliveries.view')->get('/{delivery}/pdf', [DeliveryController::class, 'pdf'])->name('pdf');
-            Route::middleware('permission:deliveries.view')->get('/{delivery}/pdf/download', [DeliveryController::class, 'downloadPdf'])->name('pdf.download');
-            Route::middleware('permission:deliveries.post')->put('/{delivery}/post', [DeliveryController::class, 'post'])->name('post');
-            Route::middleware('permission:deliveries.create')->delete('/{delivery}', [DeliveryController::class, 'destroy'])->name('destroy');
-        });
-
-        Route::prefix('sales-invoices')->name('sales-invoices.')->group(function () {
-            Route::middleware('permission:sales-invoices.view')->get('/', [SalesInvoiceController::class, 'index'])->name('index');
-            Route::middleware('permission:sales-invoices.view')->get('/dt', [SalesInvoiceController::class, 'dt'])->name('dt');
-            Route::middleware('permission:sales-invoices.create')->get('/deliveries/eligible', [SalesInvoiceController::class, 'eligible'])->name('eligible');
-            Route::middleware('permission:sales-invoices.create')->get('/deliveries/eligible/{deliveryId}', [SalesInvoiceController::class, 'source'])->whereNumber('deliveryId')->name('source');
-            Route::middleware('permission:sales-invoices.create')->get('/create', [SalesInvoiceController::class, 'create'])->name('create');
-            Route::middleware('permission:sales-invoices.create')->post('/', [SalesInvoiceController::class, 'store'])->name('store');
-            Route::middleware('permission:sales-invoices.view')->get('/{salesInvoice}', [SalesInvoiceController::class, 'show'])->name('show');
-            Route::middleware('permission:sales-invoices.view')->get('/{salesInvoice}/emails', [SalesInvoiceController::class, 'emailHistory'])->name('emails');
-            Route::middleware('permission:sales-invoices.view')->get('/{salesInvoice}/pdf', [SalesInvoiceController::class, 'pdf'])->name('pdf');
-            Route::middleware('permission:sales-invoices.view')->get('/{salesInvoice}/pdf/download', [SalesInvoiceController::class, 'downloadPdf'])->name('pdf.download');
-            Route::middleware('permission:sales-invoices.issue')->put('/{salesInvoice}/issue', [SalesInvoiceController::class, 'issue'])->name('issue');
-            Route::middleware('permission:sales-invoices.email')->post('/{salesInvoice}/email', [SalesInvoiceController::class, 'email'])->name('email');
-        });
-
-        Route::prefix('customer-returns')->name('customer-returns.')->group(function () {
-            Route::middleware('permission:customer-returns.view')->get('/', [CustomerReturnController::class, 'index'])->name('index');
-            Route::middleware('permission:customer-returns.view')->get('/dt', [CustomerReturnController::class, 'dt'])->name('dt');
-            Route::middleware('permission:customer-returns.create')->get('/sales-invoices/eligible', [CustomerReturnController::class, 'eligible'])->name('eligible');
-            Route::middleware('permission:customer-returns.create')->get('/sales-invoices/eligible/{salesInvoiceId}', [CustomerReturnController::class, 'source'])->whereNumber('salesInvoiceId')->name('source');
-            Route::middleware('permission:customer-returns.create')->get('/create', [CustomerReturnController::class, 'create'])->name('create');
-            Route::middleware('permission:customer-returns.create')->post('/', [CustomerReturnController::class, 'store'])->name('store');
-            Route::middleware('permission:customer-returns.view')->get('/{customerReturn}', [CustomerReturnController::class, 'show'])->name('show');
-            Route::middleware('permission:customer-returns.view')->get('/{customerReturn}/pdf', [CustomerReturnController::class, 'pdf'])->name('pdf');
-            Route::middleware('permission:customer-returns.view')->get('/{customerReturn}/pdf/download', [CustomerReturnController::class, 'downloadPdf'])->name('pdf.download');
-        });
-
-        Route::prefix('account-receivable')->name('account-receivable.')->group(function () {
-            Route::middleware('permission:account-receivable.view')->get('/', [AccountReceivableController::class, 'index'])->name('index');
-            Route::middleware('permission:account-receivable.view')->get('/dt', [AccountReceivableController::class, 'dt'])->name('dt');
-            Route::middleware('permission:account-receivable.receive')->post('/invoices/{salesInvoice}/payments', [AccountReceivableController::class, 'receivePayment'])->name('payments.store');
-            Route::middleware('permission:account-receivable.view')->get('/invoices/{salesInvoice}/payments', [AccountReceivableController::class, 'paymentHistory'])->name('payments.history');
-        });
-
         Route::prefix('account-payable')->name('account-payable.')->group(function () {
             Route::middleware('permission:account-payable.view')->get('/', [AccountPayableController::class, 'index'])->name('index');
             Route::middleware('permission:account-payable.view')->get('/dt', [AccountPayableController::class, 'dt'])->name('dt');
             Route::middleware('permission:account-payable.pay')->post('/receipts/{goodsReceipt}/payments', [AccountPayableController::class, 'pay'])->name('payments.store');
             Route::middleware('permission:account-payable.view')->get('/receipts/{goodsReceipt}/payments', [AccountPayableController::class, 'history'])->name('payments.history');
-        });
-
-        Route::prefix('pos-sessions')->name('pos-sessions.')->group(function () {
-            Route::middleware('permission:pos-sessions.view')->get('/', [PosSessionController::class, 'index'])->name('index');
-            Route::middleware('permission:pos-sessions.view')->get('/dt', [PosSessionController::class, 'dt'])->name('dt');
-            Route::middleware('permission:pos-sessions.open')->post('/', [PosSessionController::class, 'open'])->name('open');
-            Route::middleware('permission:pos-sessions.close')->post('/{posSession}/close', [PosSessionController::class, 'close'])->name('close');
-        });
-
-        Route::prefix('pos')->name('pos.')->group(function () {
-            Route::middleware('permission:pos.view')->get('/', [PosController::class, 'index'])->name('index');
-            Route::middleware('permission:pos.view')->get('/products', [PosController::class, 'products'])->name('products');
-            Route::middleware('permission:pos.view')->get('/sales/history', [PosController::class, 'history'])->name('history');
-            Route::middleware('permission:pos.view')->get('/sales/{posSale}/receipt', [PosController::class, 'receipt'])->name('receipt');
-            Route::middleware('permission:pos.sell')->post('/checkout', [PosController::class, 'checkout'])->name('checkout');
-            Route::middleware('permission:pos.void')->put('/sales/{posSale}/void', [PosController::class, 'void'])->name('void');
         });
 
         Route::prefix('cash-bank')->name('cash-bank.')->group(function () {
@@ -572,14 +478,6 @@ Route::middleware(['auth'])
         });
 
         Route::middleware('permission:profit-loss.view')->get('/profit-loss', [ProfitLossController::class, 'index'])->name('profit-loss.index');
-        Route::prefix('reports/sales')->name('reports.sales.')->group(function () {
-            Route::middleware('permission:sales-report.view')->get('/', [SalesReportController::class, 'index'])->name('index');
-            Route::middleware('permission:sales-report.view')->get('/export', [SalesReportController::class, 'export'])->name('export');
-        });
-        Route::prefix('reports/pos-sales')->name('reports.pos-sales.')->group(function () {
-            Route::middleware('permission:sales-report.view')->get('/', [PosSalesReportController::class, 'index'])->name('index');
-            Route::middleware('permission:sales-report.view')->get('/export', [PosSalesReportController::class, 'export'])->name('export');
-        });
         Route::prefix('reports/purchase')->name('reports.purchase.')->group(function () {
             Route::middleware('permission:purchase-report.view')->get('/', [PurchaseReportController::class, 'index'])->name('index');
             Route::middleware('permission:purchase-report.view')->get('/export', [PurchaseReportController::class, 'export'])->name('export');
@@ -708,11 +606,4 @@ Route::middleware(['auth'])
             Route::middleware('permission:boms.delete')->delete('/{bom}', [BillOfMaterialController::class, 'destroy'])->name('destroy');
         });
 
-        Route::prefix('pricelists')->name('pricelists.')->group(function () {
-            Route::middleware('permission:pricelists.view')->get('/', [PriceListController::class, 'index'])->name('index');
-            Route::middleware('permission:pricelists.view')->get('/dt', [PriceListController::class, 'dt'])->name('dt');
-            Route::middleware('permission:pricelists.create')->post('/', [PriceListController::class, 'store'])->name('store');
-            Route::middleware('permission:pricelists.update')->put('/{priceList}', [PriceListController::class, 'update'])->name('update');
-            Route::middleware('permission:pricelists.delete')->delete('/{priceList}', [PriceListController::class, 'destroy'])->name('destroy');
-        });
     });

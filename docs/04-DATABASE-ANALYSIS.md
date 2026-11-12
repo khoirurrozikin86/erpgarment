@@ -45,3 +45,16 @@ Tabel `importers` memiliki `id`, `tax_number` (NPWP), `name`, `address`, `apip`,
 ## Hubungan minimum
 
 `item` → detail penerimaan/pengeluaran/BC/produksi/retur → `inventory_transaction` → laporan saldo. `supplier/customer` dan `user` menghubungkan header dokumen; `BOM` dan `style` mendukung perencanaan; `subcontract_contract` mengikat issue dan receipt subkon. Kardinalitas final tetap perlu dikonfirmasi.
+
+
+### Exportir yang telah diimplementasikan
+
+Tabel `exporters` menyimpan `id`, `tax_number`, `name`, `address`, `is_active`, dan timestamps. CRUD mengikuti pola master Importir, dengan permission terpisah (`exporters.*`) dan audit log. APIP tidak disertakan karena dokumentasi yang tersedia hanya menunjukkan field tersebut pada Importir. **NEEDS CONFIRMATION:** apakah Exportir memang memakai NPWP dan alamat yang sama, serta apakah ada identitas/atribut khusus (misalnya NIB) pada referensi sumber. Relasi ke BC keluar menunggu implementasi dokumen BC dan keputusan cardinality.
+
+
+### Master Supplier — field sesuai referensi
+
+Tabel `suppliers` menyimpan kode, nama, alamat, contact person, telepon, fax, email, negara, dan `is_active`. Delapan field pertama mengikuti daftar/form pada image13–14. `is_active` dipertahankan sebagai atribut internal karena dipakai validasi/seleksi supplier pada alur pembelian yang telah ada; status tidak ditampilkan pada form master. Field supplier lama (jenis, website, NPWP, kota/provinsi/kode pos, termin, bank, catatan) dihapus melalui migration forward. **Catatan:** nilai data pada kolom yang dihapus tidak dapat dipulihkan kecuali dari backup.
+
+
+Daftar negara pada form diambil dari `config/countries.php` (264 kode negara/wilayah), sehingga tidak perlu dibuat satu-satu di database. Nilai negara yang sudah tersimpan tetapi tidak ada pada daftar tetap ditambahkan sebagai pilihan agar data lama dapat diedit.

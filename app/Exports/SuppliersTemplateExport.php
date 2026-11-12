@@ -21,6 +21,6 @@ class SuppliersTemplateExport implements FromArray, WithHeadings, ShouldAutoSize
 
     public function columnFormats(): array
     {
-        return array_fill_keys(range('A', 'R'), '@');
+        return array_fill_keys(range('A', 'H'), '@');
     }
 }

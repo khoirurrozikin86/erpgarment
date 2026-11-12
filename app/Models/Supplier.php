@@ -12,28 +12,17 @@ class Supplier extends Model
     protected $fillable = [
         'code',
         'name',
-        'supplier_type',
+        'address',
         'contact_person',
         'phone',
+        'fax',
         'email',
-        'website',
-        'tax_number',
-        'address',
-        'city',
-        'province',
-        'postal_code',
-        'payment_term',
-        'bank_name',
-        'bank_account_number',
-        'bank_account_name',
-        'notes',
+        'country',
         'is_active',
     ];
 
     protected function casts(): array
     {
-        return [
-            'is_active' => 'boolean',
-        ];
+        return ['is_active' => 'boolean'];
     }
 }

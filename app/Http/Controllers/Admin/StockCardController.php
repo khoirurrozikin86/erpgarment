@@ -47,7 +47,7 @@ class StockCardController extends Controller
             $filters['from_date'] ?? null,
             $filters['to_date'] ?? null,
         ))
-            ->addColumn('reference_number', fn(StockMovement $movement) => $movement->goodsReceipt?->number ?? $movement->purchaseReturn?->number ?? $movement->customerReturn?->number ?? $movement->stockOpname?->number ?? $movement->delivery?->number ?? $movement->posSale?->number ?? $movement->materialRequestItem?->request?->number ?? $movement->productionOrderStageEntry?->productionOrder?->number ?? '—')
+            ->addColumn('reference_number', fn(StockMovement $movement) => $movement->goodsReceipt?->number ?? $movement->purchaseReturn?->number ?? $movement->stockOpname?->number ?? $movement->materialRequestItem?->request?->number ?? $movement->productionOrderStageEntry?->productionOrder?->number ?? '—')
             ->addColumn('movement_label', fn(StockMovement $movement) => match ($movement->movement_type) {
                 'purchase_receipt' => '<span class="badge bg-success">Penerimaan Barang</span>',
                 'purchase_return' => '<span class="badge bg-danger">Purchase Return</span>',

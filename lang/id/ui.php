@@ -117,6 +117,9 @@ return [
         'quotation_printed' => 'Penawaran :number · Dicetak :date', 'order_printed' => 'Pesanan Penjualan :number · Dicetak :date', 'delivery_printed' => 'Pengiriman :number · Dicetak :date', 'invoice_printed' => 'Faktur Penjualan :number · Dicetak :date', 'customer_return_printed' => 'Retur Pelanggan :number · Dicetak :date',
     ],
     'master' => [
+        'exporters' => 'Exportir', 'exporter_subtitle' => 'Kelola data exportir.', 'add_exporter' => 'Tambah Exportir', 'edit_exporter' => 'Ubah Exportir',
+        'exporter_created' => 'Data exportir berhasil dibuat.', 'exporter_updated' => 'Data exportir berhasil diperbarui.',
+        'exporter_deleted' => 'Data exportir berhasil dihapus.', 'delete_exporter_confirmation' => 'Hapus data exportir ini?',
         'importers' => 'Importir', 'importer_subtitle' => 'Kelola data importir.', 'add_importer' => 'Tambah Importir', 'edit_importer' => 'Ubah Importir',
         'tax_number' => 'NPWP', 'importer_created' => 'Data importir berhasil dibuat.', 'importer_updated' => 'Data importir berhasil diperbarui.',
         'importer_deleted' => 'Data importir berhasil dihapus.', 'delete_importer_confirmation' => 'Hapus data importir ini?',
@@ -194,6 +197,8 @@ return [
         'inventory_label' => 'Persediaan',
     ],
     'nav' => [
+        'access' => 'ACCESS',
+        'ppic' => 'PPIC',
         'settings_access' => 'PENGATURAN & AKSES',
         'ppic_purchasing' => 'PPIC & PENGADAAN',
         'warehouse_inventory' => 'GUDANG & PERSEDIAAN',
@@ -251,6 +256,7 @@ return [
         'document_numbering' => 'Penomoran dokumen',
     ],
     'common' => [
+        'select' => 'Pilih',
         'cash_in' => 'Kas Masuk',
         'login' => 'Masuk',
         'logout' => 'Keluar',
