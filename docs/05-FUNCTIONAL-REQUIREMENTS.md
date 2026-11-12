@@ -1,0 +1,61 @@
+# Kebutuhan Fungsional
+
+Label **Terlihat** berasal langsung dari menu/form/tabel pada screenshot; **Inferensi** merupakan kebutuhan minimum untuk menghubungkan layar; **NEEDS CONFIRMATION** menandai aturan yang belum dipastikan. Dokumen ini tidak memperluas scope di luar referensi.
+
+## A. Navigasi dan pola umum
+
+- **Terlihat** — sediakan navigasi untuk Pengaturan, PPIC, BC Masuk, Gudang, Produksi, Bahan Sisa & Mesin, Subkon, BC Keluar, Laporan BC.
+- **Terlihat** — halaman daftar menampilkan tabel berpaginasi, pengurutan, pencarian, pilihan jumlah record; halaman tertentu menyediakan filter tanggal/periode dan `Tampilkan Data`.
+- **Terlihat** — aksi yang tampak meliputi tambah, detail, edit, hapus, cetak, approval/cancel dan export Excel sesuai halaman.
+- **NEEDS CONFIRMATION** — aturan hak akses per aksi, konfirmasi hapus, responsive behavior, file export, format tanggal/angka dan lokalisasi final.
+
+## B. Master dan akses
+
+- **Terlihat** — kelola pengguna dengan ID pengguna, sandi, nama, telepon, jabatan, departemen dan atasan.
+- **Terlihat** — kelola importer, exporter, supplier, customer, style, barang dan BOM; data barang menampilkan kategori, kode, nama, satuan, style, color, size, status ketersediaan.
+- **Terlihat** — BOM menyediakan daftar style/barang jadi dan aksi Detail/Input.
+- **NEEDS CONFIRMATION** — aturan kode otomatis, field wajib, penghapusan master yang telah dipakai, peran/department, variasi item, import data dan versi BOM.
+
+## C. Pengadaan dan penerimaan
+
+- **Terlihat** — tampilkan MO dan PO menurut rentang tanggal, mitra, nomor dokumen dan item; daftar PO supplier menyediakan detail, cetak, edit/hapus.
+- **Terlihat** — `Cek Pesanan Pembelian` membedakan status Belum Selesai/Selesai dan menyediakan detail.
+- **Terlihat** — catat penerimaan/GRN dan baris barang; layar menunjukkan supplier, invoice, MO/PO dan nomor/tanggal GRN.
+- **Terlihat** — GRN approval menampilkan status, approver dan timestamp, dengan aksi Detail/Cancel.
+- **NEEDS CONFIRMATION** — definisi status selesai (jumlah dipesan vs diterima), penerimaan parsial, toleransi, aturan approval, posting stok, nomor dokumen dan cetakan.
+
+## D. Gudang dan persediaan
+
+- **Terlihat** — catat retur produksi ke gudang, transfer/kirim ke produksi (MIS), retur supplier, barang rusak, barang hilang, kartu stok bahan baku.
+- **Terlihat** — catatan pengeluaran/penerimaan memiliki tanggal, nomor dokumen, barang, satuan, jumlah dan kadang keterangan/nilai.
+- **Terlihat** — stock opname memiliki filter bulan/tahun dan kolom kategori, kode/nama barang, satuan, tanggal opname dan jumlah hasil.
+- **Inferensi** — tampilkan saldo dan riwayat mutasi berdasarkan barang/periode.
+- **NEEDS CONFIRMATION** — saldo negatif, valuasi, gudang/lokasi, lot, posting/cancel, otorisasi adjustment, jadwal stock opname dan rekonsiliasi selisih.
+
+## E. Produksi dan pengiriman
+
+- **Terlihat** — tampilkan order bahan baku/penolong, penerimaan bahan dari gudang, pemakaian nonproduksi, retur ke gudang, hasil cutting/sewing/packing, barang jadi, surat jalan, approval surat jalan, WIP dan kartu stok barang jadi.
+- **Terlihat** — laporan rencana produksi/status harian mengaitkan buyer/dokumen, style/kode barang, jumlah order, jumlah reject dan jumlah per tahap (cutting/sewing/finishing/delivery).
+- **Inferensi** — setiap tahap perlu merujuk order atau planning agar laporan produksi dapat menggabungkan jumlah tahap.
+- **NEEDS CONFIRMATION** — aturan kuantitas baik/reject, unit hasil antar tahap, rework, WIP posting, order closing, pengiriman parsial dan apakah `packing` sama dengan `finish good`.
+
+## F. Subkontrak, scrap, aset
+
+- **Terlihat** — catat kontrak subkon berisi subkon, nomor kontrak/BC, keterangan, periode dan kuota; tersedia transaksi pengeluaran bahan/WIP dan penerimaan serta monitoring.
+- **Terlihat** — catat scrap masuk/keluar dan mesin/peralatan masuk/keluar Kaber, termasuk kartu stok.
+- **NEEDS CONFIRMATION** — arti Kaber, asal dan tujuan scrap/aset, satuan kuota, pengurangan kuota, pelaporan kehilangan/kerusakan, persetujuan dan kebutuhan nilai aset.
+
+## G. Bea Cukai dan laporan
+
+- **Terlihat** — sediakan daftar dokumen BC masuk 2.3/2.6.2/2.7/4.0/2.0 dan BC keluar 3.0/2.6.1/2.7/4.1/2.5. Tabel menampilkan identitas dokumen, mitra, barang, jumlah/satuan, nilai/mata uang serta HS Code pada beberapa tipe.
+- **Terlihat** — laporan pemasukan/pengeluaran dapat difilter periode dan jenis, ekspor ke Excel; laporan mutasi menampilkan saldo awal, masuk, keluar, adjustment, saldo akhir, pencacahan dan selisih.
+- **Terlihat** — laporan mencakup WIP, barang jadi, barang modal/lain, reject/scrap/waste, rencana dan status produksi harian, retur supplier/gudang/barang jadi, histori user.
+- **NEEDS CONFIRMATION** — format legal/export resmi, field wajib tiap jenis BC, sumber No Aju/HS, rekonsiliasi dengan sistem eksternal, pembatasan edit, retensi dan rincian audit.
+
+## Kriteria penerimaan konseptual
+
+- Daftar dan detail untuk setiap modul dapat ditelusuri ke sumber datanya.
+- Perubahan stok dapat direkonsiliasi terhadap dokumen sumber dan jejak pengguna.
+- Approval menampilkan status dan identitas/waktu persetujuan.
+- Laporan periode dapat ditelusuri ke baris transaksi dan hasil ekspor konsisten dengan filter yang ditampilkan.
+- Kriteria rinci harus ditulis setelah jawaban untuk semua `NEEDS CONFIRMATION` yang memengaruhi data, saldo, dokumen pabean atau approval.
