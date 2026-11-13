@@ -128,6 +128,17 @@ class MaterialRequestController extends Controller
 
         return DataTables::eloquent($query->builder($filters['from_date'] ?? null, $filters['to_date'] ?? null))
             ->addColumn('requester_name', fn (MaterialRequest $request) => $request->requester?->name ?? __('ui.workflow.deleted_user'))
+            ->addColumn('buyer_po_number', fn (MaterialRequest $request) => $request->productionOrder?->buyer_po_number ?: '—')
+            ->addColumn('product_label', function (MaterialRequest $request) {
+                $product = $request->productionOrder?->outputProduct ?? $request->outputProduct;
+
+                return $product ? trim($product->code . ' — ' . $product->name, ' —') : '—';
+            })
+            ->addColumn('production_quantity_display', function (MaterialRequest $request) {
+                $quantity = $request->productionOrder?->planned_quantity ?? $request->production_quantity;
+
+                return $quantity === null ? '—' : number_format((float) $quantity, 4, ',', '.');
+            })
             ->addColumn('items_count', fn (MaterialRequest $request) => $request->items_count)
             ->addColumn('status_label', fn (MaterialRequest $request) => match ($request->status) {
                 'approved' => '<span class="badge bg-success">' . __('ui.workflow.approval_approved') . '</span>',
@@ -140,18 +151,20 @@ class MaterialRequestController extends Controller
                 default => '<span class="badge bg-secondary">' . __('ui.workflow.not_processed') . '</span>',
             })
             ->addColumn('actions', function (MaterialRequest $request) {
-                $buttons = '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-request" data-url="' . e(route('super.material-requests.show', $request)) . '" title="' . e(__('ui.workflow.view_detail')) . '"><i data-feather="eye"></i></button>';
+                $detailUrl = e(route('super.material-requests.show', $request));
+                $buttons = '<div class="d-inline-flex align-items-center justify-content-end gap-2 text-nowrap">'
+                    . '<button type="button" class="btn btn-link btn-sm p-0 text-secondary btn-view-request" data-url="' . $detailUrl . '" title="' . e(__('ui.workflow.view_detail')) . '" aria-label="' . e(__('ui.workflow.view_detail')) . '"><i data-feather="eye" class="icon-sm"></i></button>';
                 $remaining = (float) $request->items_total_quantity - (float) $request->items_issued_quantity;
                 if ($request->status === 'approved' && $remaining > 0.0000001 && auth()->user()->can('material-requests.issue')) {
-                    $buttons .= ' <button type="button" class="btn btn-sm btn-success btn-view-request btn-issue-request" data-url="' . e(route('super.material-requests.show', $request)) . '" title="' . e(__('ui.workflow.issue_materials')) . '">' . e(__('ui.workflow.issue_materials')) . '</button>';
+                    $buttons .= '<button type="button" class="btn btn-link btn-sm p-0 text-success btn-view-request btn-issue-request" data-url="' . $detailUrl . '" title="' . e(__('ui.workflow.issue_materials')) . '" aria-label="' . e(__('ui.workflow.issue_materials')) . '"><i data-feather="corner-up-right" class="icon-sm"></i></button>';
                 }
-                $buttons .= ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.material-requests.pdf', $request)) . '" target="_blank" rel="noopener" title="' . e(__('ui.workflow.view_pdf')) . '"><i data-feather="file-text"></i></a>';
-                $buttons .= ' <a class="btn btn-sm btn-outline-secondary" href="' . e(route('super.material-requests.pdf.download', $request)) . '" title="' . e(__('ui.workflow.download_pdf')) . '"><i data-feather="download"></i></a>';
+                $buttons .= '<a class="btn btn-link btn-sm p-0 text-primary" href="' . e(route('super.material-requests.pdf', $request)) . '" target="_blank" rel="noopener" title="' . e(__('ui.workflow.view_pdf')) . '" aria-label="' . e(__('ui.workflow.view_pdf')) . '"><i data-feather="file-text" class="icon-sm"></i></a>'
+                    . '<a class="btn btn-link btn-sm p-0 text-secondary" href="' . e(route('super.material-requests.pdf.download', $request)) . '" title="' . e(__('ui.workflow.download_pdf')) . '" aria-label="' . e(__('ui.workflow.download_pdf')) . '"><i data-feather="download" class="icon-sm"></i></a>';
                 if ($request->status === 'pending' && auth()->user()->can('material-requests.approve')) {
-                    $buttons .= ' <button type="button" class="btn btn-sm btn-success btn-review-request" data-status="approved" data-url="' . e(route('super.material-requests.approve', $request)) . '" title="' . e(__('ui.workflow.approve')) . '"><i data-feather="check"></i></button>';
-                    $buttons .= ' <button type="button" class="btn btn-sm btn-outline-danger btn-review-request" data-status="rejected" data-url="' . e(route('super.material-requests.reject', $request)) . '" title="' . e(__('ui.workflow.reject')) . '"><i data-feather="x"></i></button>';
+                    $buttons .= '<button type="button" class="btn btn-link btn-sm p-0 text-success btn-review-request" data-status="approved" data-url="' . e(route('super.material-requests.approve', $request)) . '" title="' . e(__('ui.workflow.approve')) . '" aria-label="' . e(__('ui.workflow.approve')) . '"><i data-feather="check" class="icon-sm"></i></button>'
+                        . '<button type="button" class="btn btn-link btn-sm p-0 text-danger btn-review-request" data-status="rejected" data-url="' . e(route('super.material-requests.reject', $request)) . '" title="' . e(__('ui.workflow.reject')) . '" aria-label="' . e(__('ui.workflow.reject')) . '"><i data-feather="x" class="icon-sm"></i></button>';
                 }
-                return $buttons;
+                return $buttons . '</div>';
             })
             ->rawColumns(['status_label', 'purchase_status_label', 'actions'])
             ->toJson();

@@ -8,7 +8,7 @@ Ini adalah model konseptual dari layar, bukan skema final. Nama tabel, kardinali
 |---|---|---|
 | Akses | users, roles/permissions, departments, positions | User memiliki jabatan/departemen/atasan; memiliki hak akses; transaksi menyimpan pembuat/pengubah |
 | Referensi | importers, exporters, suppliers, customers, styles, units, item_categories, items | Importer/exporter/supplier/customer dirujuk dokumen; barang memiliki kategori/satuan/style (style tampak opsional pada beberapa jenis) |
-| BOM & pembelian | bom_headers, bom_items, material_orders, material_order_items, purchase_orders, purchase_order_items | BOM berisi komponen barang dan pemakaian; MO/PO berisi item/barang, jumlah, tanggal dan pihak/nomor buyer |
+| BOM & pembelian | bom_headers, bom_items, production_orders (dipakai sebagai baris Material Order), production_order_materials, purchase_orders, purchase_order_items | Setiap baris MO menunjuk satu item Finished Goods dan snapshot BOM; nomor MO mengelompokkan beberapa baris dengan header sama |
 | Penerimaan | goods_receipts (GRN), goods_receipt_items, receipt_approvals | Header punya nomor/tanggal, PO/MO, supplier, invoice; detail punya item dan kuantitas; approval merujuk dokumen dan user |
 | BC masuk/keluar | customs_documents, customs_document_items (atau tipe dokumen terpisah) | Dokumen berisi tipe BC, No Aju, No/Tgl daftar, referensi receipt/delivery, mitra, HS code, item, kuantitas, nilai, mata uang/faktur |
 | Gudang | inventory_transactions, inventory_transaction_items, stock_balances atau ledger-derived balance, stock_counts, stock_count_items | Transaksi masuk/keluar/transfer/retur/adjustment; item mengacu barang, lokasi/gudang dan satuan; hasil pencacahan dibanding saldo buku |
@@ -45,6 +45,12 @@ Tabel `importers` memiliki `id`, `tax_number` (NPWP), `name`, `address`, `apip`,
 ## Hubungan minimum
 
 `item` → detail penerimaan/pengeluaran/BC/produksi/retur → `inventory_transaction` → laporan saldo. `supplier/customer` dan `user` menghubungkan header dokumen; `BOM` dan `style` mendukung perencanaan; `subcontract_contract` mengikat issue dan receipt subkon. Kardinalitas final tetap perlu dikonfirmasi.
+
+### Material Order
+
+Tabel `production_orders` dipakai sebagai baris Material Order untuk menjaga kompatibilitas Material Request/tahap produksi. Header per baris: `number` (diisi dari form; tidak unik karena satu MO memuat beberapa item), `po_date`, `due_date`, `buyer_po_number`, `no_cbd`, `currency`, `destination`, dan `customer_id`. Detail per baris: `output_product_id`, `planned_quantity`, `price_per_unit`, `total_price` (Qty × harga satuan), dan `description`. Style/kode/nama/satuan dibaca dari master item. BOM aktif memasok snapshot material per baris MO untuk Material Request. Migration `2026_11_13_000015_add_material_order_reference_fields` menambahkan field form dan mengubah indeks nomor MO agar bisa berulang.
+
+Migration `2026_11_13_000014_convert_production_orders_to_material_orders` menghapus data Production Order lama, melepaskan foreign key dari Material Request lama, dan menghapus catatan tahap lama setelah melepas tautan stage dari stock movements. Material Request dan ledger mutasi stok tetap dipertahankan. Form edit/hapus baris ditolak bila baris itu telah dipakai Material Request atau tahap produksi; edit header diselaraskan ke baris lain bernomor MO sama.
 
 
 ### Exportir yang telah diimplementasikan

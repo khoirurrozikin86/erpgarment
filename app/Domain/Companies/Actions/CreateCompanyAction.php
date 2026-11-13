@@ -43,10 +43,6 @@ class CreateCompanyAction
                     'prefix' => 'MR',
                 ],
                 [
-                    'document_type' => 'production_order',
-                    'prefix' => 'WO',
-                ],
-                [
                     'document_type' => 'purchase_request',
                     'prefix' => 'PR',
                 ],

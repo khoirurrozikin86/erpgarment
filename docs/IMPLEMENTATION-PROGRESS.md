@@ -2,6 +2,16 @@
 
 Pengerjaan dilakukan satu modul per instruksi. Tidak ada coding modul berikutnya sebelum pengguna memberikan arahan.
 
+## 2026-11-13 — Material Order (MO)
+
+- **Status:** implementasi CRUD selesai; migration perlu dijalankan pada environment aplikasi.
+- **Referensi lanjutan:** form MO kini mengikuti field No MO manual, tanggal MO, Due Date, No CBD, PO Buyer, Currency, Destination, Buyer; detail Finished Good: Item Code/Search, Item Name, Unit, Style, Qty, Price Per Unit, Total Price, Description. Picker item memakai DataTable.
+- **Perubahan:** layar/menu Production Order diganti menjadi Material Order dan dipindahkan ke PPIC. Satu baris menyimpan satu Finished Good; beberapa baris berbagi nomor MO dan header. Total dihitung dari qty × harga satuan. BOM aktif menghasilkan snapshot kebutuhan Material Request.
+- **Perlindungan relasi:** edit/hapus ditolak setelah ada Material Request atau catatan tahap. Migration menghapus baris Production Order/material/stage lama, melepaskan referensi Material Request lama, dan melepas referensi stage dari stock movements sebelum membersihkan stage; request dan mutasi stok historis tidak dihapus.
+- **Test:** `MaterialOrderTest` — **lulus**, 1 test / 16 assertion; mencakup form, beberapa baris bernomor MO sama, sinkronisasi header, CRUD, total harga, dan audit log.
+- **NEEDS CONFIRMATION:** aturan wajib/unik PO Buyer, CBD, currency/destination, harga dan pajak. Tanggal MO dan tempo wajib pada implementasi.
+- **Jalankan:** `php artisan migrate` untuk membersihkan data Production Order lama (migration 000014), lalu menambah field MO dan mengizinkan nomor MO berulang (migration 000015).
+
 ## 2026-11-13 — Master Importir
 
 - **Status:** selesai untuk scope CRUD master.
@@ -143,3 +153,48 @@ Pengerjaan dilakukan satu modul per instruksi. Tidak ada coding modul berikutnya
 - Halaman Audit Log sebelumnya hanya menyediakan opsi filter modul AUTH/USER/ROLE/PERMISSION/SETTING dan rentang tanggal default hari ini. Ini membuat log master yang bermodul UNIT/CATEGORY/STYLE/SUPPLIER/CUSTOMER sulit ditemukan atau tersembunyi.
 - Opsi modul dan aksi sekarang diambil dari nilai yang tersedia di audit log, serta rentang tanggal awalnya kosong agar semua histori terlihat sampai filter dipilih.
 - **Verifikasi:** seluruh test pada `tests/Feature/Audit` dan `ImporterTest` lulus.
+
+## 2026-11-13 — Penyesuaian BOM berdasarkan Finished Goods dan Style
+
+- Daftar BOM kini mengambil Item aktif dengan kategori berkode `FG` atau bernama `Finished Goods`, yang sudah memiliki `style_code`; kolom menampilkan Style, Item Code, Finished Goods, dan Unit sesuai referensi.
+- Tombol Input membuka BOM untuk Item tersebut, sedangkan Detail menampilkan daftar material/support, unit, consumption per PCS, scrap (%), dan pembuat. Item Finished Goods tidak dapat dipilih sebagai material BOM.
+- Field Span ditambahkan pada detail material lewat migration `2026_11_13_000012_add_span_to_bill_of_material_items`; nilai data lama default 0.
+- **Verifikasi:** Audit feature tests lulus, Blade view cache berhasil, dan file PHP terkait lolos lint. Suite penuh masih memiliki kegagalan lama di route `dashboard` dan partial profile; selain itu satu assertion test filter Audit diperbarui mengikuti default tanggal hari ini.
+
+## 2026-11-13 — Form Input BOM dan Modal Material
+
+- Form Input BOM disederhanakan: field version, nama BOM, status, output quantity, tanggal efektif, dan catatan tidak lagi ditampilkan. Backend mengisi default internal, sementara status/versi BOM lama tetap dipertahankan ketika material diperbarui.
+- Material dipilih melalui modal pencarian yang memuat semua Item stok aktif; item terpilih tampil sebagai tabel berisi kode/nama, unit, consumption per PCS, span, dan scrap. Komponen lama tetap mempertahankan metadata internal operation/notes saat diedit.
+- Verifikasi: Blade cache dan lint berhasil; test Audit terkait tetap lulus.
+
+## 2026-11-13 — DataTable Modal dan Aksi Edit/Hapus BOM
+
+- Pemilih item pada modal BOM memakai DataTable dengan pencarian, pagination, dan pilihan 5/10/25/50 baris; item yang sudah dipilih dinonaktifkan dan item finished-good saat ini tidak dapat dipilih sebagai komponennya sendiri.
+- Daftar BOM kini menyediakan Detail, Edit, dan Hapus untuk BOM yang sudah ada. Halaman Detail menyediakan Edit BOM dan aksi Hapus untuk setiap rincian material.
+- BOM hanya dapat dihapus jika belum direferensikan Production Order atau Material Request; penghapusan BOM yang diizinkan menghapus rincian melalui relasi cascade.
+- Verifikasi: Blade cache, PHP lint, route list, dan `git diff --check`.
+
+## 2026-11-13 — Penyelarasan UI DataTable BOM
+
+- Daftar Finished Goods BOM dan rincian material memakai DataTable dengan pencarian, pagination, jumlah baris, nomor urut per halaman, dan label Bahasa Indonesia.
+- Card, header tabel, batas baris, filter, dan tombol diselaraskan ke gaya soft: card putih dengan shadow ringan, header table muted, serta tombol aksi kecil ber-outline.
+- Modal pemilih material tetap memakai DataTable dengan pagination agar daftar panjang tidak memenuhi modal.
+- Verifikasi Blade cache dan lint berhasil. Suite penuh: 38 lulus, 6 gagal di test lama terkait route `dashboard` dan syntax error halaman profile.
+
+## 2026-11-13 — Export BOM
+
+- Tombol Export Excel ditambahkan pada daftar BOM, memakai permission `boms.view`.
+- Isi ekspor satu baris per material BOM produk Finished Goods, dengan kolom NO, STYLE, KODE PRODUK, NAMA PRODUK, SATUAN PRODUK, KODE BAHAN, NAMA BAHAN, SATUAN BAHAN, KONSUMSI, SPAN, SCRAP, USER INPUT.
+- Verifikasi route export, Blade cache, PHP lint, dan `git diff --check` berhasil.
+
+## 2026-11-13 — Bahasa dan Pagination DataTable BOM
+
+- DataTable daftar BOM, rincian, dan modal material sekarang mewarisi bahasa DataTable global dari layout (Indonesia/Inggris) alih-alih label hardcoded Indonesia.
+- Opsi jumlah baris disamakan menjadi 5, 10, 50, dan 100 agar kontrol Show/page konsisten di ketiga tabel BOM.
+- Verifikasi: Blade cache dan `git diff --check` berhasil.
+
+## 2026-11-13 — Penyelarasan Tampilan Material Order
+
+- Filter tanggal MO dipisahkan di atas card tabel dan memakai komponen filter yang sama dengan Material Request; default tanggal dan aksi Hari Ini mengikuti komponen tersebut.
+- Header card DataTable MO dihilangkan agar tabel lebih ringkas. Aksi edit/hapus dipindahkan ke dropdown tiga titik sesuai pola Unit.
+- Verifikasi: Blade view cache berhasil.

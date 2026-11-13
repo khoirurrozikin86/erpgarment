@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BillOfMaterialItem extends Model
 {
-    protected $fillable = ['bill_of_material_id', 'product_id', 'quantity', 'wastage_percent', 'operation', 'notes'];
+    protected $fillable = ['bill_of_material_id', 'product_id', 'quantity', 'span', 'wastage_percent', 'operation', 'notes'];
 
     protected function casts(): array
     {
-        return ['quantity' => 'decimal:4', 'wastage_percent' => 'decimal:3'];
+        return ['quantity' => 'decimal:4', 'span' => 'decimal:4', 'wastage_percent' => 'decimal:3'];
     }
 
     public function billOfMaterial(): BelongsTo { return $this->belongsTo(BillOfMaterial::class); }

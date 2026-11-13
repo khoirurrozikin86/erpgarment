@@ -42,13 +42,16 @@
                                     <th width="50">{{ __('ui.common.no') }}</th>
                                     <th>{{ __('ui.common.number') }}</th>
                                     <th>{{ __('ui.common.request_date') }}</th>
+                                    <th>{{ __('ui.workflow.buyer_po_no') }}</th>
+                                    <th>{{ __('ui.workflow.bom_product') }}</th>
+                                    <th class="text-end">{{ __('ui.workflow.production_quantity') }}</th>
                                     <th>{{ __('ui.common.requester') }}</th>
                                     <th>{{ __('ui.common.department') }}</th>
                                     <th>{{ __('ui.common.needed_date') }}</th>
                                     <th>{{ __('ui.common.item_count') }}</th>
                                     <th>{{ __('ui.workflow.approval') }}</th>
                                     <th>{{ __('ui.common.purchasing_progress') }}</th>
-                                    <th width="240">{{ __('ui.common.action') }}</th>
+                                    <th width="130" class="text-end">{{ __('ui.common.action') }}</th>
                                 </tr>
                             </thead>
                         </table>
@@ -236,7 +239,7 @@
                     const orderId = $('#source_production_order').val();
                     if (!orderId) { Swal.fire({icon: 'warning', title: '{{ __('ui.workflow.failure') }}', text: '{{ __('ui.workflow.choose_production_order') }}'}); return; }
                     const button = $(this).prop('disabled', true);
-                    $.get(@json(route('super.material-requests.index')) + `/production-orders/${orderId}/requirements`)
+                    $.get(@json(route('super.material-requests.index')) + `/material-orders/${orderId}/requirements`)
                         .done(result => {
                             $('#request-items').empty(); itemIndex = 0;
                             result.items.forEach(item => addItemRow(item));
@@ -247,7 +250,7 @@
                             $('#request_production_quantity').val(result.production_quantity);
                             $('#bom_output_product').val(result.output_product_id);
                             $('#production_quantity_input').val(result.production_quantity);
-                            $('#bom-generation-summary').text(`${@json(__('ui.workflow.production_order'))} ${result.production_order_number} — ${result.output_product} — BOM v${result.bom_version}`);
+                            $('#bom-generation-summary').text(`${@json(__('ui.workflow.material_order'))} ${result.production_order_number} — ${result.output_product} — BOM v${result.bom_version}`);
                             bomGenerated = true;
                         })
                         .fail(xhr => Swal.fire({icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: xhr.responseJSON?.message || '{{ __('ui.workflow.production_order_materials_failed') }}'}))
@@ -313,13 +316,16 @@
                     { data: 'id', orderable: false, searchable: false, render: (data, type, row, meta) => meta.row + meta.settings._iDisplayStart + 1 },
                     { data: 'number', name: 'number' },
                     { data: 'created_at', name: 'created_at', render: data => data ? new Date(data).toLocaleString('id-ID') : '—' },
+                    { data: 'buyer_po_number', orderable: false, searchable: false, defaultContent: '—' },
+                    { data: 'product_label', orderable: false, searchable: false, defaultContent: '—' },
+                    { data: 'production_quantity_display', orderable: false, searchable: false, className: 'text-end', defaultContent: '—' },
                     { data: 'requester_name', name: 'requester_name', orderable: false, searchable: false },
                     { data: 'department', name: 'department', defaultContent: '—' },
                     { data: 'needed_at', name: 'needed_at', defaultContent: '—', render: data => data ? new Date(data).toLocaleDateString('id-ID') : '—' },
                     { data: 'items_count', orderable: false, searchable: false, className: 'text-center' },
                     { data: 'status_label', name: 'status', searchable: false },
                     { data: 'purchase_status_label', name: 'purchase_status', searchable: false },
-                    { data: 'actions', orderable: false, searchable: false, className: 'text-center' }
+                    { data: 'actions', orderable: false, searchable: false, className: 'text-end' }
                 ],
                 order: [[1, 'desc']],
                 drawCallback: function() { if (window.feather) feather.replace(); }

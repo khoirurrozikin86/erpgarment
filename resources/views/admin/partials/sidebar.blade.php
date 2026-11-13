@@ -89,9 +89,12 @@
             @endcan
 
             {{-- PPIC berisi perencanaan/pengadaan dan bukan master data. --}}
-            @canany(['stock-opnames.view', 'material-requests.view', 'purchase-requests.view', 'purchase-orders.view'])
+            @canany(['production-orders.view', 'stock-opnames.view', 'material-requests.view', 'purchase-requests.view', 'purchase-orders.view'])
                 <li class="nav-item nav-category">{{ __('ui.nav.ppic') }}</li>
             @endcanany
+            @can('production-orders.view')
+                <li class="nav-item"><a href="{{ route('super.material-orders.index') }}" class="nav-link {{ request()->routeIs('super.material-orders.*') ? 'active' : '' }}"><i class="link-icon" data-feather="clipboard"></i><span class="link-title">{{ __('ui.workflow.material_order') }}</span></a></li>
+            @endcan
             @can('material-requests.view')
                 <li class="nav-item"><a href="{{ route('super.material-requests.index') }}" class="nav-link {{ request()->routeIs('super.material-requests.*') ? 'active' : '' }}"><i class="link-icon" data-feather="clipboard"></i><span class="link-title">{{ __('ui.nav.material_requests') }}</span></a></li>
             @endcan
@@ -120,13 +123,6 @@
             @endcan
             @can('stock-card.view')
                 <li class="nav-item"><a href="{{ route('super.stock-card.index') }}" class="nav-link {{ request()->routeIs('super.stock-card.*') ? 'active' : '' }}"><i class="link-icon" data-feather="layers"></i><span class="link-title">{{ __('ui.nav.stock_card') }}</span></a></li>
-            @endcan
-            {{-- Referensi: produksi. Halaman BC, scrap/mesin dan subkon belum tersedia di project. --}}
-            @canany(['production-orders.view'])
-                <li class="nav-item nav-category">{{ __('ui.nav.production') }}</li>
-            @endcanany
-            @can('production-orders.view')
-                <li class="nav-item"><a href="{{ route('super.production-orders.index') }}" class="nav-link {{ request()->routeIs('super.production-orders.*') ? 'active' : '' }}"><i class="link-icon" data-feather="clipboard"></i><span class="link-title">{{ __('ui.workflow.production_order') }}</span></a></li>
             @endcan
             @canany(['chart-of-accounts.view', 'journal.view', 'account-payable.view', 'cash-bank.view'])
                 <li class="nav-item nav-category">{{ __('ui.nav.accounting') }}</li>

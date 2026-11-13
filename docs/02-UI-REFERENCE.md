@@ -25,6 +25,15 @@
 - Font monospace digunakan luas. Tabel memiliki header abu-abu, garis kisi tipis, sorting, input `Search`, pilihan jumlah record, dan pagination.
 - Warna aksi yang tampak: biru untuk tambah/detail/edit/tampilkan, merah untuk hapus/cancel, abu-abu untuk cetak, hijau untuk ekspor atau status disetujui. Fungsi ikon perlu label aksesibel.
 
+## Material Order (MO) — image22
+
+- Filter tanggal PO dari–sampai dengan tombol `Tampilkan Data`; tombol `Administrasi Data` membuka pengelolaan transaksi.
+- Tabel daftar awal: No, Aksi (edit/hapus), PO Buyer, No MO, Tgl PO, Tanggal Tempo, Buyer, Style, Kode Barang, Nama Barang, Satuan, Jumlah.
+- Form pada screenshot lanjutan: No MO dan tanggal MO, Due Date, No CBD, No PO Buyer, Currency, Destination, Buyer. Bagian Detail Finished Good memuat Item Code dengan tombol Search, Item Name, Unit, Style, Qty, Price Per Unit, Total Price, Description, dan tombol Save.
+- Tabel detail barang jadi: No, Action, Product Code, Item Name, Unit, Qty, Price Per Unit, Total Price, Description. No MO tampak sebagai input manual; mata uang contoh adalah USD.
+- Implementasi memilih Item kategori Finished Goods lewat DataTable; kode/nama/unit/Style dibaca dari master. Total harga dihitung dari Qty × Price Per Unit. Satu baris detail disimpan per item; beberapa baris dapat menggunakan nomor MO sama.
+- Wajib/tidaknya PO Buyer, No CBD, dan Destination serta pilihan Currency yang diizinkan **NEEDS CONFIRMATION**.
+
 ## Komponen menurut pola layar
 
 | Pola | Yang tampak | Referensi |

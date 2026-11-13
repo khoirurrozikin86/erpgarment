@@ -20,7 +20,11 @@ Label **Terlihat** berasal langsung dari menu/form/tabel pada screenshot; **Infe
 
 ## C. Pengadaan dan penerimaan
 
-- **Terlihat** — tampilkan MO dan PO menurut rentang tanggal, mitra, nomor dokumen dan item; daftar PO supplier menyediakan detail, cetak, edit/hapus.
+- **Terlihat** — Form MO berisi No MO, tanggal, Due Date, No CBD, PO Buyer, Currency, Destination, Buyer; detail Finished Good berisi Item Code/Search, Item Name, Unit, Style, Qty, Price Per Unit, Total Price, Description. Detail tabel memiliki aksi edit/hapus.
+- **Diimplementasikan (2026-11-13)** — CRUD MO mengikuti tabel image22 dan form lanjutan. Item dipilih lewat DataTable dari kategori Finished Goods; total harga dihitung dari Qty × Price Per Unit. Setiap baris menyimpan satu item dan baris bisa memakai nomor MO yang sama. BOM aktif menghasilkan snapshot kebutuhan Material Request.
+- **Diimplementasikan (2026-11-13)** — Daftar Material Request menampilkan PO Buyer, produk hasil, dan kuantitas produksi dari MO yang tertaut (atau snapshot produk/kuantitas BOM bila dibuat tanpa MO). Aksi detail, issue, PDF, approval, dan reject ditampilkan sebagai tombol ringkas di setiap baris.
+- **NEEDS CONFIRMATION** — kewajiban/keunikan No PO Buyer dan No CBD, daftar mata uang, kebutuhan Destination, serta aturan harga/pajak dan validasi tanggal.
+- **Terlihat** — tampilkan PO supplier menurut rentang tanggal, mitra, nomor dokumen dan item; daftar PO supplier menyediakan detail, cetak, edit/hapus.
 - **Terlihat** — `Cek Pesanan Pembelian` membedakan status Belum Selesai/Selesai dan menyediakan detail.
 - **Terlihat** — catat penerimaan/GRN dan baris barang; layar menunjukkan supplier, invoice, MO/PO dan nomor/tanggal GRN.
 - **Terlihat** — GRN approval menampilkan status, approver dan timestamp, dengan aksi Detail/Cancel.

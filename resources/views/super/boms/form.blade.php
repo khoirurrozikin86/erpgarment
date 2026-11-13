@@ -1,43 +1,133 @@
 @extends('layouts.admin')
 @section('title', $bom->exists ? __('ui.workflow.bom_edit') : __('ui.workflow.bom_create'))
-@section('breadcrumb')<nav class="page-breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ route('super.boms.index') }}">{{ __('ui.workflow.bom_title') }}</a></li><li class="breadcrumb-item active">{{ $bom->exists ? __('ui.workflow.bom_edit') : __('ui.workflow.bom_create') }}</li></ol></nav>@endsection
+@section('breadcrumb')
+<nav class="page-breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ route('super.boms.index') }}">{{ __('ui.workflow.bom_title') }}</a></li><li class="breadcrumb-item active">{{ $bom->exists ? __('ui.workflow.bom_edit') : __('ui.workflow.bom_create') }}</li></ol></nav>
+@endsection
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-3"><div><h4 class="page-title mb-1">{{ $bom->exists ? __('ui.workflow.bom_edit') : __('ui.workflow.bom_create') }}</h4><p class="text-muted mb-0">{{ __('ui.workflow.bom_subtitle') }}</p></div><a href="{{ route('super.boms.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('ui.workflow.bom_cancel') }}</a></div>
+@php
+    $finishedGood = $finishedGoods->firstWhere('id', old('product_id', $bom->product_id));
+    $oldComponents = old('items', $components->map(fn ($row) => [
+        'product_id' => $row->product_id,
+        'quantity' => $row->quantity,
+        'span' => $row->span,
+        'wastage_percent' => $row->wastage_percent,
+        'operation' => $row->operation,
+        'notes' => $row->notes,
+    ])->all());
+    $itemOptions = $products->reject(fn ($item) => $item->id === $finishedGood?->id)->map(fn ($item) => [
+        'id' => $item->id,
+        'code' => $item->code,
+        'name' => $item->name,
+        'unit' => $item->unit?->symbol ?: $item->unit?->name,
+    ])->values();
+@endphp
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div><h4 class="page-title mb-1">Input BOM Material</h4><p class="text-muted mb-0">{{ $finishedGood?->style_code }} · {{ $finishedGood?->code }} — {{ $finishedGood?->name }}</p></div>
+    <a href="{{ route('super.boms.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('ui.workflow.bom_cancel') }}</a>
+</div>
 @if($errors->any())<div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
 <form method="POST" action="{{ $bom->exists ? route('super.boms.update', $bom) : route('super.boms.store') }}">
-@csrf @if($bom->exists)@method('PUT')@endif
-<div class="card mb-3"><div class="card-header"><strong>{{ __('ui.workflow.bom_title') }}</strong></div><div class="card-body"><div class="row g-3">
-<div class="col-md-6"><label class="form-label">{{ __('ui.workflow.bom_product') }} <span class="text-danger">*</span></label><select name="product_id" class="form-select" required><option value="">{{ __('ui.workflow.bom_choose_product') }}</option>@foreach($products as $product)<option value="{{ $product->id }}" @selected(old('product_id', $bom->product_id) == $product->id)>{{ $product->code }} — {{ $product->name }} ({{ ($product->garment_item_type === 'general' ? __('ui.common.general') : __('ui.workflow.'.$product->garment_item_type)) }})</option>@endforeach</select></div>
-<div class="col-md-2"><label class="form-label">{{ __('ui.workflow.bom_version') }} *</label><input name="version" class="form-control" maxlength="30" value="{{ old('version', $bom->version ?: '1') }}" required></div>
-<div class="col-md-4"><label class="form-label">{{ __('ui.workflow.bom_name') }}</label><input name="name" class="form-control" maxlength="150" value="{{ old('name', $bom->name) }}"></div>
-<div class="col-md-3"><label class="form-label">{{ __('ui.workflow.bom_output_qty') }} *</label><input name="output_quantity" type="number" min="0.0001" step="0.0001" class="form-control" value="{{ old('output_quantity', $bom->output_quantity ?: 1) }}" required></div>
-<div class="col-md-3"><label class="form-label">{{ __('ui.workflow.bom_status') }} *</label><select name="status" class="form-select" required>@foreach(['draft','active','inactive'] as $status)<option value="{{ $status }}" @selected(old('status', $bom->status ?: 'draft') === $status)>{{ __('ui.workflow.bom_'.$status) }}</option>@endforeach</select></div>
-<div class="col-md-3"><label class="form-label">{{ __('ui.workflow.bom_effective_from') }}</label><input type="date" name="effective_from" class="form-control" value="{{ old('effective_from', $bom->effective_from?->format('Y-m-d')) }}"></div>
-<div class="col-md-3"><label class="form-label">{{ __('ui.workflow.bom_effective_until') }}</label><input type="date" name="effective_until" class="form-control" value="{{ old('effective_until', $bom->effective_until?->format('Y-m-d')) }}"></div>
-<div class="col-12"><label class="form-label">{{ __('ui.workflow.bom_notes') }}</label><textarea name="notes" class="form-control" rows="2">{{ old('notes', $bom->notes) }}</textarea></div>
-</div></div></div>
-<div class="card mb-3"><div class="card-header d-flex justify-content-between align-items-center"><strong>{{ __('ui.workflow.bom_components') }}</strong><button class="btn btn-sm btn-outline-primary" id="addBomComponent" type="button"><i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.workflow.bom_add_component') }}</button></div><div class="card-body"><div id="bomComponents" class="vstack gap-3">
-@php $oldComponents=old('items', $components->map(fn($row)=>['product_id'=>$row->product_id,'quantity'=>$row->quantity,'wastage_percent'=>$row->wastage_percent,'operation'=>$row->operation,'notes'=>$row->notes])->all()); @endphp
-@foreach($oldComponents as $i=>$row)
-<div class="row g-2 align-items-end bom-component-row">
-<div class="col-md-4"><label class="form-label">{{ __('ui.workflow.bom_component') }} *</label><select name="items[{{ $i }}][product_id]" class="form-select" required><option value="">{{ __('ui.workflow.bom_choose_component') }}</option>@foreach($products as $product)<option value="{{ $product->id }}" @selected(($row['product_id'] ?? '') == $product->id)>{{ $product->code }} — {{ $product->name }}</option>@endforeach</select></div>
-<div class="col-md-2"><label class="form-label">{{ __('ui.workflow.bom_qty') }} *</label><input name="items[{{ $i }}][quantity]" type="number" min="0.0001" step="0.0001" class="form-control" value="{{ $row['quantity'] ?? '' }}" required></div>
-<div class="col-md-2"><label class="form-label">{{ __('ui.workflow.bom_wastage') }}</label><input name="items[{{ $i }}][wastage_percent]" type="number" min="0" max="100" step="0.001" class="form-control" value="{{ $row['wastage_percent'] ?? 0 }}"></div>
-<div class="col-md-3"><label class="form-label">{{ __('ui.workflow.bom_operation') }}</label><input name="items[{{ $i }}][operation]" maxlength="40" class="form-control" placeholder="{{ __('ui.workflow.bom_operation_placeholder') }}" value="{{ $row['operation'] ?? '' }}"></div>
-<div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-bom-component w-100" aria-label="{{ __('ui.workflow.bom_remove_component') }}">×</button></div>
-<div class="col-12"><input name="items[{{ $i }}][notes]" maxlength="1000" class="form-control form-control-sm" placeholder="{{ __('ui.workflow.bom_notes') }}" value="{{ $row['notes'] ?? '' }}"></div>
-</div>
-@endforeach
-</div></div></div>
-<div class="d-flex justify-content-end gap-2"><a href="{{ route('super.boms.index') }}" class="btn btn-outline-secondary">{{ __('ui.workflow.bom_cancel') }}</a><button class="btn btn-primary" type="submit">{{ __('ui.workflow.bom_save') }}</button></div>
+    @csrf @if($bom->exists)@method('PUT')@endif
+    <input type="hidden" name="product_id" value="{{ old('product_id', $bom->product_id) }}">
+    <div class="card border-0 shadow-sm bom-card">
+        <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3"><div><h6 class="mb-0">Material / Support</h6><small class="text-muted">Pilih item, lalu isi konsumsi per produk</small></div><button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#bomMaterialModal">Pilih Material</button></div>
+        <div class="card-body table-responsive">
+            <table class="table table-bordered align-middle"><thead><tr><th>Item Code</th><th>Name Material/Support</th><th>Unit</th><th>Consumption per PCS</th><th>Span</th><th>Scrap (%)</th><th></th></tr></thead>
+            <tbody id="bomMaterialRows">
+            @foreach($oldComponents as $i => $row)
+                @php($material = $products->firstWhere('id', $row['product_id'] ?? null))
+                @if($material)
+                <tr data-product-id="{{ $material->id }}">
+                    <td>{{ $material->code }}<input type="hidden" name="items[{{ $i }}][product_id]" value="{{ $material->id }}"></td><td>{{ $material->name }}<input type="hidden" name="items[{{ $i }}][operation]" value="{{ $row['operation'] ?? '' }}"><input type="hidden" name="items[{{ $i }}][notes]" value="{{ $row['notes'] ?? '' }}"></td><td>{{ $material->unit?->symbol ?: $material->unit?->name ?: '—' }}</td>
+                    <td><input class="form-control" type="number" min="0.0001" step="0.0001" name="items[{{ $i }}][quantity]" value="{{ $row['quantity'] ?? '' }}" required></td><td><input class="form-control" type="number" min="0" step="0.0001" name="items[{{ $i }}][span]" value="{{ $row['span'] ?? 0 }}"></td><td><input class="form-control" type="number" min="0" max="100" step="0.001" name="items[{{ $i }}][wastage_percent]" value="{{ $row['wastage_percent'] ?? 0 }}"></td><td><button class="btn btn-outline-danger remove-bom-material" type="button">×</button></td>
+                </tr>
+                @endif
+            @endforeach
+            </tbody></table>
+            <div id="bom-empty-state" class="text-muted text-center py-3 {{ count($oldComponents) ? 'd-none' : '' }}">Pilih material untuk mulai mengisi BOM.</div>
+        </div>
+    </div>
+    <div class="d-flex justify-content-end gap-2 mt-3"><a href="{{ route('super.boms.index') }}" class="btn btn-outline-secondary">{{ __('ui.workflow.bom_cancel') }}</a><button class="btn btn-primary" type="submit">{{ __('ui.workflow.bom_save') }}</button></div>
 </form>
-<template id="bomComponentTemplate"><div class="row g-2 align-items-end bom-component-row">
-<div class="col-md-4"><label class="form-label">{{ __('ui.workflow.bom_component') }} *</label><select name="items[__INDEX__][product_id]" class="form-select" required><option value="">{{ __('ui.workflow.bom_choose_component') }}</option>@foreach($products as $product)<option value="{{ $product->id }}">{{ $product->code }} — {{ $product->name }}</option>@endforeach</select></div>
-<div class="col-md-2"><label class="form-label">{{ __('ui.workflow.bom_qty') }} *</label><input name="items[__INDEX__][quantity]" type="number" min="0.0001" step="0.0001" class="form-control" required></div>
-<div class="col-md-2"><label class="form-label">{{ __('ui.workflow.bom_wastage') }}</label><input name="items[__INDEX__][wastage_percent]" type="number" min="0" max="100" step="0.001" class="form-control" value="0"></div>
-<div class="col-md-3"><label class="form-label">{{ __('ui.workflow.bom_operation') }}</label><input name="items[__INDEX__][operation]" maxlength="40" class="form-control" placeholder="{{ __('ui.workflow.bom_operation_placeholder') }}"></div><div class="col-md-1"><button type="button" class="btn btn-outline-danger remove-bom-component w-100">×</button></div><div class="col-12"><input name="items[__INDEX__][notes]" maxlength="1000" class="form-control form-control-sm" placeholder="{{ __('ui.workflow.bom_notes') }}"></div>
-</div></template>
+
+<div class="modal fade" id="bomMaterialModal" tabindex="-1" aria-labelledby="bomMaterialModalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content">
+        <div class="modal-header"><div><h5 class="modal-title mb-1" id="bomMaterialModalTitle">Pilih Item Material / Support</h5><small class="text-muted">Cari dan pilih item dari daftar</small></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
+        <div class="modal-body">
+            <div class="table-responsive"><table class="table table-hover align-middle w-100" id="bomMaterialOptionsTable"><thead><tr><th>Item Code</th><th>Nama Item</th><th>Unit</th><th>Aksi</th></tr></thead><tbody></tbody></table></div>
+        </div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button></div>
+    </div></div>
+</div>
 @endsection
-@push('scripts')<script>
-(() => { const list=document.getElementById('bomComponents'), template=document.getElementById('bomComponentTemplate'); let nextIndex={{ count($oldComponents) }}; document.getElementById('addBomComponent').addEventListener('click',()=>{ list.insertAdjacentHTML('beforeend',template.innerHTML.replaceAll('__INDEX__',nextIndex++)); }); list.addEventListener('click',event=>{ const button=event.target.closest('.remove-bom-component'); if(button) button.closest('.bom-component-row').remove(); }); })();
-</script>@endpush
+@push('styles')
+<style>
+    .bom-card { border-radius: .75rem; }
+    .bom-card .table thead th { color: #64748b; font-size: .75rem; font-weight: 600; letter-spacing: .025em; text-transform: uppercase; border-bottom-color: #e9eef5; white-space: nowrap; }
+    .bom-card .table tbody td { border-color: #eef2f6; }
+    #bomMaterialOptionsTable_wrapper .dataTables_length label, #bomMaterialOptionsTable_wrapper .dataTables_filter label { display: inline-flex; align-items: center; gap: .45rem; margin-bottom: 0; white-space: nowrap; }
+    #bomMaterialOptionsTable_wrapper .dataTables_length select { width: auto !important; min-width: 4.25rem; height: 2rem; box-sizing: border-box; margin: 0 !important; padding: .2rem 1.75rem .2rem .5rem; border: 1px solid #dfe5ec; border-radius: .45rem; font-size: .8125rem; line-height: 1.25; }
+    #bomMaterialOptionsTable_wrapper .dataTables_filter input { height: 2rem; margin-left: 0; padding: .25rem .55rem; border: 1px solid #dfe5ec; border-radius: .45rem; font-size: .8125rem; }
+    #bomMaterialOptionsTable_wrapper .dataTables_info, #bomMaterialOptionsTable_wrapper .dataTables_paginate { color: #748094; font-size: .82rem; }
+</style>
+@endpush
+@push('scripts')
+<script>
+(() => {
+    const items = @json($itemOptions);
+    const rows = document.getElementById('bomMaterialRows');
+    const empty = document.getElementById('bom-empty-state');
+    let nextIndex = {{ count($oldComponents) }};
+    let materialTable = null;
+    const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
+    const selectedIds = () => new Set([...rows.querySelectorAll('tr[data-product-id]')].map(row => String(row.dataset.productId)));
+
+    function initializeMaterialTable() {
+        if (materialTable) return;
+        materialTable = $('#bomMaterialOptionsTable').DataTable({
+            data: items,
+            pageLength: 10,
+            lengthMenu: [5, 10, 50, 100],
+            columns: [
+                { data: 'code' },
+                { data: 'name' },
+                { data: 'unit', defaultContent: '—' },
+                { data: null, orderable: false, searchable: false, render: (data, type, item) => `<button type="button" class="btn btn-sm btn-primary choose-bom-material" data-id="${item.id}">Pilih</button>` },
+            ],
+            rowCallback: (row, item) => {
+                const button = row.querySelector('.choose-bom-material');
+                if (button && selectedIds().has(String(item.id))) {
+                    button.disabled = true;
+                    button.textContent = 'Terpilih';
+                }
+            },
+        });
+    }
+
+    document.getElementById('bomMaterialModal').addEventListener('shown.bs.modal', initializeMaterialTable);
+    document.getElementById('bomMaterialOptionsTable').addEventListener('click', event => {
+        const button = event.target.closest('.choose-bom-material');
+        if (!button) return;
+        const item = items.find(candidate => String(candidate.id) === button.dataset.id);
+        if (!item || selectedIds().has(String(item.id))) return;
+        const index = nextIndex++;
+        rows.insertAdjacentHTML('beforeend', `<tr data-product-id="${item.id}">
+            <td>${escapeHtml(item.code)}<input type="hidden" name="items[${index}][product_id]" value="${item.id}"></td>
+            <td>${escapeHtml(item.name)}<input type="hidden" name="items[${index}][operation]" value=""><input type="hidden" name="items[${index}][notes]" value=""></td>
+            <td>${escapeHtml(item.unit || '—')}</td>
+            <td><input class="form-control" type="number" min="0.0001" step="0.0001" name="items[${index}][quantity]" required></td>
+            <td><input class="form-control" type="number" min="0" step="0.0001" name="items[${index}][span]" value="0"></td>
+            <td><input class="form-control" type="number" min="0" max="100" step="0.001" name="items[${index}][wastage_percent]" value="0"></td>
+            <td><button class="btn btn-outline-danger remove-bom-material" type="button">×</button></td></tr>`);
+        empty.classList.add('d-none');
+        materialTable?.draw(false);
+    });
+    rows.addEventListener('click', event => {
+        const button = event.target.closest('.remove-bom-material');
+        if (!button) return;
+        button.closest('tr').remove();
+        empty.classList.toggle('d-none', rows.querySelectorAll('tr').length > 0);
+        materialTable?.draw(false);
+    });
+})();
+</script>
+@endpush

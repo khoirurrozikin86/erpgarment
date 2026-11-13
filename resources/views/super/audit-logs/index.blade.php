@@ -34,7 +34,7 @@
                             {{ __('ui.modules.date_from') }}
                         </label>
 
-                        <input type="date" class="form-control" id="date_from">
+                        <input type="date" class="form-control" id="date_from" value="{{ now()->format('Y-m-d') }}">
                     </div>
 
                     {{-- Date To --}}
@@ -43,7 +43,7 @@
                             {{ __('ui.modules.date_to') }}
                         </label>
 
-                        <input type="date" class="form-control" id="date_to">
+                        <input type="date" class="form-control" id="date_to" value="{{ now()->format('Y-m-d') }}">
                     </div>
 
                     {{-- {{ __('ui.modules.module') }} --}}
@@ -188,7 +188,7 @@
                     {
                         data: 'user_name',
                         name: 'user.name',
-                        defaultContent: __('ui.modules.deleted_system')
+                        defaultContent: @json(__('ui.modules.deleted_system'))
                     },
                     {
                         data: 'module',
@@ -283,9 +283,9 @@
 
             $('#btn-reset').on('click', function() {
 
-                $('#date_from').val('');
+                $('#date_from').val('{{ now()->format('Y-m-d') }}');
 
-                $('#date_to').val('');
+                $('#date_to').val('{{ now()->format('Y-m-d') }}');
 
                 $('#module').val('');
 
@@ -299,18 +299,6 @@
 
 
             $('#btn-filter').on('click', function() {
-                table.ajax.reload();
-            });
-
-
-            $('#btn-reset').on('click', function() {
-
-                $('#date_from').val('');
-                $('#date_to').val('');
-
-                $('#module').val('');
-                $('#action').val('');
-
                 table.ajax.reload();
             });
 

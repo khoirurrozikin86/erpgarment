@@ -65,6 +65,6 @@ class AuditMutationRequestsTest extends TestCase
             $this->assertStringContainsString('<option value="'.$module.'">'.$module.'</option>', $html);
         }
         $this->assertStringContainsString('id="date_from"', $html);
-        $this->assertStringNotContainsString('id="date_from" value="'.now()->format('Y-m-d').'"', $html);
+        $this->assertStringContainsString('id="date_from" value="'.now()->format('Y-m-d').'"', $html);
     }
 }

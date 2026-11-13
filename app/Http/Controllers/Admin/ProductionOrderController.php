@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Domain\Audit\Services\AuditLogService;
 use App\Domain\Companies\Services\CompanyContext;
 use App\Domain\Manufacturing\Actions\CreateProductionOrderAction;
+use App\Domain\Manufacturing\Actions\UpdateMaterialOrderAction;
 use App\Domain\Manufacturing\Actions\RecordProductionStageAction;
 use App\Domain\Manufacturing\Services\EnsureProductionMaterialsIssued;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\ProductionOrder;
 use App\Models\ProductionOrderStageEntry;
+use App\Models\Customer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -22,41 +24,108 @@ class ProductionOrderController extends Controller
     public function index(CompanyContext $company)
     {
         $orders = ProductionOrder::query()->where('company_id', $company->id())
-            ->with(['outputProduct.unit', 'creator'])->withCount('materials')
+            ->with(['outputProduct.unit', 'buyer'])
             ->orderByDesc('created_at')->get();
-        $products = Product::query()->where('is_active', true)->where('product_type', 'stock')
-            ->orderBy('name')->get(['id', 'code', 'name']);
+        $products = Product::query()->where('is_active', true)->whereNotNull('style_code')
+            ->whereHas('category', fn ($query) => $query->where('code', 'FG')->orWhereRaw('LOWER(name) = ?', ['finished goods']))
+            ->with('unit:id,name,symbol')->orderBy('name')->get(['id', 'code', 'name', 'style_code', 'unit_id']);
+        $customers = Customer::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
+        $defaultCurrency = $company->get()->currency ?: 'USD';
 
-        return view('super.production-orders.index', compact('orders', 'products'));
+        return view('super.production-orders.index', compact('orders', 'products', 'customers', 'defaultCurrency'));
     }
 
     public function store(Request $request, CreateProductionOrderAction $create): JsonResponse
     {
         $data = $request->validate([
+            'number' => ['required', 'string', 'max:100'],
+            'buyer_po_number' => ['nullable', 'string', 'max:100'],
+            'no_cbd' => ['nullable', 'string', 'max:100'],
+            'currency' => ['required', 'string', 'max:10'],
+            'destination' => ['nullable', 'string', 'max:150'],
+            'po_date' => ['required', 'date_format:Y-m-d'],
+            'due_date' => ['required', 'date_format:Y-m-d'],
+            'customer_id' => ['required', 'integer', Rule::exists('customers', 'id')->where('is_active', true)],
             'output_product_id' => ['required', 'integer', Rule::exists('products', 'id')->where('is_active', true)->where('product_type', 'stock')],
             'planned_quantity' => ['required', 'numeric', 'gt:0', 'max:999999999999.9999'],
-            'planned_start_date' => ['nullable', 'date_format:Y-m-d'],
-            'planned_end_date' => ['nullable', 'date_format:Y-m-d', function ($attribute, $value, $fail) use ($request) {
-                if ($value && $request->input('planned_start_date') && $value < $request->input('planned_start_date')) {
-                    $fail(__('ui.workflow.production_end_before_start'));
-                }
-            }],
-            'notes' => ['nullable', 'string', 'max:5000'],
+            'price_per_unit' => ['nullable', 'numeric', 'min:0', 'max:999999999999.9999'],
+            'description' => ['nullable', 'string', 'max:5000'],
         ]);
+        $this->assertFinishedGood((int) $data['output_product_id']);
         $order = $create($data, (int) $request->user()->id);
 
-        return response()->json(['message' => __('ui.workflow.production_order_created'), 'id' => $order->id], 201);
+        return response()->json(['message' => __('ui.workflow.material_order_created'), 'id' => $order->id], 201);
+    }
+
+    public function update(Request $request, ProductionOrder $productionOrder, CompanyContext $company, UpdateMaterialOrderAction $update): JsonResponse
+    {
+        $this->findForCompany($productionOrder, $company->id());
+        $data = $request->validate([
+            'number' => ['required', 'string', 'max:100'],
+            'buyer_po_number' => ['nullable', 'string', 'max:100'],
+            'no_cbd' => ['nullable', 'string', 'max:100'],
+            'currency' => ['required', 'string', 'max:10'],
+            'destination' => ['nullable', 'string', 'max:150'],
+            'po_date' => ['required', 'date_format:Y-m-d'],
+            'due_date' => ['required', 'date_format:Y-m-d'],
+            'customer_id' => ['required', 'integer', Rule::exists('customers', 'id')->where('is_active', true)],
+            'output_product_id' => ['required', 'integer', Rule::exists('products', 'id')->where('is_active', true)->where('product_type', 'stock')],
+            'planned_quantity' => ['required', 'numeric', 'gt:0', 'max:999999999999.9999'],
+            'price_per_unit' => ['nullable', 'numeric', 'min:0', 'max:999999999999.9999'],
+            'description' => ['nullable', 'string', 'max:5000'],
+        ]);
+        $this->assertFinishedGood((int) $data['output_product_id']);
+        $updated = $update($productionOrder, $data, (int) $request->user()->id);
+
+        return response()->json(['message' => __('ui.workflow.material_order_updated'), 'id' => $updated->id]);
+    }
+
+    public function destroy(ProductionOrder $productionOrder, CompanyContext $company, AuditLogService $audit): JsonResponse
+    {
+        $orderId = $this->findForCompany($productionOrder, $company->id())->id;
+        DB::transaction(function () use ($orderId, $company, $audit) {
+            $order = ProductionOrder::query()->where('company_id', $company->id())->lockForUpdate()->findOrFail($orderId);
+            if ($order->materialRequests()->exists() || $order->stageEntries()->exists()) {
+                throw ValidationException::withMessages(['order' => __('ui.workflow.material_order_locked')]);
+            }
+            $old = $order->load('outputProduct', 'buyer', 'materials.product')->toArray();
+            $order->materials()->delete();
+            $order->delete();
+            $audit->log(action: 'DELETE', module: 'MATERIAL_ORDER', description: __('ui.workflow.material_order_deleted_audit', ['number' => $order->number]), model: $order, oldValues: $old, newValues: null);
+        });
+        return response()->json(['message' => __('ui.workflow.material_order_deleted')]);
+    }
+
+    private function assertFinishedGood(int $productId): void
+    {
+        $product = Product::query()->whereKey($productId)->where('is_active', true)
+            ->whereNotNull('style_code')->whereHas('category', fn ($query) => $query->where('code', 'FG')->orWhereRaw('LOWER(name) = ?', ['finished goods']))->exists();
+        if (!$product) throw ValidationException::withMessages(['output_product_id' => __('ui.workflow.material_order_finished_good_required')]);
     }
 
     public function show(ProductionOrder $productionOrder, CompanyContext $company): JsonResponse
     {
-        $order = $this->findForCompany($productionOrder, $company->id())->load(['outputProduct.unit', 'materials.product.unit', 'creator', 'releaser']);
+        $order = $this->findForCompany($productionOrder, $company->id())->load(['outputProduct.unit', 'buyer', 'materials.product.unit', 'creator', 'releaser']);
 
         return response()->json([
-            'stage_url' => route('super.production-orders.stages.store', $order),
+            'id' => $order->id,
+            'number' => $order->number,
+            'buyer_po_number' => $order->buyer_po_number,
+            'no_cbd' => $order->no_cbd,
+            'currency' => $order->currency,
+            'destination' => $order->destination,
+            'po_date' => $order->po_date?->format('Y-m-d'),
+            'due_date' => $order->due_date?->format('Y-m-d'),
+            'customer_id' => $order->customer_id,
+            'output_product_id' => $order->output_product_id,
+            'planned_quantity' => (float) $order->planned_quantity,
+            'price_per_unit' => (float) $order->price_per_unit,
+            'description' => $order->description,
+            'stage_url' => route('super.material-orders.stages.store', $order),
             'number' => $order->number,
             'product' => $order->outputProduct?->name ?? '—',
             'product_code' => $order->outputProduct?->code ?? '—',
+            'style' => $order->outputProduct?->style_code ?? '—',
             'planned_quantity' => number_format((float) $order->planned_quantity, 4, ',', '.'),
             'unit' => $order->outputProduct?->unit?->symbol ?: $order->outputProduct?->unit?->name ?: '—',
             'bom_version' => $order->bom_version,

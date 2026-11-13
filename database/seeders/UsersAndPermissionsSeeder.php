@@ -52,7 +52,7 @@ class UsersAndPermissionsSeeder extends Seeder
             'products' => ['view', 'create', 'update', 'delete'],
             'boms' => ['view', 'create', 'update', 'delete'],
             'material-requests' => ['view', 'create', 'approve', 'issue'],
-            'production-orders' => ['view', 'create', 'release', 'update'],
+            'production-orders' => ['view', 'create', 'release', 'update', 'delete'],
             'purchase-requests' => ['view', 'create', 'approve'],
             'purchase-orders' => ['view', 'create', 'issue', 'email'],
             'goods-receipts' => ['view', 'create'],
@@ -112,6 +112,8 @@ class UsersAndPermissionsSeeder extends Seeder
             'material-requests.create',
             'production-orders.view',
             'production-orders.create',
+            'production-orders.update',
+            'production-orders.delete',
 
         ]);
 
@@ -204,6 +206,7 @@ class UsersAndPermissionsSeeder extends Seeder
             'production-orders.create',
             'production-orders.release',
             'production-orders.update',
+            'production-orders.delete',
             'purchase-requests.view',
             'purchase-requests.create',
             'purchase-requests.approve',

@@ -7,7 +7,7 @@ Diagram `image1` membagi proses ke Sales/PPIC, Gudang, dan Production/WIP. Ia me
 ## Alur yang didukung oleh halaman
 
 1. **Persiapan data** — pengguna dan akses, importer/exporter, supplier/customer, style, barang dan BOM disiapkan.
-2. **Kebutuhan dan pengadaan** — MO/material order atau pesanan terkait buyer memuat kebutuhan barang; PO supplier dan PO lain-lain dicatat; layar Cek PO menunjukkan status Belum Selesai/Selesai serta detail.
+2. **Kebutuhan dan pengadaan** — Material Order memuat nomor MO, tanggal MO/tempo, No CBD, PO Buyer, mata uang, destination, Buyer, dan satu atau beberapa baris Finished Goods dengan jumlah, harga satuan, total harga, serta deskripsi; PO supplier dan PO lain-lain dicatat.
 3. **Penerimaan** — BC masuk mencatat data kepabeanan/penerimaan yang merujuk dokumen; Catatan Penerimaan Barang/GRN menyimpan pemasok, invoice, PO/MO, item, kuantitas; GRN Approve memiliki status dan pencatat persetujuan.
 4. **Stok gudang** — penerimaan dan retur produksi masuk ke gudang. Pengiriman/transfer ke produksi (MIS), retur ke supplier, barang rusak/hilang tercatat sebagai transaksi yang berpengaruh pada stok. Kartu stok menunjukkan saldo/mutasi.
 5. **Produksi** — material diminta/dikeluarkan dari gudang; catatan hasil Cutting, Sewing dan Packing memiliki nomor dokumen, tanggal, user, serta kaitan ke MO/planning; hasil akhir tercatat sebagai Barang Jadi. Surat Jalan (GSN) mengirim hasil dan kemudian disetujui.
@@ -29,6 +29,7 @@ Diagram `image1` membagi proses ke Sales/PPIC, Gudang, dan Production/WIP. Ia me
 - Apakah stok diperbarui saat simpan, saat approval, atau dari impor dokumen: **NEEDS CONFIRMATION**.
 - Satuan, konversi unit, toleransi penerimaan, partial receipt, over/under delivery, costing, dan pembulatan: **NEEDS CONFIRMATION**.
 - Apakah produksi dimodelkan sebagai alur wajib cutting → sewing → packing, kemungkinan rework/reject, dan kapan barang jadi masuk saldo: **NEEDS CONFIRMATION**.
+- Aturan wajib/unik PO Buyer, No CBD, Destination, Currency, kalkulasi harga/pajak, validasi rentang tanggal, dan izin mengubah/menghapus detail yang sudah dipakai transaksi: **NEEDS CONFIRMATION**. Form menunjukkan satu baris barang disimpan setiap kali; satu MO dapat memiliki beberapa detail.
 - Arti nomor PO Buyer dibanding PO Supplier; arti MO, MIS, GSN, Kaber, serta relasi satu-ke-banyak dokumen: **NEEDS CONFIRMATION**.
 - Penghitungan saldo awal/akhir, stock opname, adjustment, barang hilang/rusak, retur, dan periode tutup buku: **NEEDS CONFIRMATION**.
 

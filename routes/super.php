@@ -382,7 +382,7 @@ Route::middleware(['auth'])
             Route::middleware('permission:material-requests.view')->get('/', [MaterialRequestController::class, 'index'])->name('index');
             Route::middleware('permission:material-requests.view')->get('/dt', [MaterialRequestController::class, 'dt'])->name('dt');
             Route::middleware('permission:material-requests.create')->get('/bom-requirements', [MaterialRequestController::class, 'bomRequirements'])->name('bom-requirements');
-            Route::middleware('permission:material-requests.create')->get('/production-orders/{productionOrder}/requirements', [MaterialRequestController::class, 'productionOrderRequirements'])->name('production-order-requirements');
+            Route::middleware('permission:material-requests.create')->get('/material-orders/{productionOrder}/requirements', [MaterialRequestController::class, 'productionOrderRequirements'])->name('material-order-requirements');
             Route::middleware('permission:material-requests.view')->get('/{materialRequest}', [MaterialRequestController::class, 'show'])->name('show');
             Route::middleware('permission:material-requests.view')->get('/{materialRequest}/pdf', [MaterialRequestController::class, 'pdf'])->name('pdf');
             Route::middleware('permission:material-requests.view')->get('/{materialRequest}/pdf/download', [MaterialRequestController::class, 'downloadPdf'])->name('pdf.download');
@@ -392,11 +392,13 @@ Route::middleware(['auth'])
             Route::middleware('permission:material-requests.issue')->put('/{materialRequest}/issue', [MaterialRequestController::class, 'issue'])->name('issue');
         });
 
-        Route::prefix('production-orders')->name('production-orders.')->group(function () {
+        Route::prefix('material-orders')->name('material-orders.')->group(function () {
             Route::middleware('permission:production-orders.view')->get('/', [ProductionOrderController::class, 'index'])->name('index');
             Route::middleware('permission:production-orders.view')->get('/{productionOrder}', [ProductionOrderController::class, 'show'])->name('show');
             Route::middleware('permission:production-orders.update')->post('/{productionOrder}/stages', [ProductionOrderController::class, 'recordStage'])->name('stages.store');
             Route::middleware('permission:production-orders.create')->post('/', [ProductionOrderController::class, 'store'])->name('store');
+            Route::middleware('permission:production-orders.update')->put('/{productionOrder}', [ProductionOrderController::class, 'update'])->name('update');
+            Route::middleware('permission:production-orders.delete')->delete('/{productionOrder}', [ProductionOrderController::class, 'destroy'])->name('destroy');
             Route::middleware('permission:production-orders.release')->put('/{productionOrder}/transition', [ProductionOrderController::class, 'transition'])->name('transition');
         });
 
@@ -613,11 +615,15 @@ Route::middleware(['auth'])
 
         Route::prefix('boms')->name('boms.')->group(function () {
             Route::middleware('permission:boms.view')->get('/', [BillOfMaterialController::class, 'index'])->name('index');
+            Route::middleware('permission:boms.view')->get('/export', [BillOfMaterialController::class, 'export'])->name('export');
             Route::middleware('permission:boms.create')->get('/create', [BillOfMaterialController::class, 'create'])->name('create');
             Route::middleware('permission:boms.create')->post('/', [BillOfMaterialController::class, 'store'])->name('store');
+            Route::middleware('permission:boms.view')->get('/products/{product}/detail', [BillOfMaterialController::class, 'detail'])->name('detail');
+            Route::middleware('permission:boms.create')->get('/products/{product}/input', [BillOfMaterialController::class, 'input'])->name('input');
             Route::middleware('permission:boms.update')->get('/{bom}/edit', [BillOfMaterialController::class, 'edit'])->name('edit');
             Route::middleware('permission:boms.update')->put('/{bom}', [BillOfMaterialController::class, 'update'])->name('update');
             Route::middleware('permission:boms.delete')->delete('/{bom}', [BillOfMaterialController::class, 'destroy'])->name('destroy');
+            Route::middleware('permission:boms.delete')->delete('/{bom}/items/{item}', [BillOfMaterialController::class, 'destroyItem'])->name('items.destroy');
         });
 
     });

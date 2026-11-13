@@ -13,9 +13,15 @@ class MaterialRequestTableQuery
     public function builder(?string $fromDate = null, ?string $toDate = null): Builder
     {
         $query = MaterialRequest::query()
-            ->with(['requester:id,name', 'reviewer:id,name'])
+            ->with([
+                'requester:id,name',
+                'reviewer:id,name',
+                'productionOrder:id,buyer_po_number,output_product_id,planned_quantity',
+                'productionOrder.outputProduct:id,code,name',
+                'outputProduct:id,code,name',
+            ])
             ->select([
-                'id', 'number', 'requested_by', 'department', 'needed_at', 'reason', 'status',
+                'id', 'number', 'requested_by', 'production_order_id', 'output_product_id', 'production_quantity', 'department', 'needed_at', 'reason', 'status',
                 'purchase_status', 'reviewed_by', 'reviewed_at', 'review_note', 'created_at', 'updated_at',
             ])
             ->withCount('items')

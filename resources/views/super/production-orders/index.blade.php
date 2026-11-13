@@ -1,206 +1,136 @@
 @extends('layouts.admin')
 
-@section('title', __('ui.workflow.production_order'))
+@section('title', __('ui.workflow.material_order'))
 
 @section('breadcrumb')
     <nav class="page-breadcrumb"><ol class="breadcrumb">
-        <li class="breadcrumb-item">{{ __('ui.nav.inventory') }}</li>
-        <li class="breadcrumb-item active">{{ __('ui.workflow.production_order') }}</li>
+        <li class="breadcrumb-item">{{ __('ui.nav.ppic') }}</li>
+        <li class="breadcrumb-item active">{{ __('ui.workflow.material_order') }}</li>
     </ol></nav>
 @endsection
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <h4 class="page-title mb-1">{{ __('ui.workflow.production_order') }}</h4>
-            <p class="text-muted mb-0">{{ __('ui.workflow.production_order_subtitle') }}</p>
-        </div>
+<style>
+    #material-orders-table_wrapper .dataTables_length label,#material-orders-table_wrapper .dataTables_filter label{display:inline-flex;align-items:center;gap:.45rem;margin-bottom:0;white-space:nowrap}
+    #material-orders-table_wrapper .dataTables_length select,#material-orders-table_wrapper .dataTables_filter input{height:2rem;margin:0;padding:.2rem .55rem;border:1px solid #dfe5ec;border-radius:.45rem;font-size:.8125rem}
+    #material-orders-table_wrapper .dataTables_length select{width:auto!important;min-width:4.25rem;padding-right:1.75rem}
+    #material-orders-table_wrapper .dataTables_info,#material-orders-table_wrapper .dataTables_paginate{color:#748094;font-size:.82rem}
+    .material-orders-card{border-radius:.75rem}
+    .material-orders-card .table thead th{color:#64748b;font-size:.75rem;font-weight:600;letter-spacing:.025em;text-transform:uppercase;border-bottom-color:#e9eef5;white-space:nowrap}
+    .material-orders-card .table tbody td{border-color:#eef2f6}
+    .material-order-section{border:1px solid #e8edf3;border-radius:.65rem;padding:1rem;background:#fff}
+    .material-order-section-title{font-size:.9rem;font-weight:600;color:#344054;margin-bottom:.9rem}
+</style>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div><h4 class="page-title mb-1">{{ __('ui.workflow.material_order') }} (MO)</h4><p class="text-muted mb-0">{{ __('ui.workflow.material_order_subtitle') }}</p></div>
         @can('production-orders.create')
-            <button class="btn btn-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#createProductionOrder">
-                <i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.workflow.create_production_order') }}
-            </button>
+            <button type="button" class="btn btn-primary btn-sm" id="addMaterialOrder"><i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.workflow.material_order_admin') }}</button>
         @endcan
-    </div>
-
-    @can('production-orders.create')
-        <div class="collapse mb-3" id="createProductionOrder">
-            <div class="card"><div class="card-body">
-                <h6 class="fw-bold mb-3">{{ __('ui.workflow.production_order_form_title') }}</h6>
-                <form id="productionOrderForm">
-                    @csrf
-                    <div class="row">
-                        <div class="col-md-5 mb-3">
-                            <label for="output_product_id" class="form-label">{{ __('ui.workflow.bom_product') }} <span class="text-danger">*</span></label>
-                            <select name="output_product_id" id="output_product_id" class="form-select" required>
-                                <option value="">{{ __('ui.workflow.bom_choose_product') }}</option>
-                                @foreach ($products as $product)
-                                    <option value="{{ $product->id }}">{{ $product->code }} — {{ $product->name }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-3 mb-3">
-                            <label for="planned_quantity" class="form-label">{{ __('ui.workflow.production_quantity') }} <span class="text-danger">*</span></label>
-                            <input type="text" name="planned_quantity" id="planned_quantity" class="form-control" inputmode="decimal" autocomplete="off" required>
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="planned_start_date" class="form-label">{{ __('ui.workflow.planned_start_date') }}</label>
-                            <input type="date" name="planned_start_date" id="planned_start_date" class="form-control">
-                        </div>
-                        <div class="col-md-2 mb-3">
-                            <label for="planned_end_date" class="form-label">{{ __('ui.workflow.planned_end_date') }}</label>
-                            <input type="date" name="planned_end_date" id="planned_end_date" class="form-control">
-                        </div>
-                        <div class="col-12 mb-3">
-                            <label for="production_notes" class="form-label">{{ __('ui.common.notes') }}</label>
-                            <textarea name="notes" id="production_notes" class="form-control" rows="2" maxlength="5000"></textarea>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-sm" id="saveProductionOrder">{{ __('ui.workflow.save_production_order') }}</button>
-                </form>
-            </div></div>
-        </div>
-    @endcan
-
-    <div class="card"><div class="card-body"><div class="table-responsive">
-        <table class="table table-bordered table-hover align-middle">
-            <thead><tr>
-                <th>{{ __('ui.common.number') }}</th><th>{{ __('ui.workflow.bom_product') }}</th>
-                <th>{{ __('ui.workflow.production_quantity') }}</th><th>{{ __('ui.workflow.bom_used') }}</th>
-                <th>{{ __('ui.workflow.planned_start_date') }}</th><th>{{ __('ui.common.status') }}</th><th>{{ __('ui.common.action') }}</th>
-            </tr></thead>
-            <tbody>
-                @forelse ($orders as $order)
-                    <tr>
-                        <td class="fw-semibold">{{ $order->number }}</td>
-                        <td>{{ $order->outputProduct?->code }} — {{ $order->outputProduct?->name }}</td>
-                        <td class="text-end">{{ number_format((float) $order->planned_quantity, 4, ',', '.') }} {{ $order->outputProduct?->unit?->symbol }}</td>
-                        <td>v{{ $order->bom_version }} ({{ $order->materials_count }} {{ __('ui.workflow.material_lines') }})</td>
-                        <td>{{ $order->planned_start_date?->format('d/m/Y') ?? '—' }}</td>
-                        <td><span class="badge {{ $order->status === 'released' ? 'bg-primary' : ($order->status === 'in_progress' ? 'bg-info text-dark' : ($order->status === 'draft' ? 'bg-warning text-dark' : 'bg-secondary')) }}">{{ __('ui.workflow.production_status_' . $order->status) }}</span></td>
-                        <td class="text-nowrap">
-                            <button type="button" class="btn btn-sm btn-outline-secondary view-production-order" data-url="{{ route('super.production-orders.show', $order) }}">{{ __('ui.workflow.view_detail') }}</button>
-                            @can('production-orders.release')
-                                @if ($order->status === 'draft')
-                                    <button type="button" class="btn btn-sm btn-success transition-production-order" data-status="released" data-url="{{ route('super.production-orders.transition', $order) }}">{{ __('ui.workflow.release_production_order') }}</button>
-                                @elseif ($order->status === 'released')
-                                    <button type="button" class="btn btn-sm btn-primary transition-production-order" data-status="in_progress" data-url="{{ route('super.production-orders.transition', $order) }}">{{ __('ui.workflow.start_production') }}</button>
-                                @endif
-                            @endcan
+</div>
+@include('super.purchasing.date-filter')
+<div class="card border-0 shadow-sm material-orders-card">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table id="material-orders-table" class="table table-hover align-middle text-nowrap w-100 mb-0">
+                <thead class="table-light"><tr>
+                    <th>{{ __('ui.common.no') }}</th><th>{{ __('ui.common.action') }}</th><th>{{ __('ui.workflow.material_order_no') }}</th><th>{{ __('ui.workflow.po_date') }}</th><th>{{ __('ui.workflow.material_order_due_date') }}</th><th>{{ __('ui.workflow.buyer_po') }}</th><th>{{ __('ui.workflow.buyer') }}</th><th>{{ __('ui.workflow.no_cbd') }}</th><th>{{ __('ui.workflow.currency') }}</th><th>{{ __('ui.workflow.destination') }}</th><th>{{ __('ui.workflow.item_code') }}</th><th>{{ __('ui.workflow.item_name') }}</th><th>{{ __('ui.common.unit') }}</th><th>{{ __('ui.nav.styles') }}</th><th>{{ __('ui.workflow.order_quantity') }}</th><th>{{ __('ui.workflow.price_per_unit') }}</th><th>{{ __('ui.workflow.total_price') }}</th><th>{{ __('ui.workflow.description') }}</th>
+                </tr></thead>
+                <tbody>
+                @foreach ($orders as $order)
+                    <tr data-po-date="{{ $order->po_date?->format('Y-m-d') }}">
+                        <td></td>
+                        <td class="text-center">
+                            @canany(['production-orders.update', 'production-orders.delete'])
+                            <div class="dropdown">
+                                <button class="btn btn-sm bg-transparent border-0 p-0" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="{{ __('ui.common.actions') }}"><i data-feather="more-vertical" class="icon-sm"></i></button>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    @can('production-orders.update')<li><button type="button" class="dropdown-item d-flex align-items-center gap-2 edit-material-order" data-url="{{ route('super.material-orders.show', $order) }}"><i data-feather="edit-2" class="icon-sm"></i>{{ __('ui.common.edit') }}</button></li>@endcan
+                                    @can('production-orders.delete')<li><button type="button" class="dropdown-item d-flex align-items-center gap-2 text-danger delete-material-order" data-url="{{ route('super.material-orders.destroy', $order) }}"><i data-feather="trash-2" class="icon-sm"></i>{{ __('ui.common.delete') }}</button></li>@endcan
+                                </ul>
+                            </div>
+                            @endcanany
                         </td>
+                        <td>{{ $order->number }}</td><td>{{ $order->po_date?->format('Y-m-d') ?: '—' }}</td><td>{{ $order->due_date?->format('Y-m-d') ?: '—' }}</td><td>{{ $order->buyer_po_number ?: '—' }}</td><td>{{ $order->buyer?->name ?: '—' }}</td><td>{{ $order->no_cbd ?: '—' }}</td><td>{{ $order->currency }}</td><td>{{ $order->destination ?: '—' }}</td><td>{{ $order->outputProduct?->code ?: '—' }}</td><td>{{ $order->outputProduct?->name ?: '—' }}</td><td>{{ $order->outputProduct?->unit?->symbol ?: $order->outputProduct?->unit?->name ?: '—' }}</td><td>{{ $order->outputProduct?->style_code ?: '—' }}</td><td class="text-end">{{ number_format((float) $order->planned_quantity, 4, ',', '.') }}</td><td class="text-end">{{ number_format((float) $order->price_per_unit, 4, ',', '.') }}</td><td class="text-end">{{ number_format((float) $order->total_price, 4, ',', '.') }}</td><td>{{ $order->description ?: '—' }}</td>
                     </tr>
-                @empty
-                    <tr><td colspan="7" class="text-center text-muted py-4">{{ __('ui.workflow.no_production_orders') }}</td></tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div></div></div>
-
-    <div class="modal fade" id="productionOrderDetailModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
-            <div class="modal-header"><h5 class="modal-title" id="productionOrderDetailTitle"></h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div>
-            <div class="modal-body" id="productionOrderDetailBody"></div>
-            <div class="modal-footer"><button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">{{ __('ui.common.close') }}</button></div>
-        </div></div>
+                @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
+</div>
+
+@canany(['production-orders.create','production-orders.update'])
+<div class="modal fade" id="materialOrderModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content">
+    <form id="materialOrderForm">
+        @csrf <input type="hidden" id="materialOrderId"><input type="hidden" name="output_product_id" id="output_product_id">
+        <div class="modal-header bg-primary text-white"><h5 class="modal-title" id="materialOrderModalTitle">{{ __('ui.workflow.material_order_form_title') }}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div>
+        <div class="modal-body">
+            <section class="material-order-section mb-3">
+                <h6 class="material-order-section-title">{{ __('ui.workflow.material_order') }} — {{ __('ui.workflow.order_information') }}</h6>
+                <div class="row g-3">
+                    <div class="col-md-4"><label for="number" class="form-label">{{ __('ui.workflow.material_order_no') }} <span class="text-danger">*</span></label><input class="form-control" id="number" name="number" maxlength="100" required></div>
+                    <div class="col-md-4"><label for="po_date" class="form-label">{{ __('ui.workflow.po_date') }} <span class="text-danger">*</span></label><input class="form-control" type="date" id="po_date" name="po_date" required></div>
+                    <div class="col-md-4"><label for="due_date" class="form-label">{{ __('ui.workflow.material_order_due_date') }} <span class="text-danger">*</span></label><input class="form-control" type="date" id="due_date" name="due_date" required></div>
+                    <div class="col-md-4"><label for="buyer_po_number" class="form-label">{{ __('ui.workflow.buyer_po_no') }}</label><input class="form-control" id="buyer_po_number" name="buyer_po_number" maxlength="100"></div>
+                    <div class="col-md-4"><label for="currency" class="form-label">{{ __('ui.workflow.currency') }} <span class="text-danger">*</span></label><select class="form-select" id="currency" name="currency" required><option value="USD">USD</option>@if($defaultCurrency !== 'USD')<option value="{{ $defaultCurrency }}">{{ $defaultCurrency }}</option>@endif</select></div>
+                    <div class="col-md-4"><label for="no_cbd" class="form-label">{{ __('ui.workflow.no_cbd') }}</label><input class="form-control" id="no_cbd" name="no_cbd" maxlength="100"></div>
+                    <div class="col-md-4"><label for="customer_id" class="form-label">{{ __('ui.workflow.buyer') }} <span class="text-danger">*</span></label><select class="form-select" id="customer_id" name="customer_id" required><option value="">{{ __('ui.common.select') }}</option>@foreach($customers as $customer)<option value="{{ $customer->id }}">{{ $customer->name }}</option>@endforeach</select></div>
+                    <div class="col-md-8"><label for="destination" class="form-label">{{ __('ui.workflow.destination') }}</label><input class="form-control" id="destination" name="destination" maxlength="150"></div>
+                </div>
+            </section>
+            <section class="material-order-section">
+                <h6 class="material-order-section-title">{{ __('ui.workflow.detail_finished_good') }}</h6>
+                <div class="row g-3">
+                    <div class="col-lg-6"><label class="form-label" for="item_code_display">{{ __('ui.workflow.item_code') }} <span class="text-danger">*</span></label><div class="input-group"><input class="form-control bg-light" id="item_code_display" readonly required><button class="btn btn-primary" type="button" id="searchFinishedGood">{{ __('ui.common.search') }}</button></div></div>
+                    <div class="col-lg-6"><label class="form-label" for="item_name_display">{{ __('ui.workflow.item_name') }}</label><input class="form-control bg-light" id="item_name_display" readonly></div>
+                    <div class="col-md-3"><label class="form-label" for="item_unit_display">{{ __('ui.common.unit') }}</label><input class="form-control bg-light" id="item_unit_display" readonly></div>
+                    <div class="col-md-3"><label class="form-label" for="item_style_display">{{ __('ui.nav.styles') }}</label><input class="form-control bg-light" id="item_style_display" readonly></div>
+                    <div class="col-md-3"><label class="form-label" for="planned_quantity">{{ __('ui.workflow.order_quantity') }} <span class="text-danger">*</span></label><input class="form-control text-end" type="number" min="0.0001" step="0.0001" id="planned_quantity" name="planned_quantity" value="0" required></div>
+                    <div class="col-md-3"><label class="form-label" for="price_per_unit">{{ __('ui.workflow.price_per_unit') }}</label><input class="form-control text-end" type="number" min="0" step="0.0001" id="price_per_unit" name="price_per_unit" value="0"></div>
+                    <div class="col-md-4"><label class="form-label" for="total_price_display">{{ __('ui.workflow.total_price') }}</label><input class="form-control text-end bg-light" id="total_price_display" value="0" readonly></div>
+                    <div class="col-md-8"><label class="form-label" for="description">{{ __('ui.workflow.description') }}</label><input class="form-control" id="description" name="description" maxlength="5000"></div>
+                </div>
+            </section>
+        </div>
+        <div class="modal-footer"><button type="button" class="btn btn-light btn-sm" data-bs-dismiss="modal">{{ __('ui.common.cancel') }}</button><button type="submit" class="btn btn-primary btn-sm" id="saveMaterialOrder"><i data-feather="save" class="icon-sm me-1"></i>{{ __('ui.common.save') }}</button></div>
+    </form>
+</div></div></div>
+
+<div class="modal fade" id="finishedGoodPickerModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content">
+    <div class="modal-header"><h5 class="modal-title">{{ __('ui.workflow.choose_finished_good') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div>
+    <div class="modal-body"><div class="table-responsive"><table id="finishedGoodsPickerTable" class="table table-sm table-bordered table-hover align-middle w-100"><thead class="table-light"><tr><th>{{ __('ui.workflow.item_code') }}</th><th>{{ __('ui.workflow.item_name') }}</th><th>{{ __('ui.common.unit') }}</th><th>{{ __('ui.nav.styles') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead><tbody>
+        @foreach($products as $product)<tr><td>{{ $product->code }}</td><td>{{ $product->name }}</td><td>{{ $product->unit?->symbol ?: $product->unit?->name }}</td><td>{{ $product->style_code }}</td><td><button type="button" class="btn btn-primary btn-sm choose-finished-good" data-id="{{ $product->id }}" data-code="{{ $product->code }}" data-name="{{ $product->name }}" data-unit="{{ $product->unit?->symbol ?: $product->unit?->name }}" data-style="{{ $product->style_code }}">{{ __('ui.common.select') }}</button></td></tr>@endforeach
+    </tbody></table></div></div>
+</div></div></div>
+@endcanany
 @endsection
 
 @push('scripts')
 <script>
-    $(function () {
-        const parseQuantity = value => {
-            let normalized = String(value ?? '').trim().replace(/\s/g, '');
-            if (!normalized) return NaN;
-            const comma = normalized.lastIndexOf(',');
-            const dot = normalized.lastIndexOf('.');
-            if (comma >= 0 && dot >= 0) {
-                normalized = comma > dot
-                    ? normalized.replace(/\./g, '').replace(',', '.')
-                    : normalized.replace(/,/g, '');
-            } else if (comma >= 0) {
-                normalized = normalized.replace(',', '.');
-            }
-            return Number(normalized);
-        };
-
-        @can('production-orders.create')
-            $('#productionOrderForm').on('submit', function (event) {
-                event.preventDefault();
-                const button = $('#saveProductionOrder').prop('disabled', true);
-                const data = $(this).serializeArray();
-                const quantity = data.find(field => field.name === 'planned_quantity');
-                if (quantity) {
-                    const parsedQuantity = parseQuantity(quantity.value);
-                    if (Number.isFinite(parsedQuantity)) quantity.value = String(parsedQuantity);
-                }
-                $.ajax({url: @json(route('super.production-orders.store')), method: 'POST', data})
-                    .done(response => { Swal.fire({icon: 'success', title: '{{ __('ui.workflow.success') }}', text: response.message}).then(() => window.location.reload()); })
-                    .fail(xhr => Swal.fire({icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: Object.values(xhr.responseJSON?.errors || {}).flat().join('\n') || xhr.responseJSON?.message || '{{ __('ui.workflow.production_order_save_failed') }}'}))
-                    .always(() => button.prop('disabled', false));
-            });
-        @endcan
-
-        $(document).on('click', '.view-production-order', function () {
-            $.get($(this).data('url')).done(order => {
-                const rows = order.materials.map(item => `<tr><td>${$('<div>').text(item.code).html()} — ${$('<div>').text(item.product).html()}</td><td>${$('<div>').text(item.operation).html()}</td><td class="text-end">${item.required_quantity} ${$('<div>').text(item.unit).html()}</td></tr>`).join('');
-                @can('production-orders.update')
-                    const stageAction = stage => stage.is_recordable ? `<button class="btn btn-sm btn-outline-primary record-production-stage" data-stage="${stage.stage}" data-label="${$('<div>').text(stage.label).html()}" data-available="${stage.available_quantity}">{{ __('ui.workflow.record_stage') }}</button>` : '';
-                @else
-                    const stageAction = () => '';
-                @endcan
-                const stages = order.stages.map(stage => `<tr><td>${$('<div>').text(stage.label).html()}</td><td class="text-end">${stage.input_quantity}</td><td class="text-end">${stage.good_quantity}</td><td class="text-end">${stage.rejected_quantity}</td><td class="text-end">${stage.waste_quantity}</td><td class="text-end">${Number(stage.available_quantity).toLocaleString()}</td><td>${stageAction(stage)}</td></tr>`).join('');
-                const entries = order.stage_entries.length ? order.stage_entries.map(entry => `<tr><td>${$('<div>').text(entry.stage_label).html()}</td><td class="text-end">${entry.input_quantity}</td><td class="text-end">${entry.good_quantity}</td><td class="text-end">${entry.rejected_quantity}</td><td class="text-end">${entry.waste_quantity}</td><td>${entry.processed_at}</td></tr>`).join('') : `<tr><td colspan="6" class="text-center text-muted">{{ __('ui.workflow.no_stage_records') }}</td></tr>`;
-                $('#productionOrderDetailTitle').text(`{{ __('ui.workflow.production_order') }} ${order.number}`);
-                $('#productionOrderDetailBody').data('stage-url', order.stage_url);
-                const statuses = {draft: '{{ __('ui.workflow.production_status_draft') }}', released: '{{ __('ui.workflow.production_status_released') }}', in_progress: '{{ __('ui.workflow.production_status_in_progress') }}', completed: '{{ __('ui.workflow.production_status_completed') }}', cancelled: '{{ __('ui.workflow.production_status_cancelled') }}'};
-                $('#productionOrderDetailBody').html(`<dl class="row"><dt class="col-sm-4">{{ __('ui.workflow.bom_product') }}</dt><dd class="col-sm-8">${$('<div>').text(order.product_code + ' — ' + order.product).html()}</dd><dt class="col-sm-4">{{ __('ui.workflow.production_quantity') }}</dt><dd class="col-sm-8">${order.planned_quantity} ${$('<div>').text(order.unit).html()}</dd><dt class="col-sm-4">{{ __('ui.workflow.bom_used') }}</dt><dd class="col-sm-8">v${$('<div>').text(order.bom_version).html()}</dd><dt class="col-sm-4">{{ __('ui.common.status') }}</dt><dd class="col-sm-8">${statuses[order.status] || '—'}</dd><dt class="col-sm-4">{{ __('ui.common.notes') }}</dt><dd class="col-sm-8">${$('<div>').text(order.notes).html()}</dd></dl><h6>{{ __('ui.workflow.production_material_snapshot') }}</h6><div class="table-responsive mb-3"><table class="table table-sm table-bordered"><thead><tr><th>{{ __('ui.common.item') }}</th><th>{{ __('ui.workflow.bom_operation') }}</th><th class="text-end">{{ __('ui.workflow.required_quantity') }}</th></tr></thead><tbody>${rows}</tbody></table></div><h6>{{ __('ui.workflow.wip_stage_progress') }}</h6><div class="table-responsive mb-3"><table class="table table-sm table-bordered"><thead><tr><th>{{ __('ui.workflow.production_stage') }}</th><th class="text-end">{{ __('ui.workflow.stage_input') }}</th><th class="text-end">{{ __('ui.workflow.stage_good') }}</th><th class="text-end">{{ __('ui.workflow.stage_rejected') }}</th><th class="text-end">{{ __('ui.workflow.stage_waste') }}</th><th class="text-end">{{ __('ui.workflow.stage_available') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead><tbody>${stages}</tbody></table></div><h6>{{ __('ui.workflow.stage_history') }}</h6><div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>{{ __('ui.workflow.production_stage') }}</th><th>{{ __('ui.workflow.stage_input') }}</th><th>{{ __('ui.workflow.stage_good') }}</th><th>{{ __('ui.workflow.stage_rejected') }}</th><th>{{ __('ui.workflow.stage_waste') }}</th><th>{{ __('ui.common.date') }}</th></tr></thead><tbody>${entries}</tbody></table></div>`);
-                bootstrap.Modal.getOrCreateInstance(document.getElementById('productionOrderDetailModal')).show();
-            }).fail(() => Swal.fire({icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: '{{ __('ui.workflow.production_order_detail_failed') }}'}));
-        });
-
-        @can('production-orders.update')
-            $(document).on('click', '.record-production-stage', function () {
-                const button = $(this);
-                const available = Number(button.data('available'));
-                Swal.fire({
-                    target: document.getElementById('productionOrderDetailModal'),
-                    title: `{{ __('ui.workflow.record_stage') }} — ${button.data('label')}`,
-                    html: `<p class="text-muted">{{ __('ui.workflow.stage_available') }}: ${available}</p><div class="mb-2 text-start"><label class="form-label">{{ __('ui.workflow.stage_input') }}</label><input id="stageInputQty" class="form-control" type="text" inputmode="decimal" autocomplete="off" value="${available}"></div><div class="mb-2 text-start"><label class="form-label">{{ __('ui.workflow.stage_good') }}</label><input id="stageGoodQty" class="form-control" type="text" inputmode="decimal" autocomplete="off" value="${available}"></div><div class="mb-2 text-start"><label class="form-label">{{ __('ui.workflow.stage_rejected') }}</label><input id="stageRejectedQty" class="form-control" type="text" inputmode="decimal" autocomplete="off" value="0"></div><div class="mb-2 text-start"><label class="form-label">{{ __('ui.workflow.stage_waste') }}</label><input id="stageWasteQty" class="form-control" type="text" inputmode="decimal" autocomplete="off" value="0"></div><div class="text-start"><label class="form-label">{{ __('ui.common.notes') }}</label><input id="stageNotes" class="form-control" maxlength="2000"></div>`,
-                    showCancelButton: true,
-                    focusConfirm: false,
-                    didOpen: () => document.getElementById('stageInputQty').focus(),
-                    confirmButtonText: '{{ __('ui.workflow.save_stage_record') }}',
-                    cancelButtonText: '{{ __('ui.common.cancel') }}',
-                    preConfirm: () => {
-                        const input = parseQuantity($('#stageInputQty').val());
-                        const good = parseQuantity($('#stageGoodQty').val());
-                        const rejected = parseQuantity($('#stageRejectedQty').val());
-                        const waste = parseQuantity($('#stageWasteQty').val());
-                        if (!Number.isFinite(input) || input <= 0 || input > available) { Swal.showValidationMessage('{{ __('ui.workflow.stage_input_invalid') }}'); return false; }
-                        if (![good, rejected, waste].every(quantity => Number.isFinite(quantity) && quantity >= 0)) { Swal.showValidationMessage('{{ __('ui.workflow.stage_output_must_match_input') }}'); return false; }
-                        if (Math.abs(input - good - rejected - waste) > 0.0001) { Swal.showValidationMessage('{{ __('ui.workflow.stage_output_must_match_input') }}'); return false; }
-                        return {stage: button.data('stage'), input_quantity: input, good_quantity: good, rejected_quantity: rejected, waste_quantity: waste, notes: $('#stageNotes').val()};
-                    }
-                }).then(result => {
-                    if (!result.isConfirmed) return;
-                    $.ajax({url: $('#productionOrderDetailBody').data('stage-url'), method: 'POST', data: {_token: @json(csrf_token()), ...result.value}})
-                        .done(response => Swal.fire({icon: 'success', title: '{{ __('ui.workflow.success') }}', text: response.message}).then(() => window.location.reload()))
-                        .fail(xhr => Swal.fire({icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: Object.values(xhr.responseJSON?.errors || {}).flat().join('\n') || xhr.responseJSON?.message || '{{ __('ui.workflow.production_stage_record_failed') }}'}));
-                });
-            });
-        @endcan
-
-        @can('production-orders.release')
-            $(document).on('click', '.transition-production-order', function () {
-                const button = $(this);
-                Swal.fire({icon: 'question', title: '{{ __('ui.workflow.confirm_production_transition') }}', showCancelButton: true, confirmButtonText: '{{ __('ui.common.confirm') }}', cancelButtonText: '{{ __('ui.common.cancel') }}'})
-                    .then(result => {
-                        if (!result.isConfirmed) return;
-                        $.ajax({url: button.data('url'), method: 'PUT', data: {_token: @json(csrf_token()), status: button.data('status')}})
-                            .done(response => Swal.fire({icon: 'success', title: '{{ __('ui.workflow.success') }}', text: response.message}).then(() => window.location.reload()))
-                            .fail(xhr => Swal.fire({icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: Object.values(xhr.responseJSON?.errors || {}).flat().join('\n') || xhr.responseJSON?.message || '{{ __('ui.workflow.production_order_status_failed') }}'}));
-                    });
-            });
-        @endcan
-    });
+$(function(){
+    const dtLanguage={emptyTable:@json(__('ui.workflow.empty_table')),zeroRecords:@json(__('ui.workflow.no_matching_data')),processing:@json(__('ui.workflow.data_processing')),search:@json(__('ui.common.search').':'),lengthMenu:@json(__('ui.workflow.show_entries')),info:@json(__('ui.workflow.showing_entries')),infoEmpty:@json(__('ui.workflow.no_data')),paginate:{first:@json(__('ui.workflow.first')),last:@json(__('ui.workflow.last')),next:@json(__('ui.workflow.next')),previous:@json(__('ui.workflow.previous'))}};
+    const table=$('#material-orders-table').DataTable({pageLength:10,lengthMenu:[5,10,50,100],order:[[3,'desc']],columnDefs:[{targets:0,orderable:false,searchable:false}],language:dtLanguage,drawCallback:function(){this.api().column(0,{search:'applied',order:'applied'}).nodes().each((cell,i)=>cell.innerHTML=i+1);if(window.feather)feather.replace();}});
+    $.fn.dataTable.ext.search.push(function(settings,data,index){if(settings.nTable.id!=='material-orders-table')return true;const row=table.row(index).node(),date=row?.dataset.poDate||'';const from=$('#from_date').val(),until=$('#to_date').val();return (!from||date>=from)&&(!until||date<=until);});
+    table.draw();$('#applyDateFilter').on('click',()=>table.draw());$('#todayDateFilter').on('click',()=>{const today=@json(now()->toDateString());$('#from_date,#to_date').val(today);table.draw();});
+    const modalElement=document.getElementById('materialOrderModal'),pickerElement=document.getElementById('finishedGoodPickerModal');
+    const modal=modalElement?bootstrap.Modal.getOrCreateInstance(modalElement):null;
+    const picker=pickerElement?bootstrap.Modal.getOrCreateInstance(pickerElement):null;
+    const resetLine=()=>{$('#output_product_id,#item_code_display,#item_name_display,#item_unit_display,#item_style_display').val('');$('#planned_quantity').val('0');$('#price_per_unit').val('0');$('#total_price_display').val('0');$('#description').val('');};
+    const recalculate=()=>$('#total_price_display').val((Number($('#planned_quantity').val()||0)*Number($('#price_per_unit').val()||0)).toFixed(4));
+    $('#planned_quantity,#price_per_unit').on('input',recalculate);
+    $('#searchFinishedGood').on('click',function(){if(!$.fn.DataTable.isDataTable('#finishedGoodsPickerTable'))$('#finishedGoodsPickerTable').DataTable({pageLength:10,lengthMenu:[5,10,50,100],order:[[0,'asc']],language:dtLanguage});picker.show();});
+    $(document).on('click','.choose-finished-good',function(){const b=$(this);$('#output_product_id').val(b.data('id'));$('#item_code_display').val(b.data('code'));$('#item_name_display').val(b.data('name'));$('#item_unit_display').val(b.data('unit'));$('#item_style_display').val(b.data('style'));picker.hide();});
+    @can('production-orders.create')
+    $('#addMaterialOrder').on('click',function(){$('#materialOrderForm')[0].reset();$('#materialOrderId').val('');resetLine();$('#number').prop('readonly',false);$('#po_date').val(@json(now()->format('Y-m-d')));$('#currency').val('USD');$('#materialOrderForm').attr('data-method','POST').attr('data-url',@json(route('super.material-orders.store')));$('#materialOrderModalTitle').text(@json(__('ui.workflow.material_order_form_title')));modal.show();});
+    @endcan
+    @can('production-orders.update')
+    $(document).on('click','.edit-material-order',function(){const b=$(this);$.get(b.data('url')).done(data=>{$('#materialOrderForm')[0].reset();$('#materialOrderId').val(data.id);$('#number').val(data.number).prop('readonly',false);$('#buyer_po_number').val(data.buyer_po_number||'');$('#no_cbd').val(data.no_cbd||'');$('#currency').val(data.currency||'USD');$('#destination').val(data.destination||'');$('#po_date').val(data.po_date);$('#due_date').val(data.due_date);$('#customer_id').val(data.customer_id);$('#output_product_id').val(data.output_product_id);$('#item_code_display').val(data.product_code);$('#item_name_display').val(data.product);$('#item_unit_display').val(data.unit);$('#item_style_display').val(data.style);$('#planned_quantity').val(data.planned_quantity);$('#price_per_unit').val(data.price_per_unit);$('#description').val(data.description||'');recalculate();$('#materialOrderForm').attr('data-method','PUT').attr('data-url',b.data('url'));$('#materialOrderModalTitle').text(@json(__('ui.common.edit'))+' MO '+data.number);modal.show();}).fail(xhr=>showError(xhr));});
+    @endcan
+    $('#materialOrderForm').on('submit',function(event){event.preventDefault();const form=$(this),button=$('#saveMaterialOrder').prop('disabled',true);$.ajax({url:form.attr('data-url'),method:form.attr('data-method'),data:form.serialize()}).done(response=>{modal.hide();Swal.fire({icon:'success',title:@json(__('ui.workflow.success')),text:response.message}).then(()=>window.location.reload());}).fail(xhr=>showError(xhr)).always(()=>button.prop('disabled',false));});
+    @can('production-orders.delete')
+    $(document).on('click','.delete-material-order',function(){const b=$(this);Swal.fire({icon:'warning',title:@json(__('ui.workflow.confirm_material_order_delete')),showCancelButton:true,confirmButtonText:@json(__('ui.common.delete')),cancelButtonText:@json(__('ui.common.cancel'))}).then(result=>{if(!result.isConfirmed)return;$.ajax({url:b.data('url'),method:'DELETE',data:{_token:@json(csrf_token())}}).done(response=>Swal.fire({icon:'success',title:@json(__('ui.workflow.success')),text:response.message}).then(()=>window.location.reload())).fail(xhr=>showError(xhr));});});
+    @endcan
+    function showError(xhr){const messages=Object.values(xhr.responseJSON?.errors||{}).flat().join('\n');Swal.fire({icon:'error',title:@json(__('ui.workflow.failure')),text:messages||xhr.responseJSON?.message||@json(__('ui.workflow.material_order_save_failed'))});}
+});
 </script>
 @endpush
