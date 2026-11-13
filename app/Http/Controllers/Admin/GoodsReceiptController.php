@@ -3,14 +3,18 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Domain\Companies\Services\CompanyPdfBrandingService;
+use App\Domain\Purchasing\Actions\DeleteGoodsReceiptAction;
+use App\Domain\Purchasing\Actions\ApproveGoodsReceiptAction;
 use App\Domain\Purchasing\Queries\GoodsReceiptTableQuery;
 use App\Domain\Purchasing\Services\GoodsReceiptService;
+use App\Exports\GoodsReceiptsExport;
 use App\Http\Controllers\Controller;
 use App\Models\GoodsReceipt;
 use App\Models\PurchaseOrder;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
 class GoodsReceiptController extends Controller
@@ -39,14 +43,39 @@ class GoodsReceiptController extends Controller
         return DataTables::eloquent($query->builder($filters['from_date'] ?? null, $filters['to_date'] ?? null))
             ->addColumn('purchase_order_number', fn (GoodsReceipt $receipt) => $receipt->purchaseOrder?->number ?? '—')
             ->addColumn('supplier_name', fn (GoodsReceipt $receipt) => $receipt->supplier?->name ?? __('ui.workflow.deleted_supplier'))
-            ->addColumn('receiver_name', fn (GoodsReceipt $receipt) => $receipt->receiver?->name ?? __('ui.workflow.deleted_user'))
+            ->addColumn('material_request_number', fn (GoodsReceipt $receipt) => $receipt->purchaseOrder?->purchaseRequest?->materialRequest?->number ?? '—')
+            ->addColumn('approval_status', fn (GoodsReceipt $receipt) => $receipt->status === 'approved'
+                ? '<span class="badge bg-success">' . e(__('ui.workflow.approval_approved')) . '</span>'
+                : '<span class="badge bg-warning text-dark">' . e(__('ui.workflow.approval_pending')) . '</span>')
             ->addColumn('actions', function (GoodsReceipt $receipt) {
-                return '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-goods-receipt" data-url="' . e(route('super.goods-receipts.show', $receipt)) . '" title="' . e(__('ui.workflow.view_details')) . '"><i data-feather="eye"></i></button>'
-                    . ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.goods-receipts.pdf', $receipt)) . '" target="_blank" rel="noopener" title="' . e(__('ui.workflow.view_pdf')) . '"><i data-feather="file-text"></i></a>'
-                    . ' <a class="btn btn-sm btn-outline-secondary" href="' . e(route('super.goods-receipts.pdf.download', $receipt)) . '" title="' . e(__('ui.workflow.download_pdf')) . '"><i data-feather="download"></i></a>';
+                $buttons = '<div class="d-inline-flex align-items-center justify-content-end gap-2 text-nowrap">'
+                    . '<button type="button" class="btn btn-link btn-sm p-0 text-secondary btn-view-goods-receipt" data-url="' . e(route('super.goods-receipts.show', $receipt)) . '" title="' . e(__('ui.workflow.view_details')) . '" aria-label="' . e(__('ui.workflow.view_details')) . '"><i data-feather="eye" class="icon-sm"></i></button>'
+                    . '<a class="btn btn-link btn-sm p-0 text-primary" href="' . e(route('super.goods-receipts.pdf', $receipt)) . '" target="_blank" rel="noopener" title="' . e(__('ui.workflow.view_pdf')) . '" aria-label="' . e(__('ui.workflow.view_pdf')) . '"><i data-feather="file-text" class="icon-sm"></i></a>'
+                    . '<a class="btn btn-link btn-sm p-0 text-secondary" href="' . e(route('super.goods-receipts.pdf.download', $receipt)) . '" title="' . e(__('ui.workflow.download_pdf')) . '" aria-label="' . e(__('ui.workflow.download_pdf')) . '"><i data-feather="download" class="icon-sm"></i></a>';
+                if ($receipt->status === 'pending' && auth()->user()?->can('goods-receipts.approve')) {
+                    $buttons .= '<button type="button" class="btn btn-link btn-sm p-0 text-success btn-approve-goods-receipt" data-url="' . e(route('super.goods-receipts.approve', $receipt)) . '" data-number="' . e($receipt->number) . '" title="' . e(__('ui.workflow.approve')) . '" aria-label="' . e(__('ui.workflow.approve')) . '"><i data-feather="check-circle" class="icon-sm"></i></button>';
+                }
+                if (auth()->user()?->can('goods-receipts.delete')) {
+                    $buttons .= '<button type="button" class="btn btn-link btn-sm p-0 text-danger btn-delete-goods-receipt" data-url="' . e(route('super.goods-receipts.destroy', $receipt)) . '" data-number="' . e($receipt->number) . '" title="' . e(__('ui.common.delete')) . '" aria-label="' . e(__('ui.common.delete')) . '"><i data-feather="trash-2" class="icon-sm"></i></button>';
+                }
+                return $buttons . '</div>';
             })
-            ->rawColumns(['actions'])
+            ->rawColumns(['actions', 'approval_status'])
             ->toJson();
+    }
+
+    public function export(Request $request)
+    {
+        $filters = $request->validate([
+            'from_date' => ['nullable', 'date_format:Y-m-d'],
+            'to_date' => ['nullable', 'date_format:Y-m-d', function ($attribute, $value, $fail) use ($request) {
+                if ($value && $request->input('from_date') && $value < $request->input('from_date')) $fail('Tanggal akhir harus sama atau setelah tanggal awal.');
+            }],
+        ]);
+        $from = $filters['from_date'] ?? null;
+        $to = $filters['to_date'] ?? null;
+
+        return Excel::download(new GoodsReceiptsExport($from, $to), 'goods-receipts-' . ($from ?: 'all') . '-to-' . ($to ?: 'all') . '.xlsx');
     }
 
     public function eligible(GoodsReceiptTableQuery $query)
@@ -66,6 +95,10 @@ class GoodsReceiptController extends Controller
             'id' => $order->id,
             'number' => $order->number,
             'supplier' => $order->supplier?->name ?? __('ui.workflow.deleted_supplier'),
+            'material_order_number' => $order->purchaseRequest?->materialRequest?->productionOrder?->number,
+            'style_code' => $order->purchaseRequest?->materialRequest?->productionOrder?->outputProduct?->style_code
+                ?? $order->purchaseRequest?->materialRequest?->outputProduct?->style_code,
+            'currency' => $order->purchaseRequest?->materialRequest?->productionOrder?->currency ?: 'USD',
             'items' => $order->items->map(fn ($item) => [
                 'id' => $item->id,
                 'code' => $item->product?->code ?? '—',
@@ -85,6 +118,9 @@ class GoodsReceiptController extends Controller
         $data = $request->validate([
             'purchase_order_id' => ['required', 'integer', 'exists:purchase_orders,id'],
             'received_at' => ['required', 'date', 'before_or_equal:now'],
+            'invoice_number' => ['nullable', 'string', 'max:100'],
+            'invoice_date' => ['nullable', 'date_format:Y-m-d'],
+            'currency' => ['required', 'string', 'max:10'],
             'customs_document_code' => ['nullable', 'string', 'max:30'],
             'customs_document_number' => ['nullable', 'string', 'max:100', 'required_with:customs_document_code'],
             'customs_document_date' => ['nullable', 'date_format:Y-m-d', 'required_with:customs_document_number'],
@@ -110,6 +146,15 @@ class GoodsReceiptController extends Controller
         return response()->json([
             'number' => $receipt->number,
             'purchase_order' => $receipt->purchaseOrder?->number ?? '—',
+            'material_order' => $receipt->purchaseOrder?->purchaseRequest?->materialRequest?->productionOrder?->number ?? '—',
+            'style' => $receipt->purchaseOrder?->purchaseRequest?->materialRequest?->productionOrder?->outputProduct?->style_code
+                ?? $receipt->purchaseOrder?->purchaseRequest?->materialRequest?->outputProduct?->style_code ?? '—',
+            'invoice_number' => $receipt->invoice_number ?: '—',
+            'invoice_date' => $receipt->invoice_date?->format('d/m/Y') ?? '—',
+            'currency' => $receipt->currency ?: '—',
+            'status_label' => $receipt->status === 'approved' ? __('ui.workflow.approval_approved') : __('ui.workflow.approval_pending'),
+            'approver' => $receipt->approver?->name ?? '—',
+            'approved_at' => $receipt->approved_at?->format('d/m/Y H:i') ?? '—',
             'supplier' => $receipt->supplier?->name ?? 'Supplier dihapus',
             'receiver' => $receipt->receiver?->name ?? 'User dihapus',
             'received_at' => $receipt->received_at?->format('d/m/Y H:i') ?? '—',
@@ -126,6 +171,23 @@ class GoodsReceiptController extends Controller
                 'unit_price' => (float) $item->unit_price,
                 'line_total' => (float) $item->line_total,
             ]),
+        ]);
+    }
+
+    public function destroy(GoodsReceipt $goodsReceipt, DeleteGoodsReceiptAction $delete): JsonResponse
+    {
+        $delete($goodsReceipt, (int) request()->user()->id);
+
+        return response()->json(['message' => __('ui.workflow.receipt_deleted')]);
+    }
+
+    public function approve(GoodsReceipt $goodsReceipt, ApproveGoodsReceiptAction $approve): JsonResponse
+    {
+        $receipt = $approve($goodsReceipt, (int) request()->user()->id);
+
+        return response()->json([
+            'message' => __('ui.workflow.receipt_approved_message', ['number' => $receipt->number]),
+            'id' => $receipt->id,
         ]);
     }
 

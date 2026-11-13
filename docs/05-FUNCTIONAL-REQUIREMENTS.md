@@ -22,13 +22,19 @@ Label **Terlihat** berasal langsung dari menu/form/tabel pada screenshot; **Infe
 
 - **Terlihat** — Form MO berisi No MO, tanggal, Due Date, No CBD, PO Buyer, Currency, Destination, Buyer; detail Finished Good berisi Item Code/Search, Item Name, Unit, Style, Qty, Price Per Unit, Total Price, Description. Detail tabel memiliki aksi edit/hapus.
 - **Diimplementasikan (2026-11-13)** — CRUD MO mengikuti tabel image22 dan form lanjutan. Item dipilih lewat DataTable dari kategori Finished Goods; total harga dihitung dari Qty × Price Per Unit. Setiap baris menyimpan satu item dan baris bisa memakai nomor MO yang sama. BOM aktif menghasilkan snapshot kebutuhan Material Request.
-- **Diimplementasikan (2026-11-13)** — Daftar Material Request menampilkan PO Buyer, produk hasil, dan kuantitas produksi dari MO yang tertaut (atau snapshot produk/kuantitas BOM bila dibuat tanpa MO). Aksi detail, issue, PDF, approval, dan reject ditampilkan sebagai tombol ringkas di setiap baris.
+- **Diimplementasikan (2026-11-13)** — Daftar Material Request menampilkan PO Buyer, produk hasil, dan kuantitas produksi dari MO yang tertaut (atau snapshot produk/kuantitas BOM bila dibuat tanpa MO), serta Required Items ringkas. Item di form manual dipilih lewat popup DataTable. Ekspor Excel mengikuti rentang tanggal dan menulis setiap item material pada baris tersendiri.
+- **Diimplementasikan (2026-11-13)** — Daftar Purchase Request menampilkan PO Buyer, Style / Qty produksi, dan Required Items ringkas. Ekspor Excel mengikuti rentang tanggal dan menulis setiap item PR pada baris tersendiri dengan kolom kode/nama/qty/satuan.
+- **Diimplementasikan (2026-11-13)** — Ekspor Excel Material Order mengikuti rentang Tanggal PO yang aktif dan dibatasi ke perusahaan aktif. Ekspor Material Request mengikuti rentang tanggal request yang aktif.
+- **Diimplementasikan (2026-11-13)** — Daftar Purchase Order menampilkan Style / Qty produksi dari MO terkait dan rincian material yang diminta dalam badge kecil. Aksi memakai ikon ringkas seperti Material Request; ekspor Excel mengikuti rentang tanggal PO dengan satu baris per item dan kolom kode/nama/qty/satuan terpisah.
 - **NEEDS CONFIRMATION** — kewajiban/keunikan No PO Buyer dan No CBD, daftar mata uang, kebutuhan Destination, serta aturan harga/pajak dan validasi tanggal.
 - **Terlihat** — tampilkan PO supplier menurut rentang tanggal, mitra, nomor dokumen dan item; daftar PO supplier menyediakan detail, cetak, edit/hapus.
 - **Terlihat** — `Cek Pesanan Pembelian` membedakan status Belum Selesai/Selesai dan menyediakan detail.
 - **Terlihat** — catat penerimaan/GRN dan baris barang; layar menunjukkan supplier, invoice, MO/PO dan nomor/tanggal GRN.
-- **Terlihat** — GRN approval menampilkan status, approver dan timestamp, dengan aksi Detail/Cancel.
-- **NEEDS CONFIRMATION** — definisi status selesai (jumlah dipesan vs diterima), penerimaan parsial, toleransi, aturan approval, posting stok, nomor dokumen dan cetakan.
+- **Terlihat (penyesuaian UI saat ini)** — daftar Goods Receipt menampilkan satu baris per GRN, termasuk nomor Material Request; kode item sampai subtotal hanya muncul di dialog Detail. Daftar dan ekspor Excel difilter berdasarkan tanggal GRN.
+- **Diimplementasikan (2026-11-13)** — form menyimpan nomor/tanggal invoice dan currency; ekspor Excel merinci setiap item pada baris terpisah. Jumlah terima tetap dibatasi sisa PO dan proses inventory lot/stok existing.
+- **Diimplementasikan (2026-11-13)** — aksi hapus GRN tersedia bagi pemegang `goods-receipts.delete`; penghapusan membalik saldo stok/lot, jumlah diterima pada PO, serta jurnal otomatis. Ditolak jika ada retur/pembayaran, saldo tidak cukup, atau transaksi stok berikutnya.
+- **Diimplementasikan** — GRN baru berstatus Menunggu Persetujuan; approval menyimpan approver/waktu, lalu memposting stok, lot dan jurnal. Retur supplier dan pembayaran hanya menerima GRN yang disetujui. GRN historis tetap berstatus approved karena stoknya sudah pernah diposting sebelum approval diterapkan.
+- **NEEDS CONFIRMATION** — definisi status selesai (jumlah dipesan vs diterima), penerimaan parsial, toleransi, pembatalan setelah approval, nomor dokumen dan cetakan.
 
 ## D. Gudang dan persediaan
 
@@ -105,3 +111,51 @@ Label **Terlihat** berasal langsung dari menu/form/tabel pada screenshot; **Infe
 - Export, template import, dan importer menggunakan kolom: Kategori, Kode Barang, Nama Barang, Satuan, Kode Style, Warna, Ukuran, Available.
 - Kategori dan satuan pada file dicocokkan ke master berdasarkan nama (tidak peka huruf besar/kecil); nilai yang tidak ditemukan ditolak. Kode barang wajib unik. Field internal di luar referensi diberi default aman saat import dan pencatatan memakai service/audit produk.
 - Style dicari dari master Style dan dipilih dari hasil pencarian database. Field Available terpisah dari status aktif sistem; daftar menampilkan nilai Masih Ada/Tidak Ada. Modal Item diperkecil menjadi ukuran Bootstrap `modal-lg` dan tetap dapat di-scroll pada layar kecil.
+
+# Damaged Items
+
+- Pengguna dengan izin dapat melihat DataTable, memilih barang terpantau stok melalui modal DataTable, menambah, dan mengedit detail.
+- Data wajib: nomor berita acara, tanggal, barang, kuantitas positif; keterangan opsional.
+- Nomor berita acara dibuat otomatis dari pengaturan Document Numbering perusahaan.
+- Saldo dan lot stok berkurang saat simpan; stok tidak boleh menjadi negatif. Tiap mutasi tampil di Kartu Stok dengan nomor berita acara.
+- Edit menyimpan koreksi mutasi dan audit log, tanpa menghapus gerakan terdahulu.
+- Hapus membatalkan baris secara soft delete, menambahkan mutasi pengembalian stok dan audit log; gerakan histori terdahulu dipertahankan.
+- NEEDS CONFIRMATION: persetujuan, penghapusan, lokasi barang reject, dan apakah yang boleh dicatat hanya kategori tertentu.
+
+# Lost Items
+
+- Daftar DataTable menyediakan tambah/edit melalui modal, pemilih item DataTable, dropdown aksi, dan ekspor Excel.
+- Data wajib: tanggal, item, kuantitas positif. Nomor berita acara dibuat otomatis dari Document Numbering `lost_item`.
+- Simpan mengurangi saldo dan lot stok dalam transaksi; edit/hapus mencatat koreksi, audit, dan histori mutasi.
+- NEEDS CONFIRMATION: approval dan pembagian kehilangan berdasarkan lokasi/gudang.
+
+## Order Bahan Baku
+
+- Daftar mendukung filter rentang tanggal dan ekspor Excel; tiap kode barang diekspor pada baris tersendiri.
+- Form menyediakan tanggal, pemilih MO dengan DataTable, tombol Ambil MO, serta tabel kebutuhan material yang jumlahnya dapat dikoreksi. Tiap item mendapat nomor OBB berbeda ketika disimpan.
+- Tambah, ubah tanggal/jumlah, dan hapus memakai validasi, transaksi database, permission, dan audit log. MO sumber tidak dapat diganti saat edit.
+- Jumlah dan style disimpan sebagai snapshot; dokumen tidak mengubah saldo stok.
+- **NEEDS CONFIRMATION:** batas jumlah order terhadap sisa kebutuhan MO dan apakah satu MO boleh mempunyai beberapa Order Bahan Baku.
+
+## Kirim ke Produksi (MIS)
+
+- Tampilkan semua rincian Order Bahan Baku per company, dengan No MO, No Request (nomor unik item OBB), tanggal request, No/Tanggal MIS terakhir, jumlah diminta, total kirim, dan sisa.
+- Aksi kirim menampilkan jumlah request, kirim lalu, kirim kini, dan total kirim. Pengiriman parsial didukung; jumlah tidak boleh melampaui sisa OBB, kebutuhan MO, atau stok/lot.
+- Simpan membuat nomor MIS otomatis, audit, detail MIS, dan mutasi stok/lot. Kartu stok mempertahankan hubungan ke rincian OBB serta MIS.
+- Daftar histori MIS dapat difilter tanggal dan diekspor Excel, satu item per baris.
+
+## Penerimaan Produksi dari Gudang
+
+- Tampilkan dokumen MIS berdasarkan rentang tanggal dengan status penerimaan, nomor MIS, tanggal MIS, dan nomor Order Bahan Baku sumber.
+- Detail memperlihatkan kode/nama barang, satuan, style, dan kuantitas per item. Aksi konfirmasi mencatat penerima/waktu dan audit.
+- Konfirmasi tidak mengubah saldo stok kembali; stok sudah dikurangi oleh pengiriman MIS.
+- Permission: `production-receipts.view` dan `production-receipts.approve`; menu ditempatkan dalam grup Production.
+- **NEEDS CONFIRMATION:** penerimaan parsial dan asal nilai PO Supplier pada detail.
+
+## Pemakaian Material Non-Produksi
+
+- Sediakan form transaksi bernomor dari Document Numbering, tanggal, pemilihan item melalui DataTable, qty pakai, harga, dan total.
+- Daftar memiliki filter tanggal serta kolom nomor/tanggal/style/item/unit/qty/harga/total. Aksi edit/hapus memakai kompensasi stok dan menjaga histori.
+- Simpan mengurangi stok dan lot; kartu stok dan jurnal mencatat transaksi. Akses memakai permission `non-production-material-usages.view/create/update/delete`.
+- **NEEDS CONFIRMATION:** akun beban tujuan untuk pencatatan harga dan apakah satu nomor transaksi nantinya perlu beberapa baris item. Implementasi saat ini menerbitkan satu nomor per item sesuai pola form referensi.
+- **NEEDS CONFIRMATION:** approval, aturan koreksi/pembatalan, dan apakah pergerakan material perlu gudang/lokasi produksi eksplisit.

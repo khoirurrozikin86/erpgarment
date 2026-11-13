@@ -18,10 +18,16 @@
                 <h4 class="page-title mb-1">{{ __('ui.common.purchase_request') }}</h4>
                 <span class="text-muted">{{ __('ui.workflow.pr_subtitle') }}</span>
             </div>
-            @can('purchase-requests.create')
-                <a href="{{ route('super.purchase-requests.create') }}" class="btn btn-primary btn-sm">
-                    <i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.workflow.create_purchase_request') }}</a>
-            @endcan
+            <div class="d-flex gap-2">
+                @can('purchase-requests.view')
+                    <a href="{{ route('super.purchase-requests.export') }}" id="exportPurchaseRequests" class="btn btn-outline-success btn-sm">
+                        <i data-feather="download" class="icon-sm me-1"></i>{{ __('ui.common.export_excel') }}</a>
+                @endcan
+                @can('purchase-requests.create')
+                    <a href="{{ route('super.purchase-requests.create') }}" class="btn btn-primary btn-sm">
+                        <i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.workflow.create_purchase_request') }}</a>
+                @endcan
+            </div>
         </div>
 
         <div class="col-12">
@@ -31,8 +37,8 @@
                     <div class="table-responsive">
                         <table id="purchase-requests-table" class="table table-bordered table-hover align-middle w-100">
                             <thead><tr>
-                                <th width="50">{{ __('ui.common.no') }}</th><th>{{ __('ui.common.pr_number') }}</th><th>{{ __('ui.common.request_date') }}</th><th>{{ __('ui.common.mr_number') }}</th><th>{{ __('ui.common.supplier') }}</th>
-                                <th>{{ __('ui.common.requester') }}</th><th>{{ __('ui.common.estimated_total') }}</th><th>{{ __('ui.common.status') }}</th><th width="120">{{ __('ui.common.action') }}</th>
+                                <th width="50">{{ __('ui.common.no') }}</th><th>{{ __('ui.common.pr_number') }}</th><th>{{ __('ui.common.request_date') }}</th><th>{{ __('ui.common.mr_number') }}</th><th>{{ __('ui.workflow.buyer_po_no') }}</th><th>{{ __('ui.nav.styles') }} / {{ __('ui.workflow.order_quantity') }}</th><th>{{ __('ui.workflow.items_needed') }}</th><th>{{ __('ui.common.supplier') }}</th>
+                                <th>{{ __('ui.common.requester') }}</th><th>{{ __('ui.common.estimated_total') }}</th><th>{{ __('ui.common.status') }}</th><th width="130" class="text-end">{{ __('ui.common.action') }}</th>
                             </tr></thead>
                         </table>
                     </div>
@@ -72,11 +78,14 @@
                     { data: 'number', name: 'number' },
                     { data: 'created_at', name: 'created_at', render: data => data ? new Date(data).toLocaleString('id-ID') : '—' },
                     { data: 'material_request_number', name: 'material_request.number', orderable: false, searchable: false },
+                    { data: 'buyer_po_number', orderable: false, searchable: false, defaultContent: '—' },
+                    { data: 'production_item', orderable: false, searchable: false, defaultContent: '—' },
+                    { data: 'required_items', orderable: false, searchable: false, defaultContent: '—' },
                     { data: 'supplier_name', name: 'supplier.name', orderable: false, searchable: false },
                     { data: 'requester_name', name: 'requester_name', orderable: false, searchable: false },
                     { data: 'total_amount', name: 'total_amount', searchable: false, className: 'text-end', render: data => money(data) },
                     { data: 'status_label', name: 'status', searchable: false },
-                    { data: 'actions', orderable: false, searchable: false, className: 'text-center' }
+                    { data: 'actions', orderable: false, searchable: false, className: 'text-end' }
                 ],
                 order: [[1, 'desc']],
                 drawCallback: function() { if (window.feather) feather.replace(); }
@@ -87,6 +96,17 @@
                 const today = @json(now()->toDateString());
                 $('#from_date, #to_date').val(today);
                 table.ajax.reload();
+            });
+
+            $('#exportPurchaseRequests').on('click', function() {
+                const url = new URL(this.href, window.location.origin);
+                const fromDate = $('#from_date').val();
+                const toDate = $('#to_date').val();
+                if (fromDate) url.searchParams.set('from_date', fromDate);
+                else url.searchParams.delete('from_date');
+                if (toDate) url.searchParams.set('to_date', toDate);
+                else url.searchParams.delete('to_date');
+                this.href = url.toString();
             });
 
             $(document).on('click', '.btn-view-purchase-request', function() {

@@ -85,6 +85,29 @@
                     modal.show();
                 }).fail(() => Swal.fire({ icon: 'error', title: '{{ __('ui.modules.failure') }}', text: '{{ __('ui.modules.detail_failed_purchase_return') }}' }));
             });
+
+            $(document).on('click', '.btn-delete-purchase-return', function() {
+                const button = $(this);
+                Swal.fire({
+                    icon: 'warning',
+                    title: '{{ __('ui.common.confirmation') }}',
+                    text: `{{ __('ui.modules.confirm_delete_purchase_return') }} ${button.data('number')}?`,
+                    showCancelButton: true,
+                    confirmButtonText: '{{ __('ui.modules.confirm_delete_purchase_return_action') }}',
+                    cancelButtonText: '{{ __('ui.common.cancel') }}',
+                }).then(result => {
+                    if (!result.isConfirmed) return;
+                    $.ajax({ url: button.data('url'), method: 'DELETE', data: { _token: @json(csrf_token()) } })
+                        .done(response => {
+                            table.ajax.reload(null, false);
+                            Swal.fire({ icon: 'success', title: '{{ __('ui.modules.success') }}', text: response.message });
+                        })
+                        .fail(xhr => Swal.fire({
+                            icon: 'error', title: '{{ __('ui.modules.failure') }}',
+                            text: Object.values(xhr.responseJSON?.errors || {}).flat().join('\n') || xhr.responseJSON?.message || '{{ __('ui.modules.purchase_return_delete_failed') }}'
+                        }));
+                });
+            });
         });
     </script>
 @endpush

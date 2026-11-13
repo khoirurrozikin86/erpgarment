@@ -13,9 +13,14 @@
     <div class="row">
         <div class="d-flex justify-content-between align-items-center mb-3">
             <div><h4 class="page-title mb-1">{{ __('ui.common.purchase_order') }}</h4><span class="text-muted">{{ __('ui.workflow.po_list_subtitle') }}</span></div>
-            @can('purchase-orders.create')
-                <a href="{{ route('super.purchase-orders.create') }}" class="btn btn-primary btn-sm"><i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.common.create_purchase_order') }}</a>
-            @endcan
+            <div class="d-flex gap-2">
+                @can('purchase-orders.view')
+                    <a href="{{ route('super.purchase-orders.export') }}" id="exportPurchaseOrders" class="btn btn-outline-success btn-sm"><i data-feather="download" class="icon-sm me-1"></i>{{ __('ui.common.export_excel') }}</a>
+                @endcan
+                @can('purchase-orders.create')
+                    <a href="{{ route('super.purchase-orders.create') }}" class="btn btn-primary btn-sm"><i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.common.create_purchase_order') }}</a>
+                @endcan
+            </div>
         </div>
 
         <div class="col-12">
@@ -24,7 +29,7 @@
             <table id="purchase-orders-table" class="table table-bordered table-hover align-middle w-100">
                 <thead><tr>
                     <th width="50">{{ __('ui.common.no') }}</th><th>{{ __('ui.common.po_number') }}</th><th>{{ __('ui.common.pr_number') }}</th><th>{{ __('ui.common.supplier') }}</th>
-                    <th>{{ __('ui.common.po_date') }}</th><th>{{ __('ui.common.expected_arrival') }}</th><th>{{ __('ui.common.total') }}</th><th>{{ __('ui.common.status') }}</th><th width="170">{{ __('ui.common.action') }}</th>
+                    <th>{{ __('ui.common.po_date') }}</th><th>{{ __('ui.common.expected_arrival') }}</th><th>{{ __('ui.nav.styles') }} / {{ __('ui.workflow.order_quantity') }}</th><th>{{ __('ui.workflow.items_needed') }}</th><th>{{ __('ui.common.total') }}</th><th>{{ __('ui.common.status') }}</th><th width="120" class="text-end">{{ __('ui.common.action') }}</th>
                 </tr></thead>
             </table>
             </div></div></div>
@@ -73,9 +78,11 @@
                     { data: 'supplier_name', name: 'supplier.name', orderable: false, searchable: false },
                     { data: 'order_date', name: 'order_date', render: data => data ? new Date(data).toLocaleDateString('id-ID') : '—' },
                     { data: 'expected_delivery_at', name: 'expected_delivery_at', defaultContent: '—', render: data => data ? new Date(data).toLocaleDateString('id-ID') : '—' },
+                    { data: 'production_style_quantity', orderable: false, searchable: false, defaultContent: '—' },
+                    { data: 'requested_items', orderable: false, searchable: false, defaultContent: '—' },
                     { data: 'total_amount', name: 'total_amount', searchable: false, className: 'text-end', render: data => money(data) },
                     { data: 'status_label', name: 'status', searchable: false },
-                    { data: 'actions', orderable: false, searchable: false, className: 'text-center' }
+                    { data: 'actions', orderable: false, searchable: false, className: 'text-end' }
                 ],
                 order: [[1, 'desc']],
                 drawCallback: function() { if (window.feather) feather.replace(); }
@@ -86,6 +93,13 @@
                 const today = @json(now()->toDateString());
                 $('#from_date, #to_date').val(today);
                 table.ajax.reload();
+            });
+            $('#exportPurchaseOrders').on('click', function() {
+                const url = new URL(this.href, window.location.origin);
+                const fromDate = $('#from_date').val(), toDate = $('#to_date').val();
+                if (fromDate) url.searchParams.set('from_date', fromDate); else url.searchParams.delete('from_date');
+                if (toDate) url.searchParams.set('to_date', toDate); else url.searchParams.delete('to_date');
+                this.href = url.toString();
             });
 
             $(document).on('click', '.btn-view-purchase-order', function() {

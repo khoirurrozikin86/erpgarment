@@ -27,6 +27,9 @@ class PaySupplierAction
     {
         return DB::transaction(function () use ($receipt, $data, $userId) {
             $receipt = GoodsReceipt::query()->lockForUpdate()->findOrFail($receipt->id);
+            if ($receipt->status !== 'approved') {
+                throw ValidationException::withMessages(['goods_receipt_id' => __('ui.workflow.receipt_approval_required_for_payment')]);
+            }
             $receiptAmount = (float) $receipt->items()->sum('line_total');
             $returned = (float) $receipt->purchaseReturns()->sum('total_amount');
             $paid = (float) $receipt->supplierPayments()->where('company_id', $this->company->id())->sum('amount');

@@ -38,6 +38,11 @@ class MaterialRequest extends Model
         return $this->hasMany(PurchaseRequest::class);
     }
 
+    public function materialIssues(): HasMany
+    {
+        return $this->hasMany(MaterialIssueDocument::class, 'material_request_id');
+    }
+
     public function outputProduct(): BelongsTo
     {
         return $this->belongsTo(Product::class, 'output_product_id');

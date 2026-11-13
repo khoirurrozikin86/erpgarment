@@ -12,6 +12,9 @@ class GoodsReceiptData
         public ?string $customsDocumentCode = null,
         public ?string $customsDocumentNumber = null,
         public ?string $customsDocumentDate = null,
+        public ?string $invoiceNumber = null,
+        public ?string $invoiceDate = null,
+        public ?string $currency = null,
     ) {}
 
     public static function fromArray(array $data): self
@@ -24,6 +27,9 @@ class GoodsReceiptData
             customsDocumentCode: $data['customs_document_code'] ?? null,
             customsDocumentNumber: $data['customs_document_number'] ?? null,
             customsDocumentDate: $data['customs_document_date'] ?? null,
+            invoiceNumber: $data['invoice_number'] ?? null,
+            invoiceDate: $data['invoice_date'] ?? null,
+            currency: $data['currency'] ?? null,
         );
     }
 }

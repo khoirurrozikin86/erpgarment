@@ -15,7 +15,15 @@ class StockMovement extends Model
         'purchase_return_item_id',
         'stock_opname_id',
         'stock_opname_item_id',
+        'damaged_item_document_id',
+        'damaged_item_line_id',
+        'lost_item_document_id',
+        'lost_item_line_id',
         'material_request_item_id',
+        'material_issue_document_id',
+        'material_issue_item_id',
+        'non_production_material_usage_document_id',
+        'non_production_material_usage_item_id',
         'production_order_stage_entry_id',
         'created_by',
         'movement_type',
@@ -63,10 +71,40 @@ class StockMovement extends Model
         return $this->belongsTo(StockOpname::class);
     }
 
+    public function damagedItemDocument(): BelongsTo
+    {
+        return $this->belongsTo(DamagedItemDocument::class);
+    }
+
+    public function lostItemDocument(): BelongsTo
+    {
+        return $this->belongsTo(LostItemDocument::class);
+    }
+
 
     public function materialRequestItem(): BelongsTo
     {
         return $this->belongsTo(MaterialRequestItem::class);
+    }
+
+    public function materialIssueDocument(): BelongsTo
+    {
+        return $this->belongsTo(MaterialIssueDocument::class);
+    }
+
+    public function materialIssueItem(): BelongsTo
+    {
+        return $this->belongsTo(MaterialIssueItem::class);
+    }
+
+    public function nonProductionMaterialUsageDocument(): BelongsTo
+    {
+        return $this->belongsTo(NonProductionMaterialUsageDocument::class, 'non_production_material_usage_document_id');
+    }
+
+    public function nonProductionMaterialUsageItem(): BelongsTo
+    {
+        return $this->belongsTo(NonProductionMaterialUsageItem::class, 'non_production_material_usage_item_id');
     }
 
     public function productionOrderStageEntry(): BelongsTo

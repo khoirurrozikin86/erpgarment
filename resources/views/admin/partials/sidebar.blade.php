@@ -105,12 +105,34 @@
                 <li class="nav-item"><a href="{{ route('super.purchase-orders.index') }}" class="nav-link {{ request()->routeIs('super.purchase-orders.*') ? 'active' : '' }}"><i class="link-icon" data-feather="shopping-bag"></i><span class="link-title">{{ __('ui.nav.purchase_orders') }}</span></a></li>
             @endcan
 
+            @canany(['raw-material-orders.view', 'production-receipts.view'])
+                <li class="nav-item nav-category">{{ __('ui.nav.production') }}</li>
+            @endcanany
+            @can('raw-material-orders.view')
+                <li class="nav-item"><a href="{{ route('super.raw-material-orders.index') }}" class="nav-link {{ request()->routeIs('super.raw-material-orders.*') ? 'active' : '' }}"><i class="link-icon" data-feather="layers"></i><span class="link-title">{{ __('ui.raw_material_order.title') }}</span></a></li>
+            @endcan
+            @can('production-receipts.view')
+                <li class="nav-item"><a href="{{ route('super.production-receipts.index') }}" class="nav-link {{ request()->routeIs('super.production-receipts.*') ? 'active' : '' }}"><i class="link-icon" data-feather="inbox"></i><span class="link-title">{{ __('ui.production_receipt.title') }}</span></a></li>
+            @endcan
+
             {{-- Referensi: gudang dan persediaan. --}}
-            @canany(['goods-receipts.view', 'purchase-returns.view', 'stocks.view', 'stock-card.view', 'stock-opnames.view'])
+            @canany(['goods-receipts.view', 'purchase-returns.view', 'stocks.view', 'stock-card.view', 'stock-opnames.view', 'damaged-items.view', 'lost-items.view', 'material-issues.view', 'non-production-material-usages.view'])
                 <li class="nav-item nav-category">{{ __('ui.nav.warehouse_inventory') }}</li>
             @endcanany
             @can('stock-opnames.view')
                 <li class="nav-item"><a href="{{ route('super.stock-opnames.index') }}" class="nav-link {{ request()->routeIs('super.stock-opnames.*') ? 'active' : '' }}"><i class="link-icon" data-feather="clipboard"></i><span class="link-title">{{ __('ui.nav.stock_opname') }}</span></a></li>
+            @endcan
+            @can('damaged-items.view')
+                <li class="nav-item"><a href="{{ route('super.damaged-items.index') }}" class="nav-link {{ request()->routeIs('super.damaged-items.*') ? 'active' : '' }}"><i class="link-icon" data-feather="alert-triangle"></i><span class="link-title">{{ __('ui.damage.title') }}</span></a></li>
+            @endcan
+            @can('lost-items.view')
+                <li class="nav-item"><a href="{{ route('super.lost-items.index') }}" class="nav-link {{ request()->routeIs('super.lost-items.*') ? 'active' : '' }}"><i class="link-icon" data-feather="search"></i><span class="link-title">{{ __('ui.lost.title') }}</span></a></li>
+            @endcan
+            @can('non-production-material-usages.view')
+                <li class="nav-item"><a href="{{ route('super.non-production-material-usages.index') }}" class="nav-link {{ request()->routeIs('super.non-production-material-usages.*') ? 'active' : '' }}"><i class="link-icon" data-feather="package" ></i><span class="link-title">{{ __('ui.non_production_usage.title') }}</span></a></li>
+            @endcan
+            @can('material-issues.view')
+                <li class="nav-item"><a href="{{ route('super.material-issues.index') }}" class="nav-link {{ request()->routeIs('super.material-issues.*') ? 'active' : '' }}"><i class="link-icon" data-feather="send"></i><span class="link-title">{{ __('ui.material_issue.title') }}</span></a></li>
             @endcan
             @can('goods-receipts.view')
                 <li class="nav-item"><a href="{{ route('super.goods-receipts.index') }}" class="nav-link {{ request()->routeIs('super.goods-receipts.*') ? 'active' : '' }}"><i class="link-icon" data-feather="package"></i><span class="link-title">{{ __('ui.nav.goods_receipts') }}</span></a></li>

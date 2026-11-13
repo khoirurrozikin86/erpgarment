@@ -41,10 +41,10 @@
 
     <table class="meta">
         <tr><td class="label">{{ __('ui.common.purchase_order_number') }}</td><td>{{ $receipt->purchaseOrder?->number ?? '—' }}</td><td class="label">{{ __('ui.common.receipt_date') }}</td><td>{{ $receipt->received_at?->format('d/m/Y H:i') ?? '—' }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.status') }}</td><td>{{ $receipt->status === 'approved' ? __('ui.workflow.approval_approved') : __('ui.workflow.approval_pending') }}</td><td class="label">{{ __('ui.workflow.approved_by') }}</td><td>{{ $receipt->approver?->name ?? '—' }} @if ($receipt->approved_at) · {{ $receipt->approved_at->format('d/m/Y H:i') }} @endif</td></tr>
+        <tr><td class="label">{{ __('ui.workflow.material_order') }}</td><td>{{ $receipt->purchaseOrder?->purchaseRequest?->materialRequest?->productionOrder?->number ?? '—' }}</td><td class="label">{{ __('ui.workflow.style') }}</td><td>{{ $receipt->purchaseOrder?->purchaseRequest?->materialRequest?->productionOrder?->outputProduct?->style_code ?? $receipt->purchaseOrder?->purchaseRequest?->materialRequest?->outputProduct?->style_code ?? '—' }}</td></tr>
+        <tr><td class="label">{{ __('ui.common.invoice_number') }}</td><td>{{ $receipt->invoice_number ?: '—' }}</td><td class="label">{{ __('ui.common.invoice_date') }}</td><td>{{ $receipt->invoice_date?->format('d/m/Y') ?? '—' }} · {{ $receipt->currency ?: '—' }}</td></tr>
         <tr><td class="label">{{ __('ui.common.supplier') }}</td><td>{{ $receipt->supplier?->name ?? 'Supplier dihapus' }}</td><td class="label">{{ __('ui.common.received_by') }}</td><td>{{ $receipt->receiver?->name ?? 'User dihapus' }}</td></tr>
-        @if ($receipt->customs_document_number)
-            <tr><td class="label">{{ __('ui.workflow.customs_document_code') }}</td><td>{{ $receipt->customs_document_code ?: '—' }}</td><td class="label">{{ __('ui.workflow.customs_document_number') }}</td><td>{{ $receipt->customs_document_number }} ({{ $receipt->customs_document_date?->format('d/m/Y') ?? '—' }})</td></tr>
-        @endif
         @if ($receipt->customs_document_number)
             <tr><td class="label">{{ __('ui.workflow.customs_document_code') }}</td><td>{{ $receipt->customs_document_code ?: '—' }}</td><td class="label">{{ __('ui.workflow.customs_document_number') }}</td><td>{{ $receipt->customs_document_number }} ({{ $receipt->customs_document_date?->format('d/m/Y') ?? '—' }})</td></tr>
         @endif
@@ -62,11 +62,11 @@
                     <td>{{ $item->inventoryLot?->lot_number ?? '—' }}</td>
                     <td class="right">{{ number_format((float) $item->quantity, 4, ',', '.') }}</td>
                     <td>{{ $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—' }}</td>
-                    <td class="right">Rp {{ number_format((float) $item->unit_price, 2, ',', '.') }}</td>
-                    <td class="right">Rp {{ number_format((float) $item->line_total, 2, ',', '.') }}</td>
+                    <td class="right">{{ $receipt->currency ?: '' }} {{ number_format((float) $item->unit_price, 2, ',', '.') }}</td>
+                    <td class="right">{{ $receipt->currency ?: '' }} {{ number_format((float) $item->line_total, 2, ',', '.') }}</td>
                 </tr>
             @empty
-                <tr><td colspan="7" class="center">Tidak ada rincian penerimaan.</td></tr>
+                <tr><td colspan="8" class="center">Tidak ada rincian penerimaan.</td></tr>
             @endforelse
         </tbody>
     </table>

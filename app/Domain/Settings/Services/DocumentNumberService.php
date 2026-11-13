@@ -108,4 +108,24 @@ class DocumentNumberService
             return $documentNumber;
         });
     }
+
+    public function preview(string $documentType): string
+    {
+        $numbering = DocumentNumbering::query()
+            ->where('company_id', $this->companyContext->id())
+            ->where('document_type', $documentType)
+            ->where('is_active', true)
+            ->firstOrFail();
+
+        $now = now();
+        $number = $numbering->next_number;
+        if ($numbering->reset_period === 'monthly' && $numbering->last_reset_at?->format('Y-m') !== $now->format('Y-m')) $number = 1;
+        if ($numbering->reset_period === 'yearly' && $numbering->last_reset_at?->format('Y') !== $now->format('Y')) $number = 1;
+
+        return str_replace(
+            ['{PREFIX}', '{YYYY}', '{YY}', '{MM}', '{DD}', '{NUMBER}'],
+            [$numbering->prefix, $now->format('Y'), $now->format('y'), $now->format('m'), $now->format('d'), str_pad((string) $number, $numbering->number_length, '0', STR_PAD_LEFT)],
+            $numbering->format,
+        );
+    }
 }

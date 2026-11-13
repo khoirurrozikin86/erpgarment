@@ -47,16 +47,20 @@ class StockCardController extends Controller
             $filters['from_date'] ?? null,
             $filters['to_date'] ?? null,
         ))
-            ->addColumn('reference_number', fn(StockMovement $movement) => $movement->goodsReceipt?->number ?? $movement->purchaseReturn?->number ?? $movement->stockOpname?->number ?? $movement->materialRequestItem?->request?->number ?? $movement->productionOrderStageEntry?->productionOrder?->number ?? '—')
+            ->addColumn('reference_number', fn(StockMovement $movement) => $movement->goodsReceipt?->number ?? $movement->purchaseReturn?->number ?? $movement->stockOpname?->number ?? $movement->damagedItemDocument?->number ?? $movement->lostItemDocument?->number ?? $movement->materialRequestItem?->request?->number ?? $movement->materialIssueDocument?->number ?? $movement->nonProductionMaterialUsageDocument?->number ?? $movement->productionOrderStageEntry?->productionOrder?->number ?? '—')
             ->addColumn('movement_label', fn(StockMovement $movement) => match ($movement->movement_type) {
                 'purchase_receipt' => '<span class="badge bg-success">Penerimaan Barang</span>',
                 'purchase_return' => '<span class="badge bg-danger">Purchase Return</span>',
                 'customer_return' => '<span class="badge bg-success">Customer Return</span>',
                 'pos_void' => '<span class="badge bg-success">Void POS</span>',
                 'stock_adjustment' => '<span class="badge bg-warning text-dark">Stock Opname</span>',
+                'damaged_item', 'damaged_item_reversal' => '<span class="badge bg-danger">' . e(__('ui.damage.title')) . '</span>',
+                'lost_item', 'lost_item_reversal' => '<span class="badge bg-warning text-dark">' . e(__('ui.lost.title')) . '</span>',
                 'sales_delivery' => '<span class="badge bg-danger">Delivery</span>',
                 'pos_sale' => '<span class="badge bg-danger">Penjualan POS</span>',
                 'material_issue' => '<span class="badge bg-warning text-dark">' . e(__('ui.workflow.material_issue_movement')) . '</span>',
+                'non_production_material_usage' => '<span class="badge bg-danger">' . e(__('ui.non_production_usage.title')) . '</span>',
+                'non_production_material_usage_reversal' => '<span class="badge bg-success">' . e(__('ui.non_production_usage.reversal')) . '</span>',
                 'production_output' => '<span class="badge bg-success">' . e(__('ui.workflow.production_output_movement')) . '</span>',
                 default => '<span class="badge bg-secondary">' . e(ucfirst(str_replace('_', ' ', $movement->movement_type))) . '</span>',
             })

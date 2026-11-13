@@ -2,6 +2,19 @@
 
 Pengerjaan dilakukan satu modul per instruksi. Tidak ada coding modul berikutnya sebelum pengguna memberikan arahan.
 
+## 2026-11-13 — Goods Receipt (GRN)
+
+- **Status:** penyesuaian daftar, form, dan ekspor selesai.
+- Daftar menampilkan satu baris per GRN, berisi nomor/tanggal, supplier, invoice/tanggal, Material Request, PO supplier, dan keterangan. Kode item sampai subtotal ada di dialog Detail. Aksi detail/PDF/unduh PDF berupa ikon kecil.
+- Filter rentang tanggal diterapkan pada daftar dan Excel. Setiap kode item diekspor pada baris tersendiri.
+- Form menyimpan nomor/tanggal invoice dan mata uang, serta menampilkan PO, MO, style, supplier dan item dari PO terpilih. Data kepabeanan dan pencatatan lot/stok tetap dipertahankan.
+- Migration `2026_11_13_000016_add_invoice_fields_to_goods_receipts.php` menambah kolom invoice/currency; migration `2026_11_13_000017_add_goods_receipt_approval.php` menambah status approval, approver/waktu, serta snapshot nomor lot; keduanya perlu dijalankan pada environment aplikasi.
+- **Test:** `GoodsReceiptsExportTest` lulus, 2 test / 8 assertion. File PHP terkait lulus `php -l`.
+- **NEEDS CONFIRMATION:** sumber daftar mata uang belum tersedia; nilai awal diambil dari MO bila ada, selain itu USD. Currency dapat dikoreksi saat mencatat GRN.
+- MO pada form penerimaan otomatis terisi dari rantai PO Supplier → Purchase Request → Material Request → Material Order saat PO dipilih.
+- Aksi hapus GRN memerlukan permission `goods-receipts.delete`. Penghapusan membalik stok/lot, kuantitas PO, serta jurnal; ditolak bila sudah ada retur/pembayaran atau mutasi stok lanjutan.
+- GRN baru menunggu approval. Stok, lot, dan jurnal hanya diposting lewat aksi Approve (`goods-receipts.approve`). GRN historis dimigrasikan menjadi approved untuk mencegah posting ganda; data approver/waktu historis tidak tersedia.
+
 ## 2026-11-13 — Material Order (MO)
 
 - **Status:** implementasi CRUD selesai; migration perlu dijalankan pada environment aplikasi.
@@ -198,3 +211,118 @@ Pengerjaan dilakukan satu modul per instruksi. Tidak ada coding modul berikutnya
 - Filter tanggal MO dipisahkan di atas card tabel dan memakai komponen filter yang sama dengan Material Request; default tanggal dan aksi Hari Ini mengikuti komponen tersebut.
 - Header card DataTable MO dihilangkan agar tabel lebih ringkas. Aksi edit/hapus dipindahkan ke dropdown tiga titik sesuai pola Unit.
 - Verifikasi: Blade view cache berhasil.
+
+## 2026-11-13 — Penyelarasan Purchase Request
+
+- Daftar Purchase Request kini menampilkan PO Buyer serta Style / Qty produksi dari MO/MR terkait; kode material PR tidak dipakai sebagai identitas barang produksi. Nilai kuantitas menghilangkan nol desimal yang tidak diperlukan.
+- Aksi detail, PDF, unduh, approve/reject, dan buat PO memakai ikon ringkas tanpa border, rata kanan, mengikuti Material Request.
+- Ekspor Excel mencakup kolom yang sama dan mengikuti filter tanggal aktif pada daftar.
+- Verifikasi: PHP lint, Blade view cache, test ekspor, dan `git diff --check`.
+
+## 2026-11-13 — Ekspor Material Order dan Material Request
+
+- Tombol ekspor Excel ditambahkan di halaman MO dan Material Request, membawa rentang tanggal filter saat ini.
+- Ekspor MO memakai Tanggal PO dan company context aktif; ekspor Material Request memakai tanggal pengajuan. Rentang terbalik ditolak.
+- Verifikasi: query ekspor menguji filter tanggal, PHP lint, Blade view cache, dan `git diff --check`.
+
+## 2026-11-13 — Penyempurnaan Purchase Order
+
+- Aksi PO diseragamkan ke ikon kecil tanpa border, rata kanan, mengikuti Material Request.
+- Tabel PO menampilkan Style / Qty produksi dan rincian kode material serta kuantitas dalam badge ringkas dengan tinggi terbatas.
+- Ekspor Excel PO memuat informasi order, Style / Qty produksi, nilai dan status; setiap material menjadi baris sendiri dengan kolom kode, nama, qty, dan unit terpisah. Ekspor mengikuti filter tanggal PO.
+- Verifikasi: PHP lint, Blade view cache, test ekspor PO dan pemeriksaan diff.
+
+## 2026-11-13 — Required Items untuk Material Request dan Purchase Request
+
+- Daftar MR dan PR menampilkan Required Items dalam badge kompak berisi kode dan kuantitas item.
+- Ekspor MR dan PR kini menghasilkan satu baris per item; kode, nama, kuantitas, dan satuan berada pada kolom terpisah, sementara informasi dokumen diulang pada tiap baris.
+- Verifikasi: test ekspor untuk MR/PR, PHP lint, Blade view cache, dan pemeriksaan diff.
+
+## 2026-11-13 — Pemilih Item Material Request
+
+- Pemilihan item manual pada form MR menggunakan popup DataTable dengan pencarian, pagination, kolom kode/nama/unit, dan aksi Pilih. Item terpilih masuk ke baris item request; isi dari BOM/MO tetap dapat dimuat seperti sebelumnya.
+- Verifikasi: Blade view cache dan pemeriksaan diff.
+# Progress — Goods Receipt
+
+- Daftar GRN memakai satu baris per item dan menampilkan relasi supplier, invoice, style, MO, PO supplier, item, kuantitas, harga, currency, total, dan keterangan.
+- Filter tanggal dipakai bersama tombol ekspor Excel; ekspor menghasilkan satu baris untuk setiap item.
+- Aksi detail, PDF, dan unduh PDF dibuat ringkas dengan ikon.
+- Form penerimaan menambahkan data invoice/currency dan menampilkan PO/MO/style yang dipilih.
+- Alur transaksi yang sudah ada tetap menangani batas kuantitas PO, lot, stok, dan jurnal. Approval GRN tetap di luar scope karena alur persetujuannya belum selesai/terkonfirmasi.
+- NEEDS CONFIRMATION: referensi menunjukkan mata uang, tetapi daftar mata uang sumber belum terlihat; form memakai kode currency teks singkat berisi nilai bawaan MO bila tersedia, atau USD.
+
+# Damaged Items (13 November 2026)
+
+- Implemented document header/detail CRUD with modal entry/edit and server-side DataTables item picker/list.
+- Added `damaged-items.view/create/update/delete` permissions and Warehouse & Inventory navigation entry.
+- Meeting Minutes number is generated from company Document Numbering (`damaged_item`, default prefix `BRSK`) with a preview in the add modal; existing configurations receive it through migration `2026_11_13_000019_add_damaged_item_document_numbering.php`.
+- Add form includes the session CSRF token. Delete is a soft cancellation that reverses stock and keeps the movement/audit history; migration `2026_11_13_000020_add_soft_deletes_to_damaged_item_lines.php` adds the soft-delete column.
+- Posting a detail reduces product and lot stock transactionally, records a linked stock movement, journals the inventory loss, and writes audit history. Editing posts compensating movements.
+- Added migrations `2026_11_13_000018_create_damaged_item_tables.php`, `000019_add_damaged_item_document_numbering.php`, and `000020_add_soft_deletes_to_damaged_item_lines.php`.
+- Verified with `DamagedItemStockTest` (1 test, 20 assertions), `GoodsReceiptApprovalTest` (1 test, 12 assertions), route listing, PHP lint, and `git diff --check`.
+- Apply pending migrations to the application database before using the module.
+- NEEDS CONFIRMATION: approval requirement and rejected-goods quarantine handling.
+
+# Lost Items (13 November 2026)
+
+- Added Lost Items with a DataTable, item picker modal, add/edit modal, compact action dropdown, and Excel export.
+- Stock reductions, edit corrections, and cancellations use separate `lost_item`/`lost_item_reversal` movements linked to the lost-item document and are included in Stock Card and audit logs.
+- Meeting Minutes numbering uses company Document Numbering type `lost_item`, default prefix `BHLNG`.
+- Added migrations `2026_11_13_000021_create_lost_item_tables.php` and `000022_add_lost_item_document_numbering.php`.
+- Verified with `LostItemStockTest` (1 test, 23 assertions), including export, stock/lot balance, and action dropdown.
+- NEEDS CONFIRMATION: approval and location-based loss tracking.
+
+## 2026-11-13 — Order Bahan Baku
+
+- **Status:** CRUD selesai sesuai referensi; migration 000023–000025 perlu dijalankan pada environment aplikasi.
+- Pemilihan MO memakai DataTable. Tombol Ambil MO menggabungkan kebutuhan material dari semua baris bernomor MO sama dan mengisi kode/nama, style, unit, dan jumlah.
+- Daftar memakai filter tanggal, dropdown aksi ringkas, dan ekspor Excel dengan satu item per baris. Form mendukung edit tanggal/jumlah dan penghapusan.
+- Nomor dokumen menggunakan Document Numbering `raw_material_order` (prefix awal OBB). Permission dan menu ditambahkan pada grup Production; migration grant memberi role user akses view dan admin akses CRUD.
+- Order hanya menyimpan dokumen serta audit; tidak memutasi stok.
+- **Test:** `php artisan test --compact tests/Feature/Manufacturing/RawMaterialOrderTest.php` lulus, 1 test / 16 assertion. `route:list` menampilkan 10 route modul.
+- **NEEDS CONFIRMATION:** batas jumlah order terhadap sisa kebutuhan dan apakah MO boleh memiliki beberapa Order Bahan Baku.
+
+## 2026-11-13 — Kirim ke Produksi (MIS)
+
+- **Status:** modul MIS tersambung ke rincian Order Bahan Baku; migration 000026–000028 perlu dijalankan.
+- Nomor OBB kini unik per item. Daftar MIS menampilkan satu baris per dokumen Order Bahan Baku dari produksi beserta No MO, No OBB, MIS terbaru, dan tanggal. Tombol Detail biru berarti masih ada item yang belum terkirim penuh; tombol merah berarti seluruh item sudah terkirim.
+- Aksi kirim memperlihatkan jumlah request, kirim sebelumnya, kirim kini, dan total. Pengiriman parsial tidak boleh melebihi sisa OBB, kebutuhan MO, atau stok/lot.
+- Detail OBB menampilkan seluruh item; pengguna dapat memilih satu atau beberapa item yang masih tersisa untuk dikirim. Satu nomor MIS menjadi header dengan detail terpisah per item OBB. Mutasi stok/lot dan issued quantity tetap dicatat per baris.
+- PDF MIS tersedia untuk ditampilkan dan diunduh; detail PDF memisahkan nomor item OBB, kode/nama, style, satuan, dan jumlah.
+- Jalur issue lama dari halaman Material Request tetap berjalan dengan sumber lama.
+- Aksi edit/hapus tersedia pada riwayat MIS yang bersumber dari OBB. Koreksi membuat mutasi pembalik positif, memulihkan lot/stok serta issued quantity OBB/MO, dan mempertahankan mutasi serta jejak audit lama. Edit quantity ditolak jika jumlahnya sudah tercatat sebagai konsumsi produksi.
+- Jalur MIS lama yang hanya bersumber dari Material Request tetap hanya dapat dilihat karena alokasi issue ke material MO tidak tersimpan per baris.
+- Permission `material-issues.update/delete` diberikan ke admin dan super admin melalui migration `2026_11_13_000030_grant_material_issue_edit_delete_permissions.php`.
+- **Test:** `MaterialIssueTest` lulus, 1 test / 49 assertion; mencakup daftar satu baris per OBB, status biru/merah untuk progres/penuh, satu MIS dengan beberapa item, pengiriman parsial, edit, hapus, PDF, mutasi koreksi, stok/lot, issued quantity, dan audit.
+- **NEEDS CONFIRMATION:** approval MIS dan lokasi gudang tujuan.
+
+## 2026-11-13 — Penerimaan Produksi dari Gudang
+
+- Menambahkan menu Produksi dengan filter tanggal, DataTable dokumen MIS, status penerimaan, detail item, dan aksi konfirmasi.
+- Konfirmasi menyimpan status, pengguna, waktu, dan audit pada dokumen MIS. Tidak ada mutasi stok tambahan; stok gudang telah berkurang ketika MIS dikirim.
+- Permission `production-receipts.view/approve` disediakan lewat seeder dan migration `2026_11_13_000032_grant_production_receipt_permissions.php`; metadata penerimaan ditambahkan oleh migration `2026_11_13_000031_add_production_receipt_confirmation_to_mis.php`.
+- Kolom PO Supplier pada detail saat ini kosong karena hubungan OBB/MIS ke PO supplier tidak tersedia.
+- **Test:** `MaterialIssueTest` lulus, 1 test / 61 assertion; meliputi daftar, detail multi-item, konfirmasi, pencatatan audit, dan memastikan saldo tidak berubah lagi.
+- **NEEDS CONFIRMATION:** penerimaan parsial dan pemetaan PO Supplier.
+
+## 2026-11-13 — Referensi MIS pada Kartu Stok
+
+- Mutasi keluar MIS tetap tercatat sebagai stok keluar gudang; nomor dokumen MIS kini ditampilkan pada kolom referensi kartu stok dan ekspor Excel.
+- Konfirmasi penerimaan oleh produksi tidak dicatat sebagai stok masuk gudang karena akan membatalkan pengurangan saat MIS dikirim. Jika saldo stok produksi perlu dilacak, diperlukan ledger/lokasi produksi terpisah.
+- **Test:** `MaterialIssueTest` lulus, 1 test / 64 assertion, termasuk nomor MIS dan kuantitas keluar pada histori kartu stok.
+
+## 2026-11-13 — Pemakaian Material Non-Produksi
+
+- Menambahkan halaman Gudang dengan filter tanggal, DataTable, form modal, pemilih item DataTable, serta aksi edit/hapus dalam dropdown ringkas.
+- No. Transaksi memakai Document Numbering `non_production_material_usage` (prefix awal PBN), baik untuk company yang sudah ada maupun company baru.
+- Transaksi menyimpan tanggal, item, qty, harga, dan total; mengurangi stok/lot, mencatat mutasi dan jurnal, dan muncul pada referensi/tipe kartu stok. Edit dan hapus mencatat mutasi kompensasi serta audit.
+- **Test:** `NonProductionMaterialUsageTest` lulus, 1 test / 26 assertion; mencakup preview nomor, CRUD, koreksi stok/lot, nomor referensi kartu stok, dan format detail.
+- **NEEDS CONFIRMATION:** akun beban 6100 serta satu nomor per item (referensi menampilkan satu item per form).
+- Migration 000033 memakai nama FK pendek dan memeriksa tabel/kolom/index/FK yang sudah ada supaya aman dilanjutkan setelah migrasi sebelumnya gagal di tengah proses.
+
+## 2026-11-13 — Penghapusan Retur Pembelian
+
+- Menambahkan aksi hapus dengan konfirmasi dan permission `purchase-returns.delete` untuk admin/super admin (migration `2026_11_13_000029_grant_purchase_return_delete_permission.php`).
+- Penghapusan mengurangi kembali kuantitas retur pada GRN, memulihkan saldo stok dan lot, membalik jurnal otomatis, lalu menghapus dokumen/detail/mutasi retur dalam satu transaksi dan mencatat audit.
+- Untuk menjaga urutan kartu stok, retur tidak dapat dihapus jika ada mutasi stok yang lebih baru untuk barang yang sama; pesan validasi menjelaskan penyebabnya.
+- **Test:** `PurchaseReturnDeletionTest` lulus, 2 test / 12 assertion (pemulihan stok/lot dan perlindungan dari mutasi berikutnya).

@@ -55,11 +55,11 @@ class AutomaticJournalService
         if ($amount <= 0) return null;
         if ($entry = $this->existing(StockMovement::class, $movement->id)) return $entry;
 
-        $movement->loadMissing(['goodsReceipt', 'purchaseReturn', 'stockOpname']);
+        $movement->loadMissing(['goodsReceipt', 'purchaseReturn', 'stockOpname', 'damagedItemDocument', 'lostItemDocument', 'nonProductionMaterialUsageDocument']);
         $inventory = $this->account('1140', 'asset');
         $lines = [];
         $reference = $movement->goodsReceipt?->number ?? $movement->purchaseReturn?->number
-            ?? $movement->stockOpname?->number;
+            ?? $movement->stockOpname?->number ?? $movement->damagedItemDocument?->number ?? $movement->lostItemDocument?->number ?? $movement->nonProductionMaterialUsageDocument?->number;
         $description = $movement->notes ?: "Mutasi persediaan barang #{$movement->id}";
 
         if ($movement->movement_type === 'purchase_receipt') {
@@ -81,6 +81,42 @@ class AutomaticJournalService
             } elseif ($referenceValue > $amount) {
                 $lines[] = ['chart_of_account_id' => $variance->id, 'line_number' => 3, 'description' => $description, 'debit' => 0, 'credit' => $referenceValue - $amount];
             }
+        } elseif ($movement->movement_type === 'damaged_item') {
+            $loss = $this->account('5300', 'expense');
+            $lines = [
+                ['chart_of_account_id' => $loss->id, 'line_number' => 1, 'description' => $description, 'debit' => $amount, 'credit' => 0],
+                ['chart_of_account_id' => $inventory->id, 'line_number' => 2, 'description' => $description, 'debit' => 0, 'credit' => $amount],
+            ];
+        } elseif ($movement->movement_type === 'damaged_item_reversal') {
+            $loss = $this->account('5300', 'expense');
+            $lines = [
+                ['chart_of_account_id' => $inventory->id, 'line_number' => 1, 'description' => $description, 'debit' => $amount, 'credit' => 0],
+                ['chart_of_account_id' => $loss->id, 'line_number' => 2, 'description' => $description, 'debit' => 0, 'credit' => $amount],
+            ];
+        } elseif ($movement->movement_type === 'lost_item') {
+            $loss = $this->account('5300', 'expense');
+            $lines = [
+                ['chart_of_account_id' => $loss->id, 'line_number' => 1, 'description' => $description, 'debit' => $amount, 'credit' => 0],
+                ['chart_of_account_id' => $inventory->id, 'line_number' => 2, 'description' => $description, 'debit' => 0, 'credit' => $amount],
+            ];
+        } elseif ($movement->movement_type === 'lost_item_reversal') {
+            $loss = $this->account('5300', 'expense');
+            $lines = [
+                ['chart_of_account_id' => $inventory->id, 'line_number' => 1, 'description' => $description, 'debit' => $amount, 'credit' => 0],
+                ['chart_of_account_id' => $loss->id, 'line_number' => 2, 'description' => $description, 'debit' => 0, 'credit' => $amount],
+            ];
+        } elseif ($movement->movement_type === 'non_production_material_usage') {
+            $expense = $this->account('6100', 'expense');
+            $lines = [
+                ['chart_of_account_id' => $expense->id, 'line_number' => 1, 'description' => $description, 'debit' => $amount, 'credit' => 0],
+                ['chart_of_account_id' => $inventory->id, 'line_number' => 2, 'description' => $description, 'debit' => 0, 'credit' => $amount],
+            ];
+        } elseif ($movement->movement_type === 'non_production_material_usage_reversal') {
+            $expense = $this->account('6100', 'expense');
+            $lines = [
+                ['chart_of_account_id' => $inventory->id, 'line_number' => 1, 'description' => $description, 'debit' => $amount, 'credit' => 0],
+                ['chart_of_account_id' => $expense->id, 'line_number' => 2, 'description' => $description, 'debit' => 0, 'credit' => $amount],
+            ];
         } elseif ($movement->movement_type === 'stock_adjustment') {
             if ((float) $movement->quantity > 0) {
                 $gain = $this->account('4300', 'revenue');
@@ -113,6 +149,11 @@ class AutomaticJournalService
         );
     }
 
+    public function reverseStockMovementJournals(StockMovement $movement, int $userId): void
+    {
+        $this->reverseSourceEntries(StockMovement::class, (int) $movement->id, $userId);
+    }
+
     public function recordNonStockReceipt(GoodsReceiptItem $item, GoodsReceipt $receipt, int $userId): ?JournalEntry
     {
         $amount = round((float) $item->line_total, 2);
@@ -135,6 +176,43 @@ class AutomaticJournalService
             userId: $userId,
             sourceAction: 'original',
         );
+    }
+
+    public function reverseGoodsReceiptJournals(GoodsReceipt $receipt, int $userId): void
+    {
+        $sourceIds = StockMovement::query()->where('goods_receipt_id', $receipt->id)->pluck('id');
+        foreach ($sourceIds as $sourceId) {
+            $this->reverseSourceEntries(StockMovement::class, (int) $sourceId, $userId);
+        }
+
+        foreach ($receipt->items as $item) {
+            $this->reverseSourceEntries(GoodsReceiptItem::class, (int) $item->id, $userId);
+        }
+    }
+
+    public function reversePurchaseReturnJournals(\App\Models\PurchaseReturn $purchaseReturn, int $userId): void
+    {
+        $movementIds = StockMovement::query()->where('purchase_return_id', $purchaseReturn->id)->pluck('id');
+        foreach ($movementIds as $movementId) {
+            $this->reverseSourceEntries(StockMovement::class, (int) $movementId, $userId);
+        }
+
+        foreach ($purchaseReturn->items as $item) {
+            $this->reverseSourceEntries(PurchaseReturnItem::class, (int) $item->id, $userId);
+        }
+    }
+
+    private function reverseSourceEntries(string $sourceType, int $sourceId, int $userId): void
+    {
+        JournalEntry::query()
+            ->where('company_id', $this->company->id())
+            ->where('source_type', $sourceType)
+            ->where('source_id', $sourceId)
+            ->where(fn ($query) => $query->where('source_action', 'original')->orWhereNull('source_action'))
+            ->where('status', 'posted')
+            ->with('lines')
+            ->get()
+            ->each(fn (JournalEntry $entry) => $this->reverse($entry, $userId));
     }
 
     public function recordNonStockPurchaseReturn(PurchaseReturnItem $item, string $receiptNumber, string $returnNumber, $date, int $userId): ?JournalEntry

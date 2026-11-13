@@ -86,3 +86,47 @@ Field master Item mengikuti form referensi: `code`, `name`, `category_id`, `unit
 ### Migration POS dan Outlet
 
 Source migration khusus Outlet, Ticket QR, User Outlet, Scan Record, dan POS dihapus setelah cakupannya dinyatakan di luar inventory. Migration `2026_11_13_000005_remove_pos_ticket_outlet_modules` dipertahankan sebagai migration forward untuk menghapus tabel dan foreign key dari database yang telah menjalankan migration lama. Data ledger inventory tetap disimpan; hanya relasi POS yang dilepas.
+
+# Damaged Items
+
+- `damaged_item_documents`: nomor berita acara unik, tanggal, pembuat.
+- `damaged_item_lines`: barang, kuantitas, keterangan; detail terhubung ke header.
+- `stock_movements` menyimpan FK opsional ke header dan baris. Pengeluaran memakai tipe `damaged_item`; koreksi yang mengembalikan kuantitas memakai `damaged_item_reversal`.
+- Relasi item dan dokumen dibatasi penghapusan (`restrictOnDelete`) agar sumber histori tidak hilang.
+- Detail memakai `deleted_at` untuk pembatalan yang menjaga tautan mutasi stok.
+- Document type `damaged_item` menggunakan pengaturan penomoran per company.
+- NEEDS CONFIRMATION: apakah perlu lot/area reject terpisah dan persetujuan sebelum pengurangan stok.
+
+# Lost Items
+
+- `lost_item_documents` dan `lost_item_lines` menyimpan berita acara dan detail; detail memakai soft delete.
+- `stock_movements` memiliki relasi opsional ke header/baris kehilangan. Mutasi `lost_item` mengurangi kuantitas, `lost_item_reversal` membalikkan koreksi atau pembatalan.
+- Document type `lost_item` memiliki konfigurasi penomoran tersendiri per company.
+
+## Order Bahan Baku
+
+- `raw_material_order_documents`: header per company, nomor dari Document Numbering, tanggal, nomor MO, dan pembuat.
+- `raw_material_order_items`: satu baris per `production_order_material_id`, berisi nomor OBB unik per company, produk, snapshot style, jumlah order, dan jumlah yang sudah dikirim. FK sumber MO dan produk memakai restrict agar sumber historis tidak terhapus selama masih direferensikan.
+- Satu nomor MO dapat terdiri dari beberapa baris `production_orders`; pemuatan material menggabungkan detail dari semua baris bernomor sama.
+- Tidak ada relasi ke ledger stok karena dokumen ini hanya mencatat order.
+
+## Kirim ke Produksi (MIS)
+
+- `material_issue_documents`: header per company dengan relasi nullable ke Material Request lama atau header Order Bahan Baku.
+- `material_issue_items`: setiap baris mereferensikan baris OBB atau baris Material Request lama, produk, dan kuantitas pengiriman.
+- `stock_movements` memiliki FK ke header/baris MIS. Pengiriman OBB mengurangi stok dan lot, serta memperbarui `raw_material_order_items.issued_quantity` dan `production_order_materials.issued_quantity`.
+- `DocumentNumbering` menggunakan tipe `material_issue` dengan prefix awal MIS.
+
+## Penerimaan Produksi dari Gudang
+
+- Modul memakai `material_issue_documents` dan `material_issue_items` sebagai sumber transfer; tidak membuat ulang baris stok atau transaksi pengeluaran.
+- Migration `2026_11_13_000031_add_production_receipt_confirmation_to_mis.php` menambahkan `production_receipt_status`, `production_received_by`, dan `production_received_at` pada header MIS.
+- Relasi penerima ke `users` bersifat nullable dan `nullOnDelete`; persetujuan mencatat audit, tidak mem-posting perubahan saldo stok.
+- **NEEDS CONFIRMATION:** referensi PO Supplier pada detail tidak dapat diturunkan dari skema OBB/MIS yang tersedia; saat ini ditampilkan sebagai kosong.
+
+## Pemakaian Material Non-Produksi
+
+- Header `non_production_material_usage_documents` menyimpan company, nomor transaksi, tanggal, pembuat, dan soft delete; detail menyimpan produk, qty, harga, dan total harga.
+- `stock_movements` merujuk header dan detail. Pengeluaran mengonsumsi lot FIFO; edit dan pembatalan membuat mutasi kompensasi dan audit.
+- Nomor memakai konfigurasi `DocumentNumbering` bertipe `non_production_material_usage`, prefix awal PBN; company baru dan yang sudah ada menerima konfigurasi.
+- **Asumsi:** harga input menjadi nilai transaksi/cost amount untuk jurnal beban akun 6100; konfirmasi akun biaya yang tepat tetap diperlukan.

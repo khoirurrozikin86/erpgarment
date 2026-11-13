@@ -34,9 +34,14 @@ class PurchaseReturnController extends Controller
             ->addColumn('supplier_name', fn (PurchaseReturn $purchaseReturn) => $purchaseReturn->supplier?->name ?? __('ui.modules.supplier_deleted'))
             ->addColumn('returner_name', fn (PurchaseReturn $purchaseReturn) => $purchaseReturn->returner?->name ?? __('ui.modules.user_deleted'))
             ->addColumn('actions', function (PurchaseReturn $purchaseReturn) {
-                return '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-purchase-return" data-url="' . e(route('super.purchase-returns.show', $purchaseReturn)) . '" title="' . e(__('ui.modules.view_details')) . '"><i data-feather="eye"></i></button>'
-                    . ' <a class="btn btn-sm btn-outline-primary" href="' . e(route('super.purchase-returns.pdf', $purchaseReturn)) . '" target="_blank" rel="noopener" title="' . e(__('ui.modules.view_pdf')) . '"><i data-feather="file-text"></i></a>'
-                    . ' <a class="btn btn-sm btn-outline-secondary" href="' . e(route('super.purchase-returns.pdf.download', $purchaseReturn)) . '" title="' . e(__('ui.modules.download_pdf')) . '"><i data-feather="download"></i></a>';
+                $actions = '<div class="d-inline-flex align-items-center justify-content-end gap-2 text-nowrap">'
+                    . '<button type="button" class="btn btn-link btn-sm p-0 text-secondary btn-view-purchase-return" data-url="' . e(route('super.purchase-returns.show', $purchaseReturn)) . '" title="' . e(__('ui.modules.view_details')) . '" aria-label="' . e(__('ui.modules.view_details')) . '"><i data-feather="eye" class="icon-sm"></i></button>'
+                    . '<a class="btn btn-link btn-sm p-0 text-primary" href="' . e(route('super.purchase-returns.pdf', $purchaseReturn)) . '" target="_blank" rel="noopener" title="' . e(__('ui.modules.view_pdf')) . '" aria-label="' . e(__('ui.modules.view_pdf')) . '"><i data-feather="file-text" class="icon-sm"></i></a>'
+                    . '<a class="btn btn-link btn-sm p-0 text-secondary" href="' . e(route('super.purchase-returns.pdf.download', $purchaseReturn)) . '" title="' . e(__('ui.modules.download_pdf')) . '" aria-label="' . e(__('ui.modules.download_pdf')) . '"><i data-feather="download" class="icon-sm"></i></a>';
+                if (request()->user()?->can('purchase-returns.delete')) {
+                    $actions .= '<button type="button" class="btn btn-link btn-sm p-0 text-danger btn-delete-purchase-return" data-url="' . e(route('super.purchase-returns.destroy', $purchaseReturn)) . '" data-number="' . e($purchaseReturn->number) . '" title="' . e(__('ui.common.delete')) . '" aria-label="' . e(__('ui.common.delete')) . '"><i data-feather="trash-2" class="icon-sm"></i></button>';
+                }
+                return $actions . '</div>';
             })
             ->rawColumns(['actions'])
             ->toJson();
@@ -93,6 +98,13 @@ class PurchaseReturnController extends Controller
             'message' => __('ui.modules.purchase_return_saved', ['number' => $purchaseReturn->number]),
             'id' => $purchaseReturn->id,
         ], 201);
+    }
+
+    public function destroy(Request $request, PurchaseReturn $purchaseReturn, PurchaseReturnService $service): JsonResponse
+    {
+        $service->delete($purchaseReturn, (int) $request->user()->id);
+
+        return response()->json(['message' => __('ui.modules.purchase_return_deleted')]);
     }
 
     public function show(PurchaseReturn $purchaseReturn, PurchaseReturnTableQuery $query): JsonResponse

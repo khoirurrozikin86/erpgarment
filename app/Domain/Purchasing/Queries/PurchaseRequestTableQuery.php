@@ -16,7 +16,19 @@ class PurchaseRequestTableQuery
     public function builder(?string $fromDate = null, ?string $toDate = null): Builder
     {
         $query = PurchaseRequest::query()
-            ->with(['materialRequest:id,number', 'supplier:id,name', 'requester:id,name', 'reviewer:id,name', 'purchaseOrder:id,purchase_request_id,number,status'])
+            ->with([
+                'materialRequest:id,number,production_order_id,output_product_id,production_quantity',
+                'materialRequest.productionOrder:id,buyer_po_number,output_product_id,planned_quantity',
+                'materialRequest.productionOrder.outputProduct:id,code,name,style_code',
+                'materialRequest.outputProduct:id,code,name,style_code',
+                'supplier:id,name',
+                'requester:id,name',
+                'reviewer:id,name',
+                'purchaseOrder:id,purchase_request_id,number,status',
+                'items:id,purchase_request_id,product_id,quantity',
+                'items.product:id,code,name,unit_id',
+                'items.product.unit:id,name,symbol',
+            ])
             ->select([
                 'id', 'number', 'material_request_id', 'supplier_id', 'requested_by',
                 'total_amount', 'notes', 'status', 'reviewed_by', 'reviewed_at', 'review_note',

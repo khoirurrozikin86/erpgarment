@@ -3,6 +3,8 @@
 namespace App\Domain\Purchasing\Actions;
 
 use App\Domain\Audit\Services\AuditLogService;
+use App\Domain\Companies\Services\CompanyContext;
+use App\Domain\Settings\Services\DocumentNumberService;
 use App\Models\MaterialRequest;
 use App\Models\MaterialRequestItem;
 use App\Models\InventoryLot;
@@ -10,19 +12,24 @@ use App\Models\Product;
 use App\Models\ProductStock;
 use App\Models\ProductionOrderMaterial;
 use App\Models\StockMovement;
+use App\Models\MaterialIssueDocument;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class IssueMaterialRequestAction
 {
-    public function __construct(private AuditLogService $auditLog) {}
+    public function __construct(private AuditLogService $auditLog, private CompanyContext $company, private DocumentNumberService $numbers) {}
 
-    public function __invoke(MaterialRequest $request, array $lines, int $userId): MaterialRequest
+    public function __invoke(MaterialRequest $request, array $lines, int $userId, ?string $issueDate = null): MaterialIssueDocument
     {
-        return DB::transaction(function () use ($request, $lines, $userId) {
+        return DB::transaction(function () use ($request, $lines, $userId, $issueDate) {
             $request = MaterialRequest::query()->lockForUpdate()->findOrFail($request->id);
             if ($request->status !== 'approved') {
                 throw ValidationException::withMessages(['status' => __('ui.workflow.material_issue_requires_approval')]);
+            }
+            if ($request->production_order_id && !\App\Models\ProductionOrder::query()
+                ->where('id', $request->production_order_id)->where('company_id', $this->company->id())->exists()) {
+                throw ValidationException::withMessages(['production_order_id' => __('ui.material_issue.request_company_mismatch')]);
             }
 
             $items = MaterialRequestItem::query()->where('material_request_id', $request->id)
@@ -34,6 +41,14 @@ class IssueMaterialRequestAction
             );
             $productIds = collect($lines)->pluck('material_request_item_id')->map(fn ($id) => $items->get((int) $id)?->product_id)->filter()->unique()->sort()->values();
             $products = Product::query()->whereIn('id', $productIds)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+
+            $materialIssue = MaterialIssueDocument::query()->create([
+                'company_id' => $this->company->id(),
+                'material_request_id' => $request->id,
+                'number' => $this->numbers->generate('material_issue'),
+                'issue_date' => $issueDate ?: now()->toDateString(),
+                'created_by' => $userId,
+            ]);
 
             foreach ($lines as $line) {
                 $item = $items->get((int) $line['material_request_item_id']);
@@ -99,9 +114,16 @@ class IssueMaterialRequestAction
                 $cost = round($quantity * $unitCost, 2);
                 $stock->update(['quantity' => $after]);
                 $item->update(['issued_quantity' => round((float) $item->issued_quantity + $quantity, 4)]);
+                $issueItem = $materialIssue->items()->create([
+                    'material_request_item_id' => $item->id,
+                    'product_id' => $product->id,
+                    'quantity' => $quantity,
+                ]);
                 $movement = StockMovement::create([
                     'product_id' => $product->id,
                     'material_request_item_id' => $item->id,
+                    'material_issue_document_id' => $materialIssue->id,
+                    'material_issue_item_id' => $issueItem->id,
                     'created_by' => $userId,
                     'movement_type' => 'material_issue',
                     'quantity' => -$quantity,
@@ -114,14 +136,15 @@ class IssueMaterialRequestAction
             }
 
             $this->auditLog->log(
-                action: 'ISSUE', module: 'MATERIAL_REQUEST',
-                description: __('ui.workflow.material_issue_audit', ['number' => $request->number]),
-                model: $request,
+                action: 'CREATE', module: 'MATERIAL_ISSUE',
+                description: __('ui.material_issue.audit', ['number' => $materialIssue->number, 'request' => $request->number]),
+                model: $materialIssue,
                 oldValues: null,
-                newValues: ['issued_items' => $lines],
+                newValues: $materialIssue->load('items')->toArray(),
+                userId: $userId,
             );
 
-            return $request->load(['items.product.unit']);
+            return $materialIssue->load(['items.product.unit']);
         });
     }
 }

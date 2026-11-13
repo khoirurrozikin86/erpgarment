@@ -25,10 +25,16 @@
                 <h4 class="page-title mb-1">{{ __('ui.common.material_request') }}</h4>
                 <span class="text-muted">{{ __('ui.workflow.mr_subtitle') }}</span>
             </div>
-            @can('material-requests.create')
-                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createRequestModal">
-                    <i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.workflow.create_request') }}</button>
-            @endcan
+            <div class="d-flex gap-2">
+                @can('material-requests.view')
+                    <a href="{{ route('super.material-requests.export') }}" id="exportMaterialRequests" class="btn btn-outline-success btn-sm">
+                        <i data-feather="download" class="icon-sm me-1"></i>{{ __('ui.common.export_excel') }}</a>
+                @endcan
+                @can('material-requests.create')
+                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#createRequestModal">
+                        <i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.workflow.create_request') }}</button>
+                @endcan
+            </div>
         </div>
 
         <div class="col-12">
@@ -48,6 +54,7 @@
                                     <th>{{ __('ui.common.requester') }}</th>
                                     <th>{{ __('ui.common.department') }}</th>
                                     <th>{{ __('ui.common.needed_date') }}</th>
+                                    <th>{{ __('ui.workflow.items_needed') }}</th>
                                     <th>{{ __('ui.common.item_count') }}</th>
                                     <th>{{ __('ui.workflow.approval') }}</th>
                                     <th>{{ __('ui.common.purchasing_progress') }}</th>
@@ -127,7 +134,7 @@
                             <label class="form-label">{{ __('ui.workflow.items_needed') }}<span class="text-danger">*</span></label>
                             <div class="table-responsive mb-3">
                                 <table class="table table-sm table-bordered align-middle">
-                                    <thead><tr><th style="min-width:260px">{{ __('ui.common.item') }}</th><th style="width:150px">{{ __('ui.common.quantity') }}</th><th style="min-width:170px">{{ __('ui.common.notes') }}</th><th style="width:45px"></th></tr></thead>
+                                    <thead><tr><th style="min-width:320px">{{ __('ui.common.item') }}</th><th style="width:150px">{{ __('ui.common.quantity') }}</th><th style="min-width:170px">{{ __('ui.common.notes') }}</th><th style="width:45px"></th></tr></thead>
                                     <tbody id="request-items"></tbody>
                                 </table>
                             </div>
@@ -143,6 +150,29 @@
                             <button type="submit" class="btn btn-primary btn-sm" id="submitMaterialRequest"><i data-feather="send" class="icon-sm me-1"></i>{{ __('ui.workflow.submit_request') }}</button>
                         </div>
                     </form>
+                </div>
+            </div>
+        </div>
+    @endcan
+
+    @can('material-requests.create')
+        <div class="modal fade" id="materialRequestProductPicker" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div>
+                            <h5 class="modal-title">{{ __('ui.workflow.choose_item_option') }}</h5>
+                            <small class="text-muted">{{ __('ui.workflow.items_needed') }}</small>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="table-responsive">
+                            <table id="materialRequestProductPickerTable" class="table table-bordered table-hover align-middle w-100">
+                                <thead><tr><th>{{ __('ui.workflow.item_code') }}</th><th>{{ __('ui.workflow.item_name') }}</th><th>{{ __('ui.common.unit') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -193,14 +223,19 @@
                 return Number(normalized);
             }
 
+            let activeProductRow = null;
+            let productPicker = null;
+            let productPickerTable = null;
+
             function addItemRow(item = {}) {
                 const index = itemIndex++;
                 const row = $('<tr>');
-                const select = $('<select>', { class: 'form-select form-select-sm', name: `items[${index}][product_id]`, required: true })
-                    .append($('<option>', { value: '', text: '{{ __('ui.workflow.choose_item_option') }}' }));
-                products.forEach(product => select.append($('<option>', { value: product.id, text: product.label })));
-                if (item.product_id) select.val(String(item.product_id));
-                row.append($('<td>').append(select));
+                const selectedProduct = products.find(product => String(product.id) === String(item.product_id)) || null;
+                const itemCell = $('<div class="input-group input-group-sm">')
+                    .append($('<input>', { type: 'hidden', class: 'request-item-product', name: `items[${index}][product_id]`, required: true, value: item.product_id ?? '' }))
+                    .append($('<input>', { type: 'text', class: 'form-control request-item-label bg-light', readonly: true, required: true, placeholder: '{{ __('ui.workflow.choose_item_option') }}', value: item.label || selectedProduct?.label || '' }))
+                    .append($('<button>', { type: 'button', class: 'btn btn-outline-primary open-request-product-picker', html: '<i data-feather="search" class="icon-sm"></i>', title: '{{ __('ui.common.search') }}', 'aria-label': '{{ __('ui.common.search') }}' }));
+                row.append($('<td>').append(itemCell));
                 row.append($('<td>').append($('<input>', { type: 'text', inputmode: 'decimal', autocomplete: 'off', class: 'form-control form-control-sm', name: `items[${index}][quantity]`, required: true, placeholder: '{{ __('ui.common.quantity') }}', value: item.quantity ?? '' })));
                 row.append($('<td>').append($('<input>', { type: 'text', class: 'form-control form-control-sm', name: `items[${index}][note]`, maxlength: 255, placeholder: '{{ __('ui.common.optional') }}', value: item.note ?? '' })));
                 row.append($('<td class="text-center">').append($('<button>', { type: 'button', class: 'btn btn-sm btn-outline-danger remove-request-item', html: '<i data-feather="x"></i>' })));
@@ -208,7 +243,47 @@
                 if (window.feather) feather.replace();
             }
 
+            function openProductPicker(button) {
+                activeProductRow = button.closest('tr');
+                if (!productPickerTable) {
+                    productPickerTable = $('#materialRequestProductPickerTable').DataTable({
+                        data: products,
+                        responsive: true,
+                        pageLength: 10,
+                        lengthMenu: [5, 10, 50, 100],
+                        order: [[0, 'asc']],
+                        columns: [
+                            { data: 'code', render: $.fn.dataTable.render.text() },
+                            { data: 'name', render: $.fn.dataTable.render.text() },
+                            { data: 'unit', defaultContent: '—', render: $.fn.dataTable.render.text() },
+                            { data: null, orderable: false, searchable: false, className: 'text-end', render: (data, type, product) => `<button type="button" class="btn btn-primary btn-sm choose-request-product" data-id="${Number(product.id)}">{{ __('ui.common.select') }}</button>` }
+                        ],
+                        drawCallback: function() { if (window.feather) feather.replace(); }
+                    });
+                }
+                productPicker.show();
+            }
+
             @can('material-requests.create')
+                productPicker = bootstrap.Modal.getOrCreateInstance(document.getElementById('materialRequestProductPicker'));
+                $('#materialRequestProductPicker').on('shown.bs.modal', function() {
+                    const element = this;
+                    const backdrops = document.querySelectorAll('.modal-backdrop');
+                    element.style.zIndex = '1065';
+                    if (backdrops.length > 1) backdrops[backdrops.length - 1].style.zIndex = '1060';
+                    if (productPickerTable) productPickerTable.columns.adjust().responsive?.recalc();
+                });
+                $(document).on('click', '.open-request-product-picker', function() {
+                    openProductPicker($(this));
+                });
+                $(document).on('click', '.choose-request-product', function() {
+                    const product = products.find(item => String(item.id) === String($(this).data('id')));
+                    if (product && activeProductRow?.length) {
+                        activeProductRow.find('.request-item-product').val(product.id);
+                        activeProductRow.find('.request-item-label').val(product.label);
+                        productPicker.hide();
+                    }
+                });
                 addItemRow();
                 function clearBomSnapshot() {
                     $('#request_bom_id, #request_production_order_id, #request_output_product_id, #request_bom_version, #request_production_quantity').val('');
@@ -304,6 +379,13 @@
                 });
             @endcan
 
+            @can('material-requests.create')
+                $('#materialRequestProductPicker').on('hidden.bs.modal', function() {
+                    this.style.removeProperty('z-index');
+                    activeProductRow = null;
+                });
+            @endcan
+
             const table = $('#material-requests-table').DataTable({
                 processing: true,
                 serverSide: true,
@@ -322,6 +404,7 @@
                     { data: 'requester_name', name: 'requester_name', orderable: false, searchable: false },
                     { data: 'department', name: 'department', defaultContent: '—' },
                     { data: 'needed_at', name: 'needed_at', defaultContent: '—', render: data => data ? new Date(data).toLocaleDateString('id-ID') : '—' },
+                    { data: 'required_items', orderable: false, searchable: false, defaultContent: '—' },
                     { data: 'items_count', orderable: false, searchable: false, className: 'text-center' },
                     { data: 'status_label', name: 'status', searchable: false },
                     { data: 'purchase_status_label', name: 'purchase_status', searchable: false },
@@ -338,8 +421,15 @@
                 table.ajax.reload();
             });
 
+            $('#exportMaterialRequests').on('click', function() {
+                const url = new URL(this.href, window.location.origin);
+                const fromDate = $('#from_date').val(), toDate = $('#to_date').val();
+                if (fromDate) url.searchParams.set('from_date', fromDate); else url.searchParams.delete('from_date');
+                if (toDate) url.searchParams.set('to_date', toDate); else url.searchParams.delete('to_date');
+                this.href = url.toString();
+            });
+
             $(document).on('click', '.btn-view-request', function() {
-                const openIssueDialog = $(this).hasClass('btn-issue-request');
                 $.get($(this).data('url')).done(function(request) {
                     currentRequest = request;
                     currentIssueUrl = request.issue_url;
@@ -362,11 +452,7 @@
                         const canIssue = request.status === 'approved' && request.items.some(item => item.remaining_quantity > 0);
                         $('#issueMaterialsButton').toggleClass('d-none', !canIssue);
                     @endcan
-                    if (openIssueDialog && $('#issueMaterialsButton').is(':visible')) {
-                        $('#issueMaterialsButton').trigger('click');
-                    } else {
-                        viewModal.show();
-                    }
+                    viewModal.show();
                 }).fail(() => Swal.fire({ icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: '{{ __('ui.workflow.request_detail_load_failed') }}' }));
             });
 

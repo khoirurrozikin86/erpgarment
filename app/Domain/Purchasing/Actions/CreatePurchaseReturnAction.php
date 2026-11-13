@@ -28,6 +28,9 @@ class CreatePurchaseReturnAction
     {
         return DB::transaction(function () use ($data, $userId) {
             $receipt = GoodsReceipt::query()->lockForUpdate()->findOrFail($data->goodsReceiptId);
+            if ($receipt->status !== 'approved') {
+                throw ValidationException::withMessages(['goods_receipt_id' => __('ui.workflow.receipt_approval_required_for_return')]);
+            }
             $receiptItems = GoodsReceiptItem::query()
                 ->where('goods_receipt_id', $receipt->id)
                 ->lockForUpdate()

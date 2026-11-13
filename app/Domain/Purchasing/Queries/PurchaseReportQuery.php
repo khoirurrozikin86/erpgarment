@@ -14,7 +14,7 @@ class PurchaseReportQuery
 
     public function receipts(?string $fromDate, ?string $toDate): Builder
     {
-        $query = GoodsReceipt::query()->with(['purchaseOrder:id,number', 'supplier:id,name,code'])
+        $query = GoodsReceipt::query()->where('status', 'approved')->with(['purchaseOrder:id,number', 'supplier:id,name,code'])
             ->withSum('items as received_value', 'line_total')
             ->orderByDesc('received_at')->orderByDesc('id');
         return $this->applyDateRange($query, 'received_at', $fromDate, $toDate);

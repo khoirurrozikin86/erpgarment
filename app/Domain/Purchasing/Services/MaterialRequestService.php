@@ -8,6 +8,7 @@ use App\Domain\Purchasing\Actions\IssueMaterialRequestAction;
 use App\Domain\Purchasing\DTOs\MaterialRequestData;
 use App\Domain\Purchasing\DTOs\MaterialRequestReviewData;
 use App\Models\MaterialRequest;
+use App\Models\MaterialIssueDocument;
 
 class MaterialRequestService
 {
@@ -30,8 +31,8 @@ class MaterialRequestService
         );
     }
 
-    public function issue(MaterialRequest $request, array $items, int $userId): MaterialRequest
+    public function issue(MaterialRequest $request, array $items, int $userId, ?string $issueDate = null): MaterialIssueDocument
     {
-        return ($this->issue)($request, $items, $userId);
+        return ($this->issue)($request, $items, $userId, $issueDate);
     }
 }

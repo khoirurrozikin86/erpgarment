@@ -10,6 +10,7 @@ Diagram `image1` membagi proses ke Sales/PPIC, Gudang, dan Production/WIP. Ia me
 2. **Kebutuhan dan pengadaan** — Material Order memuat nomor MO, tanggal MO/tempo, No CBD, PO Buyer, mata uang, destination, Buyer, dan satu atau beberapa baris Finished Goods dengan jumlah, harga satuan, total harga, serta deskripsi; PO supplier dan PO lain-lain dicatat.
 3. **Penerimaan** — BC masuk mencatat data kepabeanan/penerimaan yang merujuk dokumen; Catatan Penerimaan Barang/GRN menyimpan pemasok, invoice, PO/MO, item, kuantitas; GRN Approve memiliki status dan pencatat persetujuan.
 4. **Stok gudang** — penerimaan dan retur produksi masuk ke gudang. Pengiriman/transfer ke produksi (MIS), retur ke supplier, barang rusak/hilang tercatat sebagai transaksi yang berpengaruh pada stok. Kartu stok menunjukkan saldo/mutasi.
+   Pemakaian material non-produksi mencatat transaksi bernomor, barang, kuantitas, harga, dan total; stok/lot berkurang serta mutasi tercatat pada kartu stok.
 5. **Produksi** — material diminta/dikeluarkan dari gudang; catatan hasil Cutting, Sewing dan Packing memiliki nomor dokumen, tanggal, user, serta kaitan ke MO/planning; hasil akhir tercatat sebagai Barang Jadi. Surat Jalan (GSN) mengirim hasil dan kemudian disetujui.
 6. **Subkontrak** — kontrak mengandung subkon, nomor kontrak, nomor skep BC, tanggal berlaku, keterangan dan kuota. Bahan baku/WIP dikeluarkan dan penerimaan subkon serta barang setengah jadi dimonitor. Kuota dan aturan pengurangan/pemulihan **NEEDS CONFIRMATION**.
 7. **Barang sisa/mesin** — scrap masuk/keluar dan aset/mesin masuk/keluar dicatat, kemudian disajikan dalam kartu stok/laporan.
@@ -36,3 +37,35 @@ Diagram `image1` membagi proses ke Sales/PPIC, Gudang, dan Production/WIP. Ia me
 ## Contoh alur minimum untuk konfirmasi pemilik proses
 
 Pilih satu dokumen penerimaan dan satu order produksi nyata. Telusuri nomor dokumen sumber → detail barang/kuantitas → approval → perubahan stok → transaksi produksi/retur → laporan. Tetapkan titik posting stok dan pihak yang dapat mengubah/membatalkan dokumen di tiap langkah sebelum implementasi transaksi.
+
+# Damaged Items
+
+- Catat nomor dan tanggal berita acara, barang, kuantitas, dan keterangan.
+- Saat disimpan, kuantitas mengurangi saldo stok dan lot melalui transaksi persediaan; mutasi menyimpan referensi ke berita acara dan baris barang.
+- Edit memakai mutasi kompensasi agar histori stok dan audit tidak dihapus.
+- Nomor berita acara dihasilkan otomatis dari konfigurasi Document Numbering `damaged_item`.
+- NEEDS CONFIRMATION: alur approval serta apakah barang reject harus dipisahkan ke lokasi/area karantina.
+
+# Lost Items
+
+- Barang hilang dicatat dengan nomor berita acara otomatis, tanggal, item, kuantitas, dan keterangan; simpan mengurangi stok dan tercatat di kartu stok.
+- Edit menulis mutasi koreksi. Hapus membatalkan baris secara soft delete dan memulihkan stok dengan mutasi balik.
+- NEEDS CONFIRMATION: alur approval dan aturan pencatatan kehilangan per lokasi/gudang.
+
+## Order Bahan Baku
+
+Order Bahan Baku dibuat dengan memilih nomor MO. Sistem menggabungkan kebutuhan material dari seluruh baris MO yang memakai nomor tersebut, lalu mengisi kode/nama barang, satuan, style, dan jumlah kebutuhan. Pengguna dapat menyesuaikan jumlah pada dokumen order. Setiap rincian mendapat nomor OBB tersendiri dan menyimpan referensi baris kebutuhan MO. Pembuatan order tidak mengubah stok.
+
+**NEEDS CONFIRMATION:** apakah satu MO boleh dibuatkan beberapa Order Bahan Baku, apakah jumlah order dibatasi sisa kebutuhan, dan apakah dokumen ini harus dilanjutkan ke permintaan pembelian/pemasok.
+
+## Kirim ke Produksi (MIS)
+
+Daftar MIS menampilkan satu baris per Order Bahan Baku (OBB) dari produksi. Detail sebuah OBB memuat seluruh itemnya; gudang dapat memilih satu atau beberapa item untuk dikirim dalam satu nomor MIS. Pada setiap item, sistem menampilkan jumlah yang diminta, terkirim sebelumnya, jumlah kirim saat ini, dan total terkirim. Pengiriman parsial diizinkan; jumlah saat ini tidak boleh melebihi sisa OBB, sisa kebutuhan MO, atau stok/lot tersedia. Simpan membuat nomor MIS, merujuk ke rincian OBB, mengurangi stok dan lot, memperbarui jumlah terkirim OBB dan issued pada kebutuhan MO, serta membuat mutasi stok dengan referensi MIS. Status OBB berwarna biru selama masih ada item yang belum terkirim seluruhnya dan merah setelah semua item terkirim penuh. Aksi issue lama dari Material Request tetap merupakan jalur lama yang terpisah dan juga tercatat ke MIS.
+
+**NEEDS CONFIRMATION:** referensi tidak menjelaskan approval MIS atau aturan pembatalan/edit setelah stok diposting. Karena itu dokumen MIS saat ini menjadi jejak pengeluaran langsung saat dikirim; tidak tersedia edit/hapus.
+
+## Penerimaan Produksi dari Gudang
+
+Modul Produksi menampilkan dokumen transfer MIS yang bersumber dari Order Bahan Baku. Detail menampilkan seluruh item MIS dan kuantitas yang dikirim/diterima. Aksi konfirmasi mencatat status diterima, pengguna, waktu, dan audit; tidak memutasi stok lagi karena stok gudang sudah dikurangi saat MIS disimpan. Kolom PO Supplier pada referensi belum memiliki relasi sumber pada alur OBB→MIS saat ini, sehingga belum diisi.
+
+**NEEDS CONFIRMATION:** apakah penerimaan produksi hanya berupa konfirmasi seluruh dokumen MIS (seperti tombol Approve pada referensi), atau perlu menerima sebagian item/kuantitas; sumber relasi PO Supplier untuk detail MIS.

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Domain\Audit\Services\AuditLogService;
 use App\Domain\Companies\Services\CompanyContext;
+use App\Exports\MaterialOrdersExport;
 use App\Domain\Manufacturing\Actions\CreateProductionOrderAction;
 use App\Domain\Manufacturing\Actions\UpdateMaterialOrderAction;
 use App\Domain\Manufacturing\Actions\RecordProductionStageAction;
@@ -18,6 +19,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ProductionOrderController extends Controller
 {
@@ -33,6 +35,25 @@ class ProductionOrderController extends Controller
         $defaultCurrency = $company->get()->currency ?: 'USD';
 
         return view('super.production-orders.index', compact('orders', 'products', 'customers', 'defaultCurrency'));
+    }
+
+    public function export(Request $request, CompanyContext $company)
+    {
+        $filters = $request->validate([
+            'from_date' => ['nullable', 'date_format:Y-m-d'],
+            'to_date' => ['nullable', 'date_format:Y-m-d', function ($attribute, $value, $fail) use ($request) {
+                if ($value && $request->input('from_date') && $value < $request->input('from_date')) {
+                    $fail('Tanggal akhir harus sama atau setelah tanggal awal.');
+                }
+            }],
+        ]);
+        $fromDate = $filters['from_date'] ?? null;
+        $toDate = $filters['to_date'] ?? null;
+
+        return Excel::download(
+            new MaterialOrdersExport($company->id(), $fromDate, $toDate),
+            'material-orders-' . ($fromDate ?: 'all') . '-to-' . ($toDate ?: 'all') . '.xlsx'
+        );
     }
 
     public function store(Request $request, CreateProductionOrderAction $create): JsonResponse

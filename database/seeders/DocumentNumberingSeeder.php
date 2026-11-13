@@ -47,6 +47,26 @@ class DocumentNumberingSeeder extends Seeder
                 'document_type' => 'stock_transfer',
                 'prefix' => 'TRF',
             ],
+            [
+                'document_type' => 'damaged_item',
+                'prefix' => 'BRSK',
+            ],
+            [
+                'document_type' => 'lost_item',
+                'prefix' => 'BHLNG',
+            ],
+            [
+                'document_type' => 'raw_material_order',
+                'prefix' => 'OBB',
+            ],
+            [
+                'document_type' => 'material_issue',
+                'prefix' => 'MIS',
+            ],
+            [
+                'document_type' => 'non_production_material_usage',
+                'prefix' => 'PBN',
+            ],
         ];
 
         Company::query()->each(function (Company $company) use ($documentNumberings) {

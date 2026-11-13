@@ -15,7 +15,7 @@ class AccountsPayableQuery
 
     public function receipts(?string $fromDate = null, ?string $toDate = null): Builder
     {
-        $query = GoodsReceipt::query()->with(['supplier:id,code,name', 'purchaseOrder:id,number'])
+        $query = GoodsReceipt::query()->where('status', 'approved')->with(['supplier:id,code,name', 'purchaseOrder:id,number'])
             ->withSum('items as receipt_amount', 'line_total')
             ->withSum('purchaseReturns as returned_amount', 'total_amount')
             ->withSum(['supplierPayments as paid_amount' => fn (Builder $payments) => $payments->where('company_id', $this->company->id())], 'amount')
@@ -25,7 +25,7 @@ class AccountsPayableQuery
 
     public function find(int $id): GoodsReceipt
     {
-        return GoodsReceipt::query()->with(['supplier:id,code,name', 'supplierPayments' => fn (Builder $payments) => $payments
+        return GoodsReceipt::query()->where('status', 'approved')->with(['supplier:id,code,name', 'supplierPayments' => fn (Builder $payments) => $payments
             ->where('company_id', $this->company->id())->with(['payer:id,name', 'cashBankAccount:id,code,name'])->orderByDesc('payment_date')])
             ->findOrFail($id);
     }

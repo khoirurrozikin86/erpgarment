@@ -46,7 +46,7 @@ class StockCardExport implements FromQuery, WithHeadings, WithMapping, ShouldAut
             $movement->created_at?->format('Y-m-d H:i:s'),
             $movement->product?->code,
             $movement->product?->name,
-            $movement->goodsReceipt?->number ?? $movement->purchaseReturn?->number ?? $movement->stockOpname?->number,
+            $movement->goodsReceipt?->number ?? $movement->purchaseReturn?->number ?? $movement->stockOpname?->number ?? $movement->materialIssueDocument?->number ?? $movement->nonProductionMaterialUsageDocument?->number,
             $movement->lotAllocations->map(fn ($allocation) => ($allocation->inventoryLot?->lot_number ?? '—') . ' (' . abs((float) $allocation->quantity) . ')')->implode(', '),
             match ($movement->movement_type) {
                 'purchase_receipt' => 'Penerimaan Barang',
@@ -56,6 +56,8 @@ class StockCardExport implements FromQuery, WithHeadings, WithMapping, ShouldAut
                 'stock_adjustment' => 'Stock Opname',
                 'sales_delivery' => 'Delivery',
                 'pos_sale' => 'Penjualan POS',
+                'non_production_material_usage' => 'Pemakaian Non-Produksi',
+                'non_production_material_usage_reversal' => 'Koreksi Pemakaian Non-Produksi',
                 default => ucfirst(str_replace('_', ' ', $movement->movement_type)),
             },
             (float) $movement->quantity > 0 ? (float) $movement->quantity : 0,

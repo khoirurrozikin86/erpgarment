@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class GoodsReceiptItem extends Model
 {
-    protected $fillable = ['purchase_order_item_id', 'product_id', 'inventory_lot_id', 'quantity', 'returned_quantity', 'unit_price', 'line_total'];
+    protected $fillable = ['purchase_order_item_id', 'product_id', 'inventory_lot_id', 'lot_number', 'quantity', 'returned_quantity', 'unit_price', 'line_total'];
 
     protected function casts(): array
     {

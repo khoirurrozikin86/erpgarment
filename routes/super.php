@@ -35,6 +35,12 @@ use App\Http\Controllers\Admin\{
     StockController,
     StockCardController,
     StockOpnameController,
+    DamagedItemController,
+    LostItemController,
+    RawMaterialOrderController,
+    MaterialIssueController,
+    ProductionReceiptController,
+    NonProductionMaterialUsageController,
 };
 
 Route::middleware(['auth'])
@@ -381,6 +387,7 @@ Route::middleware(['auth'])
         Route::prefix('material-requests')->name('material-requests.')->group(function () {
             Route::middleware('permission:material-requests.view')->get('/', [MaterialRequestController::class, 'index'])->name('index');
             Route::middleware('permission:material-requests.view')->get('/dt', [MaterialRequestController::class, 'dt'])->name('dt');
+            Route::middleware('permission:material-requests.view')->get('/export', [MaterialRequestController::class, 'export'])->name('export');
             Route::middleware('permission:material-requests.create')->get('/bom-requirements', [MaterialRequestController::class, 'bomRequirements'])->name('bom-requirements');
             Route::middleware('permission:material-requests.create')->get('/material-orders/{productionOrder}/requirements', [MaterialRequestController::class, 'productionOrderRequirements'])->name('material-order-requirements');
             Route::middleware('permission:material-requests.view')->get('/{materialRequest}', [MaterialRequestController::class, 'show'])->name('show');
@@ -394,6 +401,7 @@ Route::middleware(['auth'])
 
         Route::prefix('material-orders')->name('material-orders.')->group(function () {
             Route::middleware('permission:production-orders.view')->get('/', [ProductionOrderController::class, 'index'])->name('index');
+            Route::middleware('permission:production-orders.view')->get('/export', [ProductionOrderController::class, 'export'])->name('export');
             Route::middleware('permission:production-orders.view')->get('/{productionOrder}', [ProductionOrderController::class, 'show'])->name('show');
             Route::middleware('permission:production-orders.update')->post('/{productionOrder}/stages', [ProductionOrderController::class, 'recordStage'])->name('stages.store');
             Route::middleware('permission:production-orders.create')->post('/', [ProductionOrderController::class, 'store'])->name('store');
@@ -405,6 +413,7 @@ Route::middleware(['auth'])
         Route::prefix('purchase-requests')->name('purchase-requests.')->group(function () {
             Route::middleware('permission:purchase-requests.view')->get('/', [PurchaseRequestController::class, 'index'])->name('index');
             Route::middleware('permission:purchase-requests.view')->get('/dt', [PurchaseRequestController::class, 'dt'])->name('dt');
+            Route::middleware('permission:purchase-requests.view')->get('/export', [PurchaseRequestController::class, 'export'])->name('export');
             Route::middleware('permission:purchase-requests.create')->get('/material-requests/eligible', [PurchaseRequestController::class, 'eligible'])->name('eligible');
             Route::middleware('permission:purchase-requests.create')->get('/material-requests/eligible/{materialRequestId}', [PurchaseRequestController::class, 'source'])->whereNumber('materialRequestId')->name('source');
             Route::middleware('permission:purchase-requests.create')->get('/create', [PurchaseRequestController::class, 'create'])->name('create');
@@ -419,6 +428,7 @@ Route::middleware(['auth'])
         Route::prefix('purchase-orders')->name('purchase-orders.')->group(function () {
             Route::middleware('permission:purchase-orders.view')->get('/', [PurchaseOrderController::class, 'index'])->name('index');
             Route::middleware('permission:purchase-orders.view')->get('/dt', [PurchaseOrderController::class, 'dt'])->name('dt');
+            Route::middleware('permission:purchase-orders.view')->get('/export', [PurchaseOrderController::class, 'export'])->name('export');
             Route::middleware('permission:purchase-orders.create')->get('/purchase-requests/eligible', [PurchaseOrderController::class, 'eligible'])->name('eligible');
             Route::middleware('permission:purchase-orders.create')->get('/purchase-requests/eligible/{purchaseRequestId}', [PurchaseOrderController::class, 'source'])->whereNumber('purchaseRequestId')->name('source');
             Route::middleware('permission:purchase-orders.create')->get('/create', [PurchaseOrderController::class, 'create'])->name('create');
@@ -434,10 +444,13 @@ Route::middleware(['auth'])
         Route::prefix('goods-receipts')->name('goods-receipts.')->group(function () {
             Route::middleware('permission:goods-receipts.view')->get('/', [GoodsReceiptController::class, 'index'])->name('index');
             Route::middleware('permission:goods-receipts.view')->get('/dt', [GoodsReceiptController::class, 'dt'])->name('dt');
+            Route::middleware('permission:goods-receipts.view')->get('/export', [GoodsReceiptController::class, 'export'])->name('export');
             Route::middleware('permission:goods-receipts.create')->get('/purchase-orders/eligible', [GoodsReceiptController::class, 'eligible'])->name('eligible');
             Route::middleware('permission:goods-receipts.create')->get('/purchase-orders/eligible/{purchaseOrderId}', [GoodsReceiptController::class, 'source'])->whereNumber('purchaseOrderId')->name('source');
             Route::middleware('permission:goods-receipts.create')->get('/create', [GoodsReceiptController::class, 'create'])->name('create');
             Route::middleware('permission:goods-receipts.create')->post('/', [GoodsReceiptController::class, 'store'])->name('store');
+            Route::middleware('permission:goods-receipts.approve')->put('/{goodsReceipt}/approve', [GoodsReceiptController::class, 'approve'])->name('approve');
+            Route::middleware('permission:goods-receipts.delete')->delete('/{goodsReceipt}', [GoodsReceiptController::class, 'destroy'])->name('destroy');
             Route::middleware('permission:goods-receipts.view')->get('/{goodsReceipt}', [GoodsReceiptController::class, 'show'])->name('show');
             Route::middleware('permission:goods-receipts.view')->get('/{goodsReceipt}/pdf', [GoodsReceiptController::class, 'pdf'])->name('pdf');
             Route::middleware('permission:goods-receipts.view')->get('/{goodsReceipt}/pdf/download', [GoodsReceiptController::class, 'downloadPdf'])->name('pdf.download');
@@ -450,6 +463,7 @@ Route::middleware(['auth'])
             Route::middleware('permission:purchase-returns.create')->get('/goods-receipts/eligible/{goodsReceiptId}', [PurchaseReturnController::class, 'source'])->whereNumber('goodsReceiptId')->name('source');
             Route::middleware('permission:purchase-returns.create')->get('/create', [PurchaseReturnController::class, 'create'])->name('create');
             Route::middleware('permission:purchase-returns.create')->post('/', [PurchaseReturnController::class, 'store'])->name('store');
+            Route::middleware('permission:purchase-returns.delete')->delete('/{purchaseReturn}', [PurchaseReturnController::class, 'destroy'])->name('destroy');
             Route::middleware('permission:purchase-returns.view')->get('/{purchaseReturn}', [PurchaseReturnController::class, 'show'])->name('show');
             Route::middleware('permission:purchase-returns.view')->get('/{purchaseReturn}/pdf', [PurchaseReturnController::class, 'pdf'])->name('pdf');
             Route::middleware('permission:purchase-returns.view')->get('/{purchaseReturn}/pdf/download', [PurchaseReturnController::class, 'downloadPdf'])->name('pdf.download');
@@ -528,6 +542,72 @@ Route::middleware(['auth'])
             Route::middleware('permission:stock-opnames.count')->get('/{stockOpname}/count', [StockOpnameController::class, 'count'])->name('count');
             Route::middleware('permission:stock-opnames.count')->put('/{stockOpname}/count', [StockOpnameController::class, 'saveCounts'])->name('count.save');
             Route::middleware('permission:stock-opnames.post')->put('/{stockOpname}/post', [StockOpnameController::class, 'post'])->name('post');
+        });
+
+        Route::prefix('damaged-items')->name('damaged-items.')->group(function () {
+            Route::middleware('permission:damaged-items.view')->get('/', [DamagedItemController::class, 'index'])->name('index');
+            Route::middleware('permission:damaged-items.view')->get('/dt', [DamagedItemController::class, 'dt'])->name('dt');
+            Route::middleware('permission:damaged-items.create')->get('/products/dt', [DamagedItemController::class, 'productsDt'])->name('products.dt');
+            Route::middleware('permission:damaged-items.create')->get('/number-preview', [DamagedItemController::class, 'numberPreview'])->name('number-preview');
+            Route::middleware('permission:damaged-items.create')->post('/', [DamagedItemController::class, 'store'])->name('store');
+            Route::middleware('permission:damaged-items.update')->put('/{damagedItemLine}', [DamagedItemController::class, 'update'])->name('update');
+            Route::middleware('permission:damaged-items.delete')->delete('/{damagedItemLine}', [DamagedItemController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('lost-items')->name('lost-items.')->group(function () {
+            Route::middleware('permission:lost-items.view')->get('/', [LostItemController::class, 'index'])->name('index');
+            Route::middleware('permission:lost-items.view')->get('/dt', [LostItemController::class, 'dt'])->name('dt');
+            Route::middleware('permission:lost-items.view')->get('/export', [LostItemController::class, 'export'])->name('export');
+            Route::middleware('permission:lost-items.create')->get('/products/dt', [LostItemController::class, 'productsDt'])->name('products.dt');
+            Route::middleware('permission:lost-items.create')->get('/number-preview', [LostItemController::class, 'numberPreview'])->name('number-preview');
+            Route::middleware('permission:lost-items.create')->post('/', [LostItemController::class, 'store'])->name('store');
+            Route::middleware('permission:lost-items.update')->put('/{lostItemLine}', [LostItemController::class, 'update'])->name('update');
+            Route::middleware('permission:lost-items.delete')->delete('/{lostItemLine}', [LostItemController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('non-production-material-usages')->name('non-production-material-usages.')->group(function () {
+            Route::middleware('permission:non-production-material-usages.view')->get('/', [NonProductionMaterialUsageController::class, 'index'])->name('index');
+            Route::middleware('permission:non-production-material-usages.view')->get('/dt', [NonProductionMaterialUsageController::class, 'dt'])->name('dt');
+            Route::middleware('permission:non-production-material-usages.view')->get('/products/dt', [NonProductionMaterialUsageController::class, 'productsDt'])->name('products.dt');
+            Route::middleware('permission:non-production-material-usages.create')->get('/number-preview', [NonProductionMaterialUsageController::class, 'numberPreview'])->name('number-preview');
+            Route::middleware('permission:non-production-material-usages.create')->post('/', [NonProductionMaterialUsageController::class, 'store'])->name('store');
+            Route::middleware('permission:non-production-material-usages.update')->put('/{usageItem}', [NonProductionMaterialUsageController::class, 'update'])->name('update');
+            Route::middleware('permission:non-production-material-usages.delete')->delete('/{usageItem}', [NonProductionMaterialUsageController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('raw-material-orders')->name('raw-material-orders.')->group(function () {
+            Route::middleware('permission:raw-material-orders.view')->get('/', [RawMaterialOrderController::class, 'index'])->name('index');
+            Route::middleware('permission:raw-material-orders.view')->get('/dt', [RawMaterialOrderController::class, 'dt'])->name('dt');
+            Route::middleware('permission:raw-material-orders.view')->get('/export', [RawMaterialOrderController::class, 'export'])->name('export');
+            Route::middleware('permission:raw-material-orders.create')->get('/create', [RawMaterialOrderController::class, 'create'])->name('create');
+            Route::middleware('permission:raw-material-orders.create')->get('/mo/dt', [RawMaterialOrderController::class, 'mosDt'])->name('mos.dt');
+            Route::middleware('permission:raw-material-orders.create')->get('/mo/materials', [RawMaterialOrderController::class, 'moMaterials'])->name('materials');
+            Route::middleware('permission:raw-material-orders.create')->post('/', [RawMaterialOrderController::class, 'store'])->name('store');
+            Route::middleware('permission:raw-material-orders.update')->get('/{document}/edit', [RawMaterialOrderController::class, 'edit'])->name('edit');
+            Route::middleware('permission:raw-material-orders.update')->put('/{document}', [RawMaterialOrderController::class, 'update'])->name('update');
+            Route::middleware('permission:raw-material-orders.delete')->delete('/{document}', [RawMaterialOrderController::class, 'destroy'])->name('destroy');
+        });
+
+        Route::prefix('material-issues')->name('material-issues.')->group(function () {
+            Route::middleware('permission:material-issues.view')->get('/', [MaterialIssueController::class, 'index'])->name('index');
+            Route::middleware('permission:material-issues.view')->get('/requests/dt', [MaterialIssueController::class, 'requestsDt'])->name('requests.dt');
+            Route::middleware('permission:material-issues.view')->get('/history/dt', [MaterialIssueController::class, 'historyDt'])->name('history.dt');
+            Route::middleware('permission:material-issues.create')->post('/bulk', [MaterialIssueController::class, 'issueBulk'])->name('bulk.store');
+            Route::middleware('permission:material-issues.view')->get('/requests/{rawMaterialOrderDocument}', [MaterialIssueController::class, 'requestDetails'])->name('requests.show');
+            Route::middleware('permission:material-issues.update')->put('/items/{materialIssueItem}', [MaterialIssueController::class, 'updateItem'])->name('items.update');
+            Route::middleware('permission:material-issues.delete')->delete('/items/{materialIssueItem}', [MaterialIssueController::class, 'destroyItem'])->name('items.destroy');
+            Route::middleware('permission:material-issues.view')->get('/documents/{document}/pdf', [MaterialIssueController::class, 'pdf'])->name('documents.pdf');
+            Route::middleware('permission:material-issues.view')->get('/documents/{document}/pdf/download', [MaterialIssueController::class, 'downloadPdf'])->name('documents.pdf.download');
+            Route::middleware('permission:material-issues.view')->get('/documents/{document}', [MaterialIssueController::class, 'documentDetails'])->name('documents.show');
+            Route::middleware('permission:material-issues.view')->get('/export', [MaterialIssueController::class, 'export'])->name('export');
+            Route::middleware('permission:material-issues.create')->post('/requests/{rawMaterialOrderItem}', [MaterialIssueController::class, 'issue'])->name('store');
+        });
+
+        Route::prefix('production-receipts')->name('production-receipts.')->group(function () {
+            Route::middleware('permission:production-receipts.view')->get('/', [ProductionReceiptController::class, 'index'])->name('index');
+            Route::middleware('permission:production-receipts.view')->get('/dt', [ProductionReceiptController::class, 'datatable'])->name('dt');
+            Route::middleware('permission:production-receipts.view')->get('/documents/{document}', [ProductionReceiptController::class, 'details'])->name('documents.show');
+            Route::middleware('permission:production-receipts.approve')->put('/documents/{document}/approve', [ProductionReceiptController::class, 'approve'])->name('approve');
         });
 
         Route::prefix('customers')->name('customers.')->group(function () {

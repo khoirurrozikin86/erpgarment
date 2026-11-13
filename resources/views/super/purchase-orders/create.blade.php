@@ -20,7 +20,7 @@
             <a href="{{ route('super.purchase-orders.index') }}" class="btn btn-outline-secondary btn-sm"><i data-feather="arrow-left" class="icon-sm me-1"></i>{{ __('ui.common.back') }}</a>
         </div>
 
-        <div class="col-12 col-xxl-10">
+        <div class="col-12">
             <div class="card">
                 <div class="card-header"><h6 class="card-title mb-0">{{ __('ui.workflow.order_details') }}</h6></div>
                 <form id="purchaseOrderForm">

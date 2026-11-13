@@ -17,8 +17,11 @@ class MaterialRequestTableQuery
                 'requester:id,name',
                 'reviewer:id,name',
                 'productionOrder:id,buyer_po_number,output_product_id,planned_quantity',
-                'productionOrder.outputProduct:id,code,name',
-                'outputProduct:id,code,name',
+                'productionOrder.outputProduct:id,code,name,style_code',
+                'outputProduct:id,code,name,style_code',
+                'items:id,material_request_id,product_id,quantity',
+                'items.product:id,code,name,unit_id',
+                'items.product.unit:id,name,symbol',
             ])
             ->select([
                 'id', 'number', 'requested_by', 'production_order_id', 'output_product_id', 'production_quantity', 'department', 'needed_at', 'reason', 'status',

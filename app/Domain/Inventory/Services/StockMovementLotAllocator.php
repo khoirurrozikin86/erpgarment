@@ -11,7 +11,7 @@ class StockMovementLotAllocator
     public function allocate(StockMovement $movement): void
     {
         // These inventory actions already write explicit lot allocations.
-        if (in_array($movement->movement_type, ['purchase_receipt', 'purchase_return', 'material_issue', 'production_output'], true)) {
+        if (in_array($movement->movement_type, ['purchase_receipt', 'purchase_return', 'material_issue', 'material_issue_reversal', 'production_output'], true)) {
             return;
         }
 
@@ -25,7 +25,7 @@ class StockMovementLotAllocator
 
         $sourceType = match ($movement->movement_type) {
             'customer_return' => 'customer_return',
-            'stock_adjustment' => 'adjustment',
+            'stock_adjustment', 'damaged_item_reversal', 'lost_item_reversal' => 'adjustment',
             default => 'stock_in',
         };
         $lot = InventoryLot::create([

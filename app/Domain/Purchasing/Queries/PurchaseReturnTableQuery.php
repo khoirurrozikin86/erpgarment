@@ -24,6 +24,7 @@ class PurchaseReturnTableQuery
     public function eligibleGoodsReceipts(): Builder
     {
         return GoodsReceipt::query()
+            ->where('status', 'approved')
             ->whereHas('items', fn (Builder $items) => $items->whereColumn('returned_quantity', '<', 'quantity'))
             ->with([
                 'purchaseOrder:id,number',

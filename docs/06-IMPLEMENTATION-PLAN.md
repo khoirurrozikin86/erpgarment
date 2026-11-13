@@ -58,3 +58,9 @@ Persetujuan implementasi diberikan pengguna pada 2026-11-13. Progres per modul d
 ## Risiko dependensi
 
 Aturan posting stok dan format BC memengaruhi schema dan transaksi inti. Tetapkan sebelum tahap 2–4. Status project dan tingkat kesesuaian field harus diverifikasi pada implementasi hidup; daftar model/migration saja tidak membuktikan suatu alur sudah selesai.
+
+## Progres implementasi terbaru
+
+- Material Request yang disetujui dan terkait MO dapat dikirim parsial melalui modul Gudang **Kirim ke Produksi (MIS)**. Setiap pengiriman punya nomor dokumen dan jejak di ledger stok/lot; detail dan status saldo mengikuti `docs/03-BUSINESS-FLOW.md` serta `docs/05-FUNCTIONAL-REQUIREMENTS.md`.
+- Modul Production **Penerimaan Produksi dari Gudang** mengonfirmasi penerimaan dokumen MIS dan menyimpan penerima/waktu tanpa mem-posting stok kedua kalinya. Penerimaan parsial serta asal data PO Supplier perlu konfirmasi.
+- Modul Gudang **Pemakaian Material Non-Produksi** memakai nomor transaksi terkonfigurasi, pemilihan item berbasis DataTable, harga/total, koreksi stok melalui mutasi kompensasi, dan jejak kartu stok.

@@ -18,14 +18,20 @@
     <form id="goodsReceiptForm">
         @csrf
         <div class="card mb-3"><div class="card-header d-flex justify-content-between align-items-center">
-            <h6 class="mb-0">{{ __('ui.common.purchase_order') }}</h6>
+            <h6 class="mb-0">{{ __('ui.workflow.receipt_document') }}</h6>
             <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#selectPurchaseOrderModal"><i data-feather="search" class="icon-sm me-1"></i>{{ __('ui.workflow.search_po') }}</button>
         </div><div class="card-body">
             <input type="hidden" name="purchase_order_id" id="purchase_order_id">
             <div class="row">
                 <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.common.po_number') }}</label><input id="selected_po_number" class="form-control" readonly placeholder="{{ __('ui.workflow.choose_po_to_receive') }}"></div>
-                <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.common.supplier') }}</label><input id="selected_supplier" class="form-control" readonly placeholder="{{ __('ui.workflow.auto_from_po') }}"></div>
                 <div class="col-md-4 mb-3"><label class="form-label" for="received_at">{{ __('ui.common.receipt_date') }}</label><input type="datetime-local" name="received_at" id="received_at" class="form-control" value="{{ now()->format('Y-m-d\TH:i') }}" required></div>
+                <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.common.supplier') }}</label><input id="selected_supplier" class="form-control" readonly placeholder="{{ __('ui.workflow.auto_from_po') }}"></div>
+                <div class="col-md-4 mb-3"><label class="form-label" for="invoice_number">{{ __('ui.common.invoice_number') }}</label><input name="invoice_number" id="invoice_number" class="form-control" maxlength="100"></div>
+                <div class="col-md-4 mb-3"><label class="form-label" for="invoice_date">{{ __('ui.common.invoice_date') }}</label><input type="date" name="invoice_date" id="invoice_date" class="form-control" value="{{ now()->toDateString() }}"></div>
+                <div class="col-md-4 mb-3"><label class="form-label" for="currency">{{ __('ui.common.currency') }}</label><input name="currency" id="currency" class="form-control text-uppercase" value="USD" maxlength="10" required></div>
+                <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.workflow.material_order') }}</label><input id="selected_mo_number" class="form-control" readonly placeholder="—"></div>
+                <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.workflow.style') }}</label><input id="selected_style" class="form-control" readonly placeholder="—"></div>
+                <div class="col-12"><hr class="my-1"><div class="small fw-semibold text-muted mb-2">{{ __('ui.workflow.customs_document') }}</div></div>
                 <div class="col-md-4 mb-3"><label class="form-label" for="customs_document_code">{{ __('ui.workflow.customs_document_code') }}</label><select name="customs_document_code" id="customs_document_code" class="form-select"><option value="">{{ __('ui.common.optional') }}</option>@foreach (['2.3', '2.7', '2.6.2', '4.0'] as $documentCode)<option value="{{ $documentCode }}">{{ $documentCode }}</option>@endforeach</select></div>
                 <div class="col-md-4 mb-3"><label class="form-label" for="customs_document_number">{{ __('ui.workflow.customs_document_number') }}</label><input name="customs_document_number" id="customs_document_number" class="form-control" maxlength="100"></div>
                 <div class="col-md-4 mb-3"><label class="form-label" for="customs_document_date">{{ __('ui.workflow.customs_document_date') }}</label><input type="date" name="customs_document_date" id="customs_document_date" class="form-control"></div>
@@ -34,8 +40,8 @@
 
         <div class="card mb-3"><div class="card-header"><h6 class="mb-0">{{ __('ui.workflow.received_items') }}</h6></div><div class="card-body">
             <div class="table-responsive"><table class="table table-bordered align-middle">
-                <thead><tr><th>{{ __('ui.common.item') }}</th><th class="text-end">{{ __('ui.workflow.ordered') }}</th><th class="text-end">{{ __('ui.workflow.received_previously') }}</th><th class="text-end">{{ __('ui.common.remaining') }}</th><th style="min-width:330px">{{ __('ui.workflow.receive_now') }} / {{ __('ui.workflow.lot_roll') }}</th></tr></thead>
-                <tbody id="receiptItems"><tr><td colspan="5" class="text-center text-muted py-4">{{ __('ui.workflow.choose_po_load_items') }}</td></tr></tbody>
+                <thead><tr><th>{{ __('ui.workflow.item_code') }} / {{ __('ui.common.item') }}</th><th>{{ __('ui.workflow.style') }}</th><th class="text-end">{{ __('ui.workflow.ordered') }}</th><th class="text-end">{{ __('ui.workflow.received_previously') }}</th><th class="text-end">{{ __('ui.common.remaining') }}</th><th class="text-end">{{ __('ui.common.unit_price') }}</th><th style="min-width:330px">{{ __('ui.workflow.receive_now') }} / {{ __('ui.workflow.lot_roll') }}</th><th class="text-end">{{ __('ui.common.total') }}</th></tr></thead>
+                <tbody id="receiptItems"><tr><td colspan="8" class="text-center text-muted py-4">{{ __('ui.workflow.choose_po_load_items') }}</td></tr></tbody>
             </table></div>
             <div class="mb-3"><label class="form-label" for="notes">{{ __('ui.common.notes') }}</label><textarea name="notes" id="notes" class="form-control" rows="2" maxlength="5000" placeholder="{{ __('ui.workflow.receipt_notes_placeholder') }}"></textarea></div>
         </div></div>
@@ -85,16 +91,22 @@
                     $('#purchase_order_id').val(order.id);
                     $('#selected_po_number').val(order.number);
                     $('#selected_supplier').val(order.supplier);
+                    $('#selected_mo_number').val(order.material_order_number || '—');
+                    $('#selected_style').val(order.style_code || '—');
+                    if (order.currency) $('#currency').val(order.currency);
                     receiptLineIndex = 0;
                     const rows = order.items.map(item => `
                         <tr>
-                            <td>${safe(item.code)} — ${safe(item.name)}${item.track_stock ? '' : '<div class="small text-muted">{{ __('ui.common.non_stock_item') }}</div>'}</td>
+                            <td><span class="text-nowrap fw-semibold">${safe(item.code)}</span><div class="small text-muted text-truncate" style="max-width:340px" title="${safe(item.name)}">${safe(item.name)}</div>${item.track_stock ? '' : '<div class="small text-muted">{{ __('ui.common.non_stock_item') }}</div>'}</td>
+                            <td>${safe(order.style_code || '—')}</td>
                             <td class="text-end">${item.ordered} ${safe(item.unit)}</td>
                             <td class="text-end">${item.received} ${safe(item.unit)}</td>
                             <td class="text-end">${item.remaining} ${safe(item.unit)}</td>
+                            <td class="text-end">${Number(item.unit_price).toLocaleString('id-ID')}</td>
                             <td><div class="receipt-lot-entries" data-item-id="${item.id}" data-remaining="${item.remaining}">${receiptLine(item.id, item.remaining, item.track_stock)}</div>${item.track_stock ? `<button type="button" class="btn btn-link btn-sm p-0 add-receipt-lot" data-item-id="${item.id}" data-remaining="${item.remaining}">{{ __('ui.workflow.add_lot_roll') }}</button>` : ''}<div class="small text-muted mt-1">{{ __('ui.workflow.maximum_receive') }} ${item.remaining}</div></td>
+                            <td class="text-end receipt-item-total" data-unit-price="${item.unit_price}">0,00</td>
                         </tr>`).join('');
-                    $('#receiptItems').html(rows || '<tr><td colspan="5" class="text-center text-muted">{{ __('ui.workflow.no_remaining_receipts') }}</td></tr>');
+                    $('#receiptItems').html(rows || '<tr><td colspan="8" class="text-center text-muted">{{ __('ui.workflow.no_remaining_receipts') }}</td></tr>');
                     $('#submitReceipt').prop('disabled', !rows);
                     poModal.hide();
                 }).fail(() => Swal.fire({ icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: '{{ __('ui.workflow.detail_po_load_failed') }}' }));
@@ -106,7 +118,14 @@
             });
             $(document).on('click', '.remove-lot-row', function() {
                 if ($(this).closest('.receipt-lot-entries').find('.receipt-lot-row').length > 1) $(this).closest('.receipt-lot-row').remove();
+                recalculateItemTotal($(this).closest('tr'));
             });
+            function recalculateItemTotal(row) {
+                const quantity = row.find('.receipt-quantity').toArray().reduce((total, input) => total + Number(input.value || 0), 0);
+                const price = Number(row.find('.receipt-item-total').data('unit-price') || 0);
+                row.find('.receipt-item-total').text((quantity * price).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+            }
+            $(document).on('input', '.receipt-quantity', function() { recalculateItemTotal($(this).closest('tr')); });
 
             $('#goodsReceiptForm').on('submit', function(event) {
                 event.preventDefault();

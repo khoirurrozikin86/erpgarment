@@ -6,6 +6,7 @@ use App\Domain\Purchasing\Services\MaterialRequestService;
 use App\Domain\Companies\Services\CompanyPdfBrandingService;
 use App\Domain\Companies\Services\CompanyContext;
 use App\Domain\Purchasing\Queries\MaterialRequestTableQuery;
+use App\Exports\MaterialRequestsExport;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Http\Controllers\Controller;
 use App\Models\MaterialRequest;
@@ -15,6 +16,7 @@ use App\Models\ProductionOrder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
 class MaterialRequestController extends Controller
@@ -25,6 +27,8 @@ class MaterialRequestController extends Controller
             ->get(['id', 'code', 'name', 'unit_id'])->load('unit:id,name,symbol')
             ->map(fn (Product $product) => [
                 'id' => $product->id,
+                'code' => $product->code,
+                'name' => $product->name,
                 'label' => $product->code . ' — ' . $product->name,
                 'unit' => $product->unit?->symbol ?: $product->unit?->name,
             ]);
@@ -38,6 +42,25 @@ class MaterialRequestController extends Controller
             ]);
 
         return view('super.material-requests.index', compact('products', 'productionOrders'));
+    }
+
+    public function export(Request $request)
+    {
+        $filters = $request->validate([
+            'from_date' => ['nullable', 'date_format:Y-m-d'],
+            'to_date' => ['nullable', 'date_format:Y-m-d', function ($attribute, $value, $fail) use ($request) {
+                if ($value && $request->input('from_date') && $value < $request->input('from_date')) {
+                    $fail('Tanggal akhir harus sama atau setelah tanggal awal.');
+                }
+            }],
+        ]);
+        $fromDate = $filters['from_date'] ?? null;
+        $toDate = $filters['to_date'] ?? null;
+
+        return Excel::download(
+            new MaterialRequestsExport($fromDate, $toDate),
+            'material-requests-' . ($fromDate ?: 'all') . '-to-' . ($toDate ?: 'all') . '.xlsx'
+        );
     }
 
     public function productionOrderRequirements(ProductionOrder $productionOrder, CompanyContext $company): JsonResponse
@@ -139,6 +162,18 @@ class MaterialRequestController extends Controller
 
                 return $quantity === null ? '—' : number_format((float) $quantity, 4, ',', '.');
             })
+            ->addColumn('required_items', function (MaterialRequest $request) {
+                if ($request->items->isEmpty()) return '—';
+                $items = $request->items->map(function ($item) {
+                    $code = e($item->product?->code ?? '—');
+                    $name = e($item->product?->name ?? __('ui.workflow.deleted_item'));
+                    $quantity = rtrim(rtrim(number_format((float) $item->quantity, 4, ',', '.'), '0'), ',');
+                    $unit = $item->product?->unit?->symbol ?: $item->product?->unit?->name;
+                    return '<span class="badge rounded-pill bg-light text-secondary border fw-normal" title="' . $name . '">' . $code . ' × ' . $quantity . ($unit ? ' ' . e($unit) : '') . '</span>';
+                })->implode(' ');
+
+                return '<div class="d-flex flex-wrap gap-1" style="max-width:24rem">' . $items . '</div>';
+            })
             ->addColumn('items_count', fn (MaterialRequest $request) => $request->items_count)
             ->addColumn('status_label', fn (MaterialRequest $request) => match ($request->status) {
                 'approved' => '<span class="badge bg-success">' . __('ui.workflow.approval_approved') . '</span>',
@@ -154,10 +189,6 @@ class MaterialRequestController extends Controller
                 $detailUrl = e(route('super.material-requests.show', $request));
                 $buttons = '<div class="d-inline-flex align-items-center justify-content-end gap-2 text-nowrap">'
                     . '<button type="button" class="btn btn-link btn-sm p-0 text-secondary btn-view-request" data-url="' . $detailUrl . '" title="' . e(__('ui.workflow.view_detail')) . '" aria-label="' . e(__('ui.workflow.view_detail')) . '"><i data-feather="eye" class="icon-sm"></i></button>';
-                $remaining = (float) $request->items_total_quantity - (float) $request->items_issued_quantity;
-                if ($request->status === 'approved' && $remaining > 0.0000001 && auth()->user()->can('material-requests.issue')) {
-                    $buttons .= '<button type="button" class="btn btn-link btn-sm p-0 text-success btn-view-request btn-issue-request" data-url="' . $detailUrl . '" title="' . e(__('ui.workflow.issue_materials')) . '" aria-label="' . e(__('ui.workflow.issue_materials')) . '"><i data-feather="corner-up-right" class="icon-sm"></i></button>';
-                }
                 $buttons .= '<a class="btn btn-link btn-sm p-0 text-primary" href="' . e(route('super.material-requests.pdf', $request)) . '" target="_blank" rel="noopener" title="' . e(__('ui.workflow.view_pdf')) . '" aria-label="' . e(__('ui.workflow.view_pdf')) . '"><i data-feather="file-text" class="icon-sm"></i></a>'
                     . '<a class="btn btn-link btn-sm p-0 text-secondary" href="' . e(route('super.material-requests.pdf.download', $request)) . '" title="' . e(__('ui.workflow.download_pdf')) . '" aria-label="' . e(__('ui.workflow.download_pdf')) . '"><i data-feather="download" class="icon-sm"></i></a>';
                 if ($request->status === 'pending' && auth()->user()->can('material-requests.approve')) {
@@ -166,7 +197,7 @@ class MaterialRequestController extends Controller
                 }
                 return $buttons . '</div>';
             })
-            ->rawColumns(['status_label', 'purchase_status_label', 'actions'])
+            ->rawColumns(['required_items', 'status_label', 'purchase_status_label', 'actions'])
             ->toJson();
     }
 
@@ -300,11 +331,12 @@ class MaterialRequestController extends Controller
     public function issue(Request $request, MaterialRequest $materialRequest, MaterialRequestService $service): JsonResponse
     {
         $data = $request->validate([
+            'issue_date' => ['nullable', 'date_format:Y-m-d'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.material_request_item_id' => ['required', 'integer', 'distinct'],
             'items.*.quantity' => ['required', 'numeric', 'gt:0', 'max:999999999999.9999'],
         ]);
-        $service->issue($materialRequest, $data['items'], (int) $request->user()->id);
+        $service->issue($materialRequest, $data['items'], (int) $request->user()->id, $data['issue_date'] ?? null);
 
         return response()->json(['message' => __('ui.workflow.material_issue_success')]);
     }
