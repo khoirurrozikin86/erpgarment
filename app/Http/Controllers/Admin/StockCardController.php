@@ -47,7 +47,7 @@ class StockCardController extends Controller
             $filters['from_date'] ?? null,
             $filters['to_date'] ?? null,
         ))
-            ->addColumn('reference_number', fn(StockMovement $movement) => $movement->goodsReceipt?->number ?? $movement->purchaseReturn?->number ?? $movement->stockOpname?->number ?? $movement->damagedItemDocument?->number ?? $movement->lostItemDocument?->number ?? $movement->materialRequestItem?->request?->number ?? $movement->materialIssueDocument?->number ?? $movement->nonProductionMaterialUsageDocument?->number ?? $movement->productionOrderStageEntry?->productionOrder?->number ?? '—')
+            ->addColumn('reference_number', fn(StockMovement $movement) => $movement->goodsReceipt?->number ?? $movement->purchaseReturn?->number ?? $movement->stockOpname?->number ?? $movement->damagedItemDocument?->number ?? $movement->lostItemDocument?->number ?? $movement->materialRequestItem?->request?->number ?? $movement->materialIssueDocument?->number ?? $movement->nonProductionMaterialUsageDocument?->number ?? $movement->wipIssueDocument?->number ?? $movement->scrapReceiptDocument?->number ?? $movement->productionReturnDocument?->number ?? $movement->productionOrderStageEntry?->packing_number ?? $movement->productionOrderStageEntry?->sewing_number ?? $movement->productionOrderStageEntry?->cutting_number ?? $movement->productionOrderStageEntry?->productionOrder?->number ?? '—')
             ->addColumn('movement_label', fn(StockMovement $movement) => match ($movement->movement_type) {
                 'purchase_receipt' => '<span class="badge bg-success">Penerimaan Barang</span>',
                 'purchase_return' => '<span class="badge bg-danger">Purchase Return</span>',
@@ -61,7 +61,14 @@ class StockCardController extends Controller
                 'material_issue' => '<span class="badge bg-warning text-dark">' . e(__('ui.workflow.material_issue_movement')) . '</span>',
                 'non_production_material_usage' => '<span class="badge bg-danger">' . e(__('ui.non_production_usage.title')) . '</span>',
                 'non_production_material_usage_reversal' => '<span class="badge bg-success">' . e(__('ui.non_production_usage.reversal')) . '</span>',
+                'wip_issue' => '<span class="badge bg-danger">' . e(__('ui.wip_issue.title')) . '</span>',
+                'wip_issue_reversal' => '<span class="badge bg-success">' . e(__('ui.wip_issue.reversal')) . '</span>',
+                'scrap_receipt' => '<span class="badge bg-success">' . e(__('ui.scrap_receipt.title')) . '</span>',
+                'scrap_receipt_reversal' => '<span class="badge bg-warning text-dark">' . e(__('ui.scrap_receipt.updated')) . '</span>',
+                'production_return' => '<span class="badge bg-success">' . e(__('ui.production_return.receipt_title')) . '</span>',
+                'production_return_reversal' => '<span class="badge bg-danger">' . e(__('ui.production_return.cancelled')) . '</span>',
                 'production_output' => '<span class="badge bg-success">' . e(__('ui.workflow.production_output_movement')) . '</span>',
+                'production_output_reversal' => '<span class="badge bg-danger">' . e(__('ui.packing.stock_reversal')) . '</span>',
                 default => '<span class="badge bg-secondary">' . e(ucfirst(str_replace('_', ' ', $movement->movement_type))) . '</span>',
             })
             ->addColumn('lot_numbers', fn(StockMovement $movement) => $movement->lotAllocations

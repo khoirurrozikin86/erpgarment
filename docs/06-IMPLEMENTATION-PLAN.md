@@ -37,6 +37,9 @@ Persetujuan implementasi diberikan pengguna pada 2026-11-13. Progres per modul d
 ## Tahap 5 — Subkontrak serta scrap/aset
 
 - Kontrak dan kuota; pengeluaran bahan/WIP; penerimaan hasil; monitoring serta laporan rekonsiliasi.
+
+### Progress scrap
+Scrap Masuk Gudang sudah tersedia untuk transaksi satu baris dari produk kategori `WASTE`, termasuk nomor dokumen, filter dan Excel, modal, audit, serta mutasi stok yang tampil pada kartu stok. Fitur mesin/aset belum dibuat; sidebar hanya menunjukkan grup Mesin sebagai placeholder. Aturan costing, relasi No. Produksi, dan multi-item masih **NEEDS CONFIRMATION**.
 - Scrap masuk/keluar dan transaksi mesin/peralatan; tentukan apakah sebagai stok, aset tetap, atau pelacakan kuantitas sederhana.
 
 ## Tahap 6 — Laporan, histori dan kontrol
@@ -64,3 +67,33 @@ Aturan posting stok dan format BC memengaruhi schema dan transaksi inti. Tetapka
 - Material Request yang disetujui dan terkait MO dapat dikirim parsial melalui modul Gudang **Kirim ke Produksi (MIS)**. Setiap pengiriman punya nomor dokumen dan jejak di ledger stok/lot; detail dan status saldo mengikuti `docs/03-BUSINESS-FLOW.md` serta `docs/05-FUNCTIONAL-REQUIREMENTS.md`.
 - Modul Production **Penerimaan Produksi dari Gudang** mengonfirmasi penerimaan dokumen MIS dan menyimpan penerima/waktu tanpa mem-posting stok kedua kalinya. Penerimaan parsial serta asal data PO Supplier perlu konfirmasi.
 - Modul Gudang **Pemakaian Material Non-Produksi** memakai nomor transaksi terkonfigurasi, pemilihan item berbasis DataTable, harga/total, koreksi stok melalui mutasi kompensasi, dan jejak kartu stok.
+# Progres terbaru — Return to Warehouse
+
+Implementasikan pencatatan retur dari Produksi terlebih dahulu, lalu penerimaan dan approval Gudang. Nomor memakai Document Numbering; stok berubah hanya pada approval; cancel membuat mutasi reversal; kedua halaman memiliki export Excel filter tanggal. Konfirmasi lanjutan: costing/lot asal, batas jumlah terhadap MIS, PO Supplier relasional, dan multi-item per dokumen.
+
+## Progres terbaru — Order Support Material
+
+Modul Produksi Order Support Material ditambahkan setelah alur return: multi-rincian per nomor, item picker DataTable, edit/hapus, filter tanggal, Excel, Document Numbering dan permission. Tidak memutasi stok; tujuan order setelah pencatatan serta makna relasional PO Other/style menunggu konfirmasi.
+
+## Progres terbaru — Cutting
+
+Modul Cutting terhubung ke stage entry MO yang sudah ada, diberi nomor Document Numbering (`CUT`), form modal, pemilih MO/material berbasis DataTable, CRUD dengan perlindungan jika tahap lanjutan sudah ada, filter tanggal, dan export Excel. Waste material hanya dicatat. Konfirmasi apakah waste harus mengurangi stok produksi masih diperlukan.
+
+## Implementasi Sewing
+
+Sewing diterapkan setelah Cutting dengan stage entry MO yang sama, document numbering `SEW`, picker MO/material berbasis DataTable, CRUD modal, detail tabel collapsible, filter, dan export Excel. Hasil Cutting yang belum diproses membatasi qty Sewing; hasil baik Sewing menjadi dasar tahap Packing. Lihat progres dan verifikasi pada `IMPLEMENTATION-PROGRESS.md`.
+
+## Progres — Hasil Packing
+
+Hasil Packing diterapkan setelah Sewing dengan nomor PKG, modal CRUD, picker MO/material DataTable, detail tabel, filter tanggal, ekspor, dan posting stok barang jadi. Test dan konfirmasi tertunda ada di `IMPLEMENTATION-PROGRESS.md`.
+
+## Progres — Penerimaan Packing / Barang Jadi
+
+Halaman setelah Hasil Packing mengikuti referensi No Barang Jadi, sisa Packing, MO, dan PO Buyer. Lihat `IMPLEMENTATION-PROGRESS.md`; mutasi stok tidak diulang agar hasil Packing tidak dihitung dua kali.
+
+## Progres — Good Sent Notes (GSN)
+
+GSN dibuat sebagai dokumen multi-item dari MO/barang jadi dengan Document Numbering, filter daftar, DataTable pemilih MO, detail, edit/hapus, print Delivery Note, export Excel satu item per baris, audit, dan permission. Layar Approval Surat Jalan mencatat status/approver/waktu; stok GSN saat ini tetap berkurang saat simpan sesuai perilaku modul yang sudah ada. Apakah stok harus menunggu approval dan dipulihkan saat cancel masih NEEDS CONFIRMATION. Periksa status verifikasi di `IMPLEMENTATION-PROGRESS.md`.
+
+### Status modul WIP
+Pengeluaran WIP tersedia sebagai transaksi stok terlacak dengan nomor dokumen, CRUD, filter tanggal, ekspor, audit, permission, dan kartu stok. Batas proses yang belum disepakati tetap NEEDS CONFIRMATION; lihat `docs/05-FUNCTIONAL-REQUIREMENTS.md`.

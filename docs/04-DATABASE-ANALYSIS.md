@@ -26,7 +26,19 @@ Ini adalah model konseptual dari layar, bukan skema final. Nama tabel, kardinali
 - Kode barang/nomor dokumen bisnis bukan selalu PK; identitas internal stabil tetap dibutuhkan. Kode HS bisa berbeda per barang/dokumen dan perlu klarifikasi sumber kebenaran.
 - Simpan tanggal dan angka dengan tipe yang sesuai, bukan string tampilan; gunakan precision yang mencukupi untuk kain, berat, jumlah dan nilai uang. Format locale hanya di presentasi.
 
-## Pertanyaan schema — NEEDS CONFIRMATION
+## Scrap Masuk Gudang — implementasi awal
+
+`scrap_receipt_documents` menyimpan company, nomor/tanggal, produk scrap (`products`, harus kategori `WASTE`), produk perca sumber, No. Produksi teks opsional, jumlah, keterangan, pencatat, dan soft delete. `stock_movements.scrap_receipt_document_id` menghubungkan mutasi stok ke dokumen. Lot dibuat oleh allocator stok yang sudah ada; biaya mutasi bernilai nol sampai aturan valuasi ditetapkan. Nomor `scrap_receipt` memakai prefix SCI dan reset bulanan.
+
+Pilihan barang scrap dan sumber memakai `products` yang aktif dan terlacak stok. **NEEDS CONFIRMATION:** apakah sumber harus dibatasi kategori tertentu, apakah No. Produksi harus FK ke MO/tahapan produksi, valuasi scrap dan jurnal, multi-line, serta apakah mesin berbagi struktur master barang atau memerlukan aset tersendiri.
+
+### GSN yang diterapkan
+
+Header `goods_sent_notes` menyimpan nomor, tanggal kirim, nomor/tanggal kontrak, rute, gudang (teks karena master gudang belum tersedia), kendaraan, driver, seal, receiver/container, perusahaan, pembuat, approver, dan waktu approval. `goods_sent_note_items` menyimpan MO, barang jadi keluaran MO, customer, kuantitas, serta karton. `stock_movements` merujuk header/baris GSN sehingga pengiriman dan reversal dapat ditelusuri di kartu stok; dokumen/baris memakai soft delete agar FK ledger tidak terputus. Sesuai perilaku GSN yang sudah ada, stok diposting saat simpan; layar approval baru mencatat status/user/waktu.
+
+Kartu Stok Barang Jadi tidak memerlukan tabel baru: daftar mengambil `products` dengan `track_stock` dan kategori `FG`/“Finished Goods”; kartu detail membaca `stock_movements` berdasarkan `product_id`, menggunakan `quantity_after` sebagai saldo historis dan relasi dokumen sumber/pengguna untuk jejak mutasi.
+
+**NEEDS CONFIRMATION:** apakah titik posting harus dipindahkan ke approval dan apakah cancel approval harus membalik stok; master gudang, daftar jalur kirim/receiver, satu customer per GSN atau per baris, makna nomor kontrak vs tanggal pesanan, serta aturan edit/hapus setelah dicetak. Migration approval menandai GSN lama yang sudah memiliki stock movement sebagai approved.
 
 ### Importir yang telah diimplementasikan
 
@@ -41,6 +53,8 @@ Tabel `importers` memiliki `id`, `tax_number` (NPWP), `name`, `address`, `apip`,
 5. Apakah kuantitas BC, penerimaan, issue, hasil produksi dan satuan dapat berbeda; aturan konversi/precision apa?
 6. Apakah dokumen disimpan sebagai snapshot data saat approval? Bagaimana versioning, revisi, cancel, dan audit?
 7. Bagaimana costing persediaan dan transaksi mata uang asing diperlakukan?
+
+## Pertanyaan schema — NEEDS CONFIRMATION
 
 ## Hubungan minimum
 
@@ -130,3 +144,43 @@ Source migration khusus Outlet, Ticket QR, User Outlet, Scan Record, dan POS dih
 - `stock_movements` merujuk header dan detail. Pengeluaran mengonsumsi lot FIFO; edit dan pembatalan membuat mutasi kompensasi dan audit.
 - Nomor memakai konfigurasi `DocumentNumbering` bertipe `non_production_material_usage`, prefix awal PBN; company baru dan yang sudah ada menerima konfigurasi.
 - **Asumsi:** harga input menjadi nilai transaksi/cost amount untuk jurnal beban akun 6100; konfirmasi akun biaya yang tepat tetap diperlukan.
+# Return to Warehouse
+
+- `production_return_documents`: company, unique number per company, return date, optional `raw_material_order_document_id`, supplier PO reference, status, creator/approver/canceller and timestamps.
+- `production_return_items`: document, product, positive quantity, description; soft deletes preserve correction history.
+- `stock_movements.production_return_document_id` and `production_return_item_id` provide source traceability. Approval creates positive `production_return`; cancellation creates negative `production_return_reversal`. Both pass through existing stock/lot allocator.
+- Number type `return_to_warehouse`, default prefix `RETG`, configurable per company; existing companies are provisioned by migration and new companies by company creation defaults.
+- ProductStock and inventory lot are updated in a DB transaction. Source cost and return-to-original-MIS/lot allocation remain **NEEDS CONFIRMATION**.
+
+## Order Support Material
+
+- `support_material_order_documents`: company, nomor unik per company, tanggal order, creator, timestamps/soft delete.
+- `support_material_order_items`: dokumen, product, qty positif, style dan No. PO Other opsional; relasi dokumen/product memakai FK bernama ringkas.
+- Number type `support_material_order`, prefix default `OBP`; tersedia untuk company lama dari migration dan company baru dari defaults.
+- Tidak ada relasi ke `stock_movements` karena referensi hanya menunjukkan order, bukan pengeluaran/penerimaan.
+
+## Cutting
+
+Memperluas `production_order_stage_entries` untuk data cutting dengan nomor dokumen, produk material, dan kuantitas waste material. Record tetap terhubung ke Production Order, pengguna, dan Product output. Nomor diatur di Document Numbering tipe `cutting` (prefix awal `CUT`). Waste belum menjadi mutasi inventory; konfirmasi diperlukan untuk penyesuaian stok bahan.
+
+## Sewing
+
+Memperluas `production_order_stage_entries` dengan `sewing_number` dan indeks; relasi MO, pengguna, produk output, serta bahan menggunakan relasi stage entry yang telah ada. Document Numbering bertipe `sewing` (prefix awal `SEW`). Sewing tidak membuat mutasi stok; `input_quantity`, `good_quantity`, dan `rejected_quantity` menjadi jejak kuantitas WIP, sedangkan `material_waste_quantity` hanya catatan.
+
+## Hasil Packing
+
+- Menggunakan `production_order_stage_entries` dengan `stage=packing`, `packing_number`, material terpilih dan `material_waste_quantity`; soft delete menjaga relasi ledger saat dokumen dihapus.
+- `stock_movements.production_order_stage_entry_id` menghubungkan mutasi stok barang jadi ke hasil Packing. Mutasi positif membuat lot dan alokasi; koreksi/penghapusan dicatat sebagai reversal.
+- Satu MO memiliki banyak stage entry dan bahan MO; output stok terhubung ke produk barang jadi MO.
+
+## Packing / Barang Jadi
+
+- Memakai `production_order_stage_entries` dengan `stage=finishing`, `finished_goods_number`, kuantitas terima (`input_quantity`), hasil (`good_quantity`), tanggal, MO, dan user.
+- Relasi ke item/style/unit melalui output product MO; sisa sumber dihitung dari total output baik stage `packing` dikurangi total penerimaan stage `finishing`.
+- Tidak membuat mutasi stok karena output Packing telah diposting ke stok oleh tahap sebelumnya.
+
+## Pengeluaran WIP (implementasi awal)
+- `wip_issue_documents`: company, nomor dokumen unik per company, tanggal, pembuat, soft delete.
+- `wip_issue_lines`: dokumen, item WIP, jumlah positif, keterangan, soft delete. Satu item per dokumen saat ini; kebutuhan multi-item **NEEDS CONFIRMATION**.
+- `stock_movements` menyimpan referensi dokumen/baris WIP dan movement `wip_issue` negatif. Edit/hapus membuat reversal positif dan tidak menghapus histori mutasi. Stok/lot berubah di dalam transaksi DB; pengeluaran ditolak bila saldo menjadi negatif.
+- Biaya pergerakan memakai average cost stok yang tersedia. Akun beban, gudang/lokasi, tautan MO/permintaan, tujuan/subkontrak, approval, batas kuantitas, serta perlakuan reversal **NEEDS CONFIRMATION**.

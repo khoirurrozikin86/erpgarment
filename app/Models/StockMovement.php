@@ -24,7 +24,12 @@ class StockMovement extends Model
         'material_issue_item_id',
         'non_production_material_usage_document_id',
         'non_production_material_usage_item_id',
+        'production_return_document_id',
+        'production_return_item_id',
         'production_order_stage_entry_id',
+        'goods_sent_note_id', 'goods_sent_note_item_id',
+        'wip_issue_document_id', 'wip_issue_line_id',
+        'scrap_receipt_document_id',
         'created_by',
         'movement_type',
         'quantity',
@@ -107,9 +112,39 @@ class StockMovement extends Model
         return $this->belongsTo(NonProductionMaterialUsageItem::class, 'non_production_material_usage_item_id');
     }
 
+    public function productionReturnDocument(): BelongsTo
+    {
+        return $this->belongsTo(ProductionReturnDocument::class);
+    }
+
+    public function productionReturnItem(): BelongsTo
+    {
+        return $this->belongsTo(ProductionReturnItem::class);
+    }
+
     public function productionOrderStageEntry(): BelongsTo
     {
         return $this->belongsTo(ProductionOrderStageEntry::class);
+    }
+
+    public function goodsSentNote(): BelongsTo
+    {
+        return $this->belongsTo(GoodsSentNote::class);
+    }
+
+    public function wipIssueDocument(): BelongsTo
+    {
+        return $this->belongsTo(WipIssueDocument::class, 'wip_issue_document_id');
+    }
+
+    public function scrapReceiptDocument(): BelongsTo
+    {
+        return $this->belongsTo(ScrapReceiptDocument::class, 'scrap_receipt_document_id');
+    }
+
+    public function createdBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'created_by');
     }
 
     public function lotAllocations(): \Illuminate\Database\Eloquent\Relations\HasMany

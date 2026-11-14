@@ -21,10 +21,11 @@ $(function(){
         {data:'actions',orderable:false,searchable:false,className:'text-end text-nowrap'},
         {data:'approval_status',name:'production_receipt_status'},
         {data:'number',name:'number'},
-        {data:'issue_date',name:'issue_date'},
+        {data:'issue_date',name:'issue_date',render:dateDisplay},
         {data:'order_number',orderable:false,searchable:false}
     ],order:[[4,'desc']],drawCallback:()=>window.feather&&feather.replace()});
     function esc(v){return $('<div>').text(v??'').html();}
+    function dateDisplay(v){if(!v)return '—';const p=String(v).slice(0,10).split('-');return p.length===3?`${p[2]}-${p[1]}-${p[0]}`:v;}
     function qty(v){return Number(v||0).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:4});}
     $('#applyDateFilter,#todayDateFilter').on('click',()=>table.ajax.reload());
     $(document).on('click','.btn-show-production-receipt',function(){

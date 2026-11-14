@@ -6,10 +6,12 @@ use App\Domain\Companies\Services\CompanyContext;
 use App\Domain\Inventory\Actions\SaveNonProductionMaterialUsageAction;
 use App\Domain\Inventory\Queries\NonProductionMaterialUsageTableQuery;
 use App\Domain\Settings\Services\DocumentNumberService;
+use App\Exports\NonProductionMaterialUsagesExport;
 use App\Http\Controllers\Controller;
 use App\Models\{NonProductionMaterialUsageDocument, NonProductionMaterialUsageItem, Product};
 use Illuminate\Http\{JsonResponse, Request};
 use Illuminate\View\View;
+use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
 class NonProductionMaterialUsageController extends Controller
@@ -19,6 +21,20 @@ class NonProductionMaterialUsageController extends Controller
     public function numberPreview(DocumentNumberService $numbers): JsonResponse
     {
         return response()->json(['number' => $numbers->preview('non_production_material_usage')]);
+    }
+
+    public function export(Request $request, CompanyContext $company)
+    {
+        $filters = $request->validate([
+            'from_date' => ['nullable', 'date_format:Y-m-d'],
+            'to_date' => ['nullable', 'date_format:Y-m-d', function ($attribute, $value, $fail) use ($request) {
+                if ($value && $request->input('from_date') && $value < $request->input('from_date')) $fail(__('ui.non_production_usage.invalid_date_range'));
+            }],
+        ]);
+        return Excel::download(
+            new NonProductionMaterialUsagesExport($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null),
+            'non-production-material-usages.xlsx',
+        );
     }
 
     public function dt(Request $request, CompanyContext $company, NonProductionMaterialUsageTableQuery $query): JsonResponse

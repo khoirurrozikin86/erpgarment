@@ -27,8 +27,8 @@ $(function () {
             {data:'id', orderable:false, searchable:false, render:(d,t,r,m)=>m.row+m.settings._iDisplayStart+1},
             {data:'actions', orderable:false, searchable:false, className:'text-center'},
             {data:'mo_number', orderable:false, searchable:false},
-            {data:'request_number', name:'number'}, {data:'request_date', name:'order_date'},
-            {data:'mis_number', orderable:false, searchable:false}, {data:'mis_date', orderable:false, searchable:false}
+            {data:'request_number', name:'number'}, {data:'request_date', name:'order_date', render:dateDisplay},
+            {data:'mis_number', orderable:false, searchable:false}, {data:'mis_date', orderable:false, searchable:false, render:dateDisplay}
         ], order:[[4,'desc']], drawCallback:()=>window.feather&&feather.replace()
     });
     const historyTable = $('#materialIssuesTable').DataTable({
@@ -37,13 +37,14 @@ $(function () {
         columns:[
             {data:'id',orderable:false,searchable:false,render:(d,t,r,m)=>m.row+m.settings._iDisplayStart+1},
             {data:'actions',orderable:false,searchable:false,className:'text-center'},
-            {data:'number',name:'document.number'},{data:'issue_date',name:'document.issue_date'},
+            {data:'number',name:'document.number'},{data:'issue_date',name:'document.issue_date',render:dateDisplay},
             {data:'request_number',orderable:false,searchable:false},{data:'mo_number',orderable:false,searchable:false},
             {data:'code',name:'product.code'},{data:'name',name:'product.name'},
             {data:'unit',orderable:false,searchable:false},{data:'quantity',name:'quantity',className:'text-end',render:fmt}
         ],order:[[3,'desc']],drawCallback:()=>window.feather&&feather.replace()
     });
     function fmt(value) { return Number(value||0).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:4}); }
+    function dateDisplay(value) { if(!value)return '—'; const parts=String(value).slice(0,10).split('-'); return parts.length===3?`${parts[2]}-${parts[1]}-${parts[0]}`:value; }
     function esc(value) { return $('<div>').text(value??'').html(); }
     $('#applyDateFilter,#todayDateFilter').on('click',()=>historyTable.ajax.reload());
     $('#exportMaterialIssues').on('click',function(e){e.preventDefault();const p=new URLSearchParams();if($('#from_date').val())p.set('from_date',$('#from_date').val());if($('#to_date').val())p.set('to_date',$('#to_date').val());location.href=$(this).attr('href')+(p.size?'?'+p.toString():'');});

@@ -23,8 +23,41 @@ Referensi: `IT INVENTORY.docx`, berisi 192 objek gambar berurutan `image1.png`�
 
 Menu utama pada screenshot memperlihatkan Pengaturan, PPIC, BC Masuk, Gudang, Produksi, Bahan Sisa & Mesin, Subkon, BC Keluar, dan Laporan BC. Master Importir dan Exportir telah memiliki CRUD dasar; relasi keduanya ke dokumen BC masih menunggu implementasi dan konfirmasi cardinality. Tiap menu menurunkan halaman-halaman yang tercantum di atas. Screenshot memperlihatkan perpindahan melalui menu dan tombol `Detail`; beberapa transaksi memiliki form administrasi terpisah. Detail relasi route atau URL tidak tersedia.
 
+## Status pengembangan: Scrap Masuk Gudang
+
+Sidebar memisahkan grup **Bahan Sisa** dari Gudang dan menempatkan Scrap Masuk Gudang bersama pencatatan barang rusak/hilang. Grup **Mesin** sudah disediakan, tetapi saat ini hanya menandai bahwa modul mesin belum tersedia; tidak ada aksi mesin yang dibuat.
+
+Scrap Masuk Gudang memakai master barang kategori `WASTE` sebagai barang scrap yang menambah stok. Form mencatat tanggal, nomor otomatis, kode/nama scrap, satuan, jumlah, kode/nama item perca sumber, No. Produksi, dan keterangan. Daftar berfilter tanggal, mendukung CRUD modal dan Excel; setiap mutasi masuk/koreksi tercatat pada kartu stok.
+
+**NEEDS CONFIRMATION:** arti operasional `No. Produksi` dan relasinya ke item perca, sumber/tujuan proses scrap, valuasi scrap dan dampak akuntansi, serta apakah satu dokumen penerimaan seharusnya memuat banyak baris.
+
 ## Batas cakupan
 
 - Tidak semua halaman disebut dalam teks; sebagian diidentifikasi dari judul layar pada screenshot.
 - `Pengeluaran WIP`, `Mesin/Peralatan Masuk/Keluar Kaber`, `PPIC`, dan singkatan `MO`, `MIS`, `Kaber`, `GSN` perlu definisi proses.
 - Penjualan, kas/bank, akuntansi, outlet/POS yang sudah ada dalam project bukan bagian yang terbukti diminta oleh screenshot ini. Jangan menganggap screenshot mengubah kebutuhan modul tersebut.
+# Return Production ↔ Warehouse
+
+- **Produksi — Return to Warehouse:** mencatat nomor/tanggal return, item, qty, MO opsional, PO Supplier, dan keterangan. Nomor memakai Document Numbering `return_to_warehouse`.
+- **Gudang — Receipt from Production:** detail dokumen return, status pending/disetujui/dibatalkan, approve dan cancel. Persetujuan menambah stok serta kartu stok; export Excel mengikuti filter tanggal.
+- Berbeda dari **Penerimaan Produksi dari Gudang**, yang mengonfirmasi MIS dan tidak mengubah stok kembali.
+
+## Order Support Material (implementasi berjalan)
+
+Modul Produksi untuk mencatat order item support material. Daftar menampilkan nomor/tanggal order, item, qty, style dan No. PO Other; nomor dikelola lewat Document Numbering (`support_material_order`, prefix awal `OBP`).
+
+## Cutting
+
+Modul Produksi untuk mencatat hasil cutting terhadap MO aktif: qty cutting, qty dikirim ke sewing, reject, bahan MO yang dipakai, dan waste bahan. Nomor cutting memakai Document Numbering (`cutting`, prefix awal `CUT`); data terhubung ke riwayat tahap produksi yang sudah ada.
+
+## Sewing (implementasi berjalan)
+
+Tahap Produksi setelah Cutting. Catat hasil sewing per MO; daftar ringkas menampilkan No Sewing, tanggal, dan MO. Rincian memuat style/produk, penerimaan Cutting, qty Sewing, reject, kirim ke Packing, serta bahan/waste yang tercatat.
+
+## Hasil Packing — implementasi berjalan
+
+Modul Produksi setelah Sewing. Hasil baik Packing menjadi stok barang jadi; reject dicatat. MO, material MO, kartu stok, serta nomor dokumen saling terhubung. Implementasi detail dan statusnya ada di `IMPLEMENTATION-PROGRESS.md`.
+
+## Packing / Barang Jadi — implementasi berjalan
+
+Tahap terpisah setelah Hasil Packing. Mengambil sisa kuantitas Packing per MO, mencatat No Barang Jadi/tanggal/hasil dan menampilkan item, style, MO, serta PO Buyer. Nomor dokumen memakai `FIN`.

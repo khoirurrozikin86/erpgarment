@@ -185,6 +185,12 @@ class ProductionOrderController extends Controller
             'waste_quantity' => ['required', 'numeric', 'min:0', 'max:999999999999.9999'],
             'notes' => ['nullable', 'string', 'max:2000'],
         ]);
+        if ($data['stage'] === 'packing') {
+            throw ValidationException::withMessages(['stage' => __('ui.packing.use_module')]);
+        }
+        if ($data['stage'] === 'finishing') {
+            throw ValidationException::withMessages(['stage' => __('ui.finished_goods.use_module')]);
+        }
         $record($order, $data, (int) $request->user()->id);
 
         return response()->json(['message' => __('ui.workflow.production_stage_recorded')]);

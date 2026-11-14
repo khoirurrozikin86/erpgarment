@@ -25,6 +25,7 @@ class StockMovementLotAllocator
 
         $sourceType = match ($movement->movement_type) {
             'customer_return' => 'customer_return',
+            'production_return' => 'production_return',
             'stock_adjustment', 'damaged_item_reversal', 'lost_item_reversal' => 'adjustment',
             default => 'stock_in',
         };

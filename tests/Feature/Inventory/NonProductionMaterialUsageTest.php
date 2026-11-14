@@ -9,6 +9,7 @@ use App\Domain\Inventory\Actions\SaveNonProductionMaterialUsageAction;
 use App\Domain\Settings\Services\DocumentNumberService;
 use App\Models\{AuditLog, Category, Company, DocumentNumbering, InventoryLot, Product, ProductStock, Unit, User};
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Maatwebsite\Excel\Facades\Excel;
 use Mockery;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -58,6 +59,9 @@ class NonProductionMaterialUsageTest extends TestCase
         $this->assertDatabaseHas('product_stocks', ['product_id' => $product->id, 'quantity' => '8.0000']);
         $this->assertSame(8.0, (float) InventoryLot::query()->where('product_id', $product->id)->sum('current_quantity'));
         $this->getJson(route('super.non-production-material-usages.dt'))->assertOk()->assertJsonFragment(['number' => 'PBN/2026/11/00001'])->assertJsonFragment(['style' => 'STYLE-1']);
+        Excel::fake();
+        $this->get(route('super.non-production-material-usages.export', ['from_date' => today()->toDateString(), 'to_date' => today()->toDateString()]))->assertOk();
+        Excel::assertDownloaded('non-production-material-usages.xlsx');
         $this->getJson(route('super.stock-card.dt', ['product_id' => $product->id]))->assertOk()
             ->assertJsonFragment(['reference_number' => 'PBN/2026/11/00001'])
             ->assertJsonFragment(['quantity_out' => '2,0000']);

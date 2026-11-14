@@ -2,6 +2,16 @@
 
 Pengerjaan dilakukan satu modul per instruksi. Tidak ada coding modul berikutnya sebelum pengguna memberikan arahan.
 
+## 2026-11-14 — Scrap Masuk Gudang dan grup sidebar
+
+- **Status:** implementasi kode Scrap Masuk Gudang selesai; migration perlu dijalankan pada environment aplikasi. Grup sidebar Bahan Sisa berisi Damage, Lost, dan Scrap Masuk Gudang. Grup Mesin tampil sebagai placeholder, tanpa operasi mesin.
+- **Referensi UI:** tanggal/nomor penerimaan, scrap code/name, unit, qty; modal juga mempertahankan kode/nama perca, No. Produksi, dan keterangan. DataTable pemilih barang; filter tanggal dan ekspor Excel.
+- **Stok:** produk scrap dipilih dari kategori `WASTE`; penerimaan menambah ProductStock dan lot melalui StockMovement. Edit/hapus membuat mutasi koreksi dan dicegah jika terdapat transaksi lebih baru untuk SKU yang sama. Baris dapat dirujuk dari Kartu Stok.
+- **Izin/nomor:** permission `scrap-receipts.view/create/update/delete`; nomor dokumen `scrap_receipt` prefix SCI. Migration memasang hak untuk role saat ini dan menambah relasi mutasi stok.
+- **NEEDS CONFIRMATION:** apakah sumber perca harus kategori tertentu, arti dan relasi No. Produksi, aturan valuasi/jurnal, dan apakah satu penerimaan dapat memuat beberapa item. Sampai dikonfirmasi, nomor produksi teks opsional dan nilai biaya scrap nol.
+- **Verifikasi:** `php artisan test --compact tests/Feature/Inventory/ScrapReceiptTest.php` lulus (2 test, 21 assertions); `php artisan view:cache`, `php artisan view:clear`, `php artisan route:list --path=scrap-receipts`, PHP lint untuk controller/action/test, dan `git diff --check` berhasil.
+- **Environment:** jalankan `php artisan migrate` untuk menambah tabel, permission, penomoran, dan FK transaksi stok.
+
 ## 2026-11-13 — Goods Receipt (GRN)
 
 - **Status:** penyesuaian daftar, form, dan ekspor selesai.
@@ -319,6 +329,7 @@ Pengerjaan dilakukan satu modul per instruksi. Tidak ada coding modul berikutnya
 - **Test:** `NonProductionMaterialUsageTest` lulus, 1 test / 26 assertion; mencakup preview nomor, CRUD, koreksi stok/lot, nomor referensi kartu stok, dan format detail.
 - **NEEDS CONFIRMATION:** akun beban 6100 serta satu nomor per item (referensi menampilkan satu item per form).
 - Migration 000033 memakai nama FK pendek dan memeriksa tabel/kolom/index/FK yang sudah ada supaya aman dilanjutkan setelah migrasi sebelumnya gagal di tengah proses.
+- Label filter tanggal memakai `ui.common.show_data`; ekspor Excel tersedia dan menerapkan rentang tanggal yang sama dengan tabel.
 
 ## 2026-11-13 — Penghapusan Retur Pembelian
 
@@ -326,3 +337,56 @@ Pengerjaan dilakukan satu modul per instruksi. Tidak ada coding modul berikutnya
 - Penghapusan mengurangi kembali kuantitas retur pada GRN, memulihkan saldo stok dan lot, membalik jurnal otomatis, lalu menghapus dokumen/detail/mutasi retur dalam satu transaksi dan mencatat audit.
 - Untuk menjaga urutan kartu stok, retur tidak dapat dihapus jika ada mutasi stok yang lebih baru untuk barang yang sama; pesan validasi menjelaskan penyebabnya.
 - **Test:** `PurchaseReturnDeletionTest` lulus, 2 test / 12 assertion (pemulihan stok/lot dan perlindungan dari mutasi berikutnya).
+# Return to Warehouse / Receipt from Production — 2026-11-13
+
+- Implemented production return entry with company document numbering (`RETG` default), item DataTable selection, pending edit/delete, date filtering and Excel export.
+- Implemented separate warehouse receipt approval/detail/cancel page, with date-filtered Excel export and permission/menu entries.
+- Approval posts a positive stock movement and inventory lot; cancellation records a negative movement and checks current available stock. Stock Card references and labels include both.
+- Verified focused feature test: `ProductionReturnTest` passed (1 test, 11 assertions), including the Warehouse Receipt DataTable response (`mo` field).
+- **NEEDS CONFIRMATION:** supplier PO canonical relation, partial/multi-line return documents, maximum return quantity vs MIS issue, and cost/original lot allocation. The current reference has one item entry per save, optional MO, and only an editable PO supplier text reference.
+
+## 2026-11-13 — Sewing
+
+- Sewing dicatat sebagai stage `sewing` pada `production_order_stage_entries`; migration `000042` menambahkan nomor Sewing dan `000043` menambahkan Document Numbering prefix `SEW` untuk company lama. Company baru dan permission seeder ikut diperbarui; migration `000044` memberi permission view/create/update/delete.
+- Form CRUD modal mengambil MO aktif dengan output Cutting tersedia dan bahan dari daftar material MO. Qty Sewing dibatasi sisa hasil baik Cutting; kirim ke Packing + reject harus sama dengan qty Sewing.
+- Daftar memiliki filter tanggal, DataTable ringkas dengan rincian terbuka melalui Detail, edit/hapus, export Excel, audit trail, serta menu Produksi.
+- Waste material hanya dicatat dan tidak memutasi stok. Edit/hapus diblokir bila stage finishing/packing sudah ada.
+- **Test:** `SewingTest` lulus, 1 test / 19 assertion. `route:list --name=super.sewing`, Blade view cache, dan `git diff --check` juga berhasil.
+- **NEEDS CONFIRMATION:** apakah waste Sewing harus mengurangi saldo/cost material; istilah Cutting Reception pada referensi dipetakan sebagai total hasil baik Cutting MO.
+
+## 2026-11-13 — Hasil Packing
+
+- Menu Produksi berisi daftar ringkas, filter tanggal, detail baris, ekspor Excel, serta modal tambah/edit dengan picker MO dan material berbasis DataTable.
+- Nomor PKG dikelola Document Numbering. Permission view/create/update/delete ada di seeder dan migration `2026_11_13_000047`.
+- Qty Packing dibatasi hasil baik Sewing tersisa; hasil baik + reject wajib sama dengan qty Packing. Waste material hanya dicatat.
+- Hasil baik menambah saldo barang jadi, inventory lot, dan kartu stok. Edit/hapus menghasilkan mutasi kompensasi; data stage dihapus secara soft delete untuk menjaga jejak relasi.
+- Endpoint stage generik tidak lagi menerima Packing agar pencatatan melewati modul bernomor ini.
+- **Test:** `php artisan test tests/Feature/Manufacturing/PackingTest.php` lulus, 2 test / 26 assertion, termasuk penomoran, daftar/export, batas kuantitas Sewing, saldo/lot, dan reversal saat hapus.
+- **NEEDS CONFIRMATION:** field No Planning pada referensi saat ini dipetakan ke No CBD MO. Status MO tidak otomatis menjadi selesai setelah Packing.
+
+## 2026-11-13 — Packing / Barang Jadi
+
+- Menambahkan layar terpisah sesuai referensi terbaru: No Barang Jadi prefix `FIN`, tanggal, style/item, terima dari Packing, hasil Barang Jadi, MO, dan PO Buyer.
+- MO dipilih melalui DataTable dan hanya ditawarkan saat masih ada output baik Packing yang belum tercatat. Tambah/edit via modal, edit/hapus ikon kecil, filter tanggal, export Excel, audit, dan permission.
+- Data memakai stage `finishing` pada `production_order_stage_entries`. Pencatatan tahap ini tidak menambah stok lagi karena Hasil Packing sudah membuat mutasi stok barang jadi; hal ini mencegah saldo ganda. Pengubahan/penghapusan Hasil Packing diblokir bila tahap ini sudah ada.
+- **NEEDS CONFIRMATION:** Screenshot menunjukkan angka "Terima dari Packing" dan "Hasil Barang Jadi" yang tidak selalu sama; aturan validasi hanya membatasi hasil agar tidak melebihi qty terima. Konfirmasi bila ada rumus hasil lain.
+- **Test regresi:** `php artisan test tests/Feature/Manufacturing/PackingTest.php tests/Feature/Manufacturing/FinishedGoodsTest.php` lulus, 4 test / 48 assertion; route terdaftar, Blade berhasil dikompilasi, dan `git diff --check` bersih.
+# Good Sent Notes (GSN) and Approval Surat Jalan
+
+- GSN uses multi-item header/detail, company numbering, permission grants, DataTable MO selection, date-filtered list and Excel export with one row per item.
+- Added a separate approval screen per reference: date filter, approve/cancel actions, status, approver/time, customer and PO Buyer, plus a detail panel for the selected GSN.
+- Existing stock behavior is preserved: saving GSN posts finished-goods stock out with ledger and lot allocations. Approval records user/time; cancelling approval clears the approval metadata and does not alter the stock ledger.
+- Migration `2026_11_14_000053_add_goods_sent_note_approval` adds approval metadata and permissions; old GSNs with an existing outbound ledger are marked approved.
+- Added feature coverage for approval list/detail, stock posting, reversal and pending/approved CRUD rules.
+- **NEEDS CONFIRMATION:** whether GSN stock should instead post at approval and reverse on approval cancellation; warehouse and delivery-route masters, customer/contract relationships, and edit/delete behavior after printing. Run `php artisan migrate` to apply the additive schema/permission migration.
+## 2026-11-14 — Kartu Stok Barang Jadi
+- Menambahkan daftar barang kategori Finished Goods dan detail ledger stok dengan saldo berjalan, nomor/uraian dokumen, arah mutasi, dan pengguna; ekspor Excel tersedia pada kedua tampilan.
+- Modul memakai `stock-card.view` dan sumber data `stock_movements`; tidak ada tabel saldo atau mutasi baru.
+- **Test:** `FinishedGoodsStockCardTest` lulus, 1 test / 20 assertion.
+
+## 2026-11-14 — Pengeluaran WIP
+- Menambahkan dokumen/baris pengeluaran WIP, nomor dokumen configurable (`wip_issue`), permission CRUD, sidebar Production, modal pemilih DataTable, filter tanggal dan ekspor Excel.
+- Setiap simpan mengurangi stok dan lot dalam transaksi serta menambah StockMovement dan audit. Koreksi edit/hapus membalik mutasi; diblokir jika ada transaksi stok setelah sumber pada barang yang sama.
+- Kriteria item WIP: kategori berkode `WIP`/bernama Barang Setengah Jadi atau garment item type `work_in_process`, dan stok dilacak.
+- Pengujian terfokus: `php artisan test tests/Feature/Inventory/WipIssueTest.php` — lulus (1 test, 17 assertions). PHP lint untuk controller/action/migration/locale juga lulus.
+- **NEEDS CONFIRMATION:** tautan MO/permintaan dan tujuan/subkontrak, dokumen multi-item, approval, lokasi gudang, valuasi/akun biaya.

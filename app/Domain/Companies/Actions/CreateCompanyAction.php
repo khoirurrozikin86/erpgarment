@@ -94,6 +94,17 @@ class CreateCompanyAction
                     'document_type' => 'non_production_material_usage',
                     'prefix' => 'PBN',
                 ],
+                ['document_type' => 'wip_issue', 'prefix' => 'WIP'],
+                [
+                    'document_type' => 'return_to_warehouse',
+                    'prefix' => 'RETG',
+                ],
+                ['document_type' => 'support_material_order', 'prefix' => 'OBP'],
+                ['document_type' => 'cutting', 'prefix' => 'CUT'],
+                ['document_type' => 'sewing', 'prefix' => 'SEW'],
+                ['document_type' => 'packing', 'prefix' => 'PKG'],
+                ['document_type' => 'finished_goods', 'prefix' => 'FIN'],
+                ['document_type' => 'goods_sent_note', 'prefix' => 'GSN'],
             ];
 
             foreach ($documentNumberings as $numbering) {

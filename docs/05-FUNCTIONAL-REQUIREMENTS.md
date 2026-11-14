@@ -159,3 +159,70 @@ Label **Terlihat** berasal langsung dari menu/form/tabel pada screenshot; **Infe
 - Simpan mengurangi stok dan lot; kartu stok dan jurnal mencatat transaksi. Akses memakai permission `non-production-material-usages.view/create/update/delete`.
 - **NEEDS CONFIRMATION:** akun beban tujuan untuk pencatatan harga dan apakah satu nomor transaksi nantinya perlu beberapa baris item. Implementasi saat ini menerbitkan satu nomor per item sesuai pola form referensi.
 - **NEEDS CONFIRMATION:** approval, aturan koreksi/pembatalan, dan apakah pergerakan material perlu gudang/lokasi produksi eksplisit.
+# Return to Warehouse and Receipt from Production
+
+- Production users can create, edit and delete pending return records. Item selection is searchable; MO is optional but, when selected, item must belong to that Raw Material Order. Number is generated from company Document Numbering.
+- Warehouse users can view filtered return receipts and line details; authorized approvers can approve pending records. Approval posts stock exactly once and records approver/time/audit.
+- Authorized users can cancel approved receipts; cancellation posts a reversal and is blocked if available balance is insufficient. Pending records do not affect stock. Both pages export filtered Excel.
+- Access is split into `return-to-warehouse.*` and `warehouse-production-receipts.*`; the existing `production-receipts.*` remains the MIS warehouse-to-production confirmation module.
+- **NEEDS CONFIRMATION:** approval role policy beyond configured permission, maximum return quantity vs issued quantity, canonical supplier PO source, valuation cost and original lot restoration, and whether a return header may contain multiple rows.
+
+## Order Support Material
+
+- Sediakan order multi-item bernomor otomatis, tanggal, item terpilih dari DataTable, qty, style, dan No. PO Other.
+- Daftar memiliki pencarian/paginasi DataTable, filter tanggal, export Excel, edit dan hapus rincian dengan audit trail.
+- Permission `support-material-orders.view/create/update/delete`; menu berada di grup Produksi.
+- **NEEDS CONFIRMATION:** apakah simpan order harus membuat permintaan/pengeluaran stok, hubungan No. PO Other dengan Purchase Order, dan relasi Style ke tabel master.
+
+## Cutting
+
+- Catat Cutting dari MO aktif yang materialnya sudah dikirim; produk dan PO Buyer terisi dari MO, bahan dipilih dari material MO.
+- Simpan nomor dari Document Numbering, tanggal, qty cutting, qty kirim ke sewing, reject, dan waste bahan.
+- Jumlah kirim sewing + reject harus sama dengan qty cutting; total qty cutting tidak boleh melebihi sisa planned quantity MO.
+- Tambah/edit memakai modal; tersedia hapus, filter tanggal, DataTable, export Excel, audit dan permission `cutting.view/create/update/delete`.
+- **NEEDS CONFIRMATION:** efek waste bahan terhadap saldo/biaya stok.
+
+## Sewing
+
+- MO harus aktif, bahan harus bagian dari material MO, dan material MO harus sudah diterbitkan lengkap.
+- Pilihan MO hanya menampilkan MO dengan hasil baik Cutting yang masih tersedia; total input Sewing tidak boleh melampaui sisa itu.
+- Qty kirim ke Packing + reject wajib sama dengan qty Sewing. Simpan nomor dokumen, tanggal, pengguna, dan audit.
+- CRUD dalam modal; detail daftar dibuka melalui tombol Detail; tersedia filter tanggal dan Excel.
+- Edit/hapus diblokir jika data finishing/packing downstream sudah ada; tidak ada mutasi stok baru.
+- **NEEDS CONFIRMATION:** dampak waste ke persediaan dan costing.
+
+## Hasil Packing
+
+- Hak akses mencakup lihat, tambah, ubah, dan hapus; daftar memiliki filter tanggal, detail, dan export Excel.
+- MO harus aktif, seluruh material MO harus sudah dikeluarkan, bahan yang dipilih harus terkait ke MO, dan qty Packing tidak melebihi hasil baik Sewing tersisa.
+- Hasil baik + reject harus sama dengan qty Packing. Produk barang jadi harus dilacak sebagai stok; hasil baik menambah stok/lot/kartu stok.
+
+### Kartu Stok Barang Jadi
+- Daftar hanya menampilkan produk aktif-lacak stok dengan kategori berkode `FG` atau bernama “Finished Goods”; detail menunjukkan ledger `stock_movements` produk, termasuk tanggal, dokumen sumber, uraian, jumlah, arah `+/-` (nilai `S` untuk adjustment fisik), saldo setelah mutasi, dan pengguna.
+- Nomor sumber mencakup nomor barang jadi/hasil produksi, GSN, stock opname, atau MO bila transaksi tidak memiliki nomor dokumen tahap. Ekspor tersedia untuk daftar produk dan detail kartu.
+- Kartu ini hanya membaca histori ledger yang sudah ada; tidak membuat saldo maupun transaksi baru. Kolom No MO di daftar dibiarkan kosong karena satu produk dapat memiliki banyak order produksi.
+- Endpoint pencatatan stage generik menolak tahap Packing agar penomoran dan mutasi selalu melalui modul ini.
+
+## Good Sent Notes (GSN)
+
+- Daftar memakai filter tanggal dan DataTable dengan nomor GSN, MO, kontrak, tanggal, kendaraan, user, detail, edit, cetak, hapus, serta export Excel (satu baris per item).
+- Form menyimpan metadata pengiriman/kontrak dan beberapa item MO barang jadi. MO dipilih lewat DataTable; item, style, satuan, PO Buyer dan customer ditarik dari MO/master. Qty dan karton dicatat per baris.
+- Nomor GSN menggunakan Document Numbering. Perilaku yang sudah ada dipertahankan: simpan GSN mem-posting pengeluaran barang jadi. Layar approval mencatat status, approver, dan waktu; cancel saat ini hanya menghapus status approval.
+- Cetak menghasilkan Delivery Note dari detail GSN dan data company/customer.
+- **Diimplementasikan:** Approval Surat Jalan menampilkan periode, status YES/NO, nomor/tanggal GSN, customer, approver/waktu approval, PO Buyer, serta detail item terpilih. Tombol APPROVE tersedia untuk dokumen pending; CANCEL untuk dokumen approved.
+- Approval menyimpan approver/waktu; cancel menghapus status approval dan tidak mengubah ledger. GSN lama yang telah memiliki ledger diperlakukan sebagai approved saat migrasi.
+- **NEEDS CONFIRMATION:** apakah stok semestinya diposting saat approval dan dibalik saat cancel; pemilihan gudang/rute, aturan satu customer per GSN atau per baris, nomor kontrak/tanggal pesanan, serta hak edit/hapus setelah dicetak.
+
+## Packing / Barang Jadi
+
+- Daftar memiliki filter tanggal, DataTable, ekspor Excel, serta modal tambah/edit dan aksi hapus.
+- MO yang ditawarkan harus aktif dan punya output baik Packing yang belum dicatat. Qty terima tidak boleh melampaui sisa tersebut; hasil Barang Jadi tidak boleh melebihi qty terima.
+- Menyimpan nomor dokumen `FIN`, tanggal, MO, qty terima, hasil, pengguna, dan audit. Tahap ini tidak mengubah stok lagi karena Hasil Packing telah mem-posting stok.
+
+## Pengeluaran WIP — implementasi awal (2026-11-14)
+- **Diimplementasikan:** CRUD modal satu item per dokumen, penomoran `wip_issue`, pilihan item aktif kategori WIP/Barang Setengah Jadi atau tipe `work_in_process`, validasi kuantitas dan stok, mutasi stok/lot dan kartu stok, audit, hak akses, filter tanggal, ekspor Excel.
+- **NEEDS CONFIRMATION:** asal order/MO dan tujuan pengeluaran, kebutuhan dokumen multi-item, approval, lokasi/gudang, serta pemetaan akun biaya dan metode valuasi. Sampai dikonfirmasi, aplikasi hanya mengeluarkan stok item WIP yang tersedia dan membatasi koreksi jika ada mutasi stok yang lebih baru untuk item tersebut.
+
+## Scrap Masuk Gudang — implementasi awal (2026-11-14)
+- **Diimplementasikan:** grup sidebar Bahan Sisa/Mesin; Scrap Masuk Gudang memakai nomor SCI dari Document Numbering, filter tanggal, DataTable, modal tambah/edit, pemilih barang WASTE dan perca sumber, jumlah, No. Produksi/keterangan, ekspor Excel, CRUD dengan koreksi saldo/lot terlacak, audit log, permission, dan referensi kartu stok.
+- **NEEDS CONFIRMATION:** makna/relasi No. Produksi dan sumber perca, valuasi/jurnal, pembatasan kategori item perca, serta apakah satu dokumen dapat memuat banyak item. Grup Mesin hanya placeholder navigasi karena tidak ada spesifikasi transaksi mesin pada permintaan ini.
