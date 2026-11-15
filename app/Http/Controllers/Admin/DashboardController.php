@@ -44,7 +44,7 @@ class DashboardController extends Controller
         foreach(['cutting','sewing','packing','finished_goods'] as $stage){
             $permission=$stage==='finished_goods'?'finished-goods.view':$stage.'.view';
             if(!$user->can($permission))continue;
-            $q=ProductionOrderStageEntry::where('stage',$stage)->whereHas('productionOrder',fn($q)=>$q->where('company_id',$companyId??0));
+            $q=ProductionOrderStageEntry::where('stage',$stage==='finished_goods'?'finishing':$stage)->whereHas('productionOrder',fn($q)=>$q->where('company_id',$companyId??0));
             $stats[]=['key'=>$stage,'count'=>$period($q,'processed_at')->count(),'route'=>'super.'.str_replace('_','-',$stage).'.index'];
         }
         foreach([['material-requests.view',MaterialRequest::class,'mr','super.material-requests.index'],['purchase-requests.view',PurchaseRequest::class,'pr','super.purchase-requests.index'],['purchase-orders.view',PurchaseOrder::class,'po','super.purchase-orders.index']] as [$permission,$model,$key,$route]){
