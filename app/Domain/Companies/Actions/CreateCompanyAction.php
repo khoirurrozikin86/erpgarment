@@ -105,6 +105,9 @@ class CreateCompanyAction
                 ['document_type' => 'packing', 'prefix' => 'PKG'],
                 ['document_type' => 'finished_goods', 'prefix' => 'FIN'],
                 ['document_type' => 'goods_sent_note', 'prefix' => 'GSN'],
+                ['document_type' => 'subcontract_receipt', 'prefix' => 'TIMW', 'format' => '{PREFIX}/{NUMBER}/SBBM/{MM}/{YY}'],
+                ['document_type' => 'subcontract_wip_issue', 'prefix' => 'TIMW', 'format' => '{PREFIX}/{NUMBER}/SBSJK/{MM}/{YY}'],
+                ['document_type' => 'subcontract_material_issue', 'prefix' => 'TIMW', 'format' => '{PREFIX}/{NUMBER}/SBBK/{MM}/{YY}'],
             ];
 
             foreach ($documentNumberings as $numbering) {
@@ -112,7 +115,7 @@ class CreateCompanyAction
                     'company_id' => $company->id,
                     'document_type' => $numbering['document_type'],
                     'prefix' => $numbering['prefix'],
-                    'format' => '{PREFIX}/{YYYY}/{MM}/{NUMBER}',
+                    'format' => $numbering['format'] ?? '{PREFIX}/{YYYY}/{MM}/{NUMBER}',
                     'next_number' => 1,
                     'number_length' => 5,
                     'reset_period' => 'monthly',

@@ -46,9 +46,11 @@ class StockCardExport implements FromQuery, WithHeadings, WithMapping, ShouldAut
             $movement->created_at?->format('Y-m-d H:i:s'),
             $movement->product?->code,
             $movement->product?->name,
-            $movement->goodsReceipt?->number ?? $movement->purchaseReturn?->number ?? $movement->stockOpname?->number ?? $movement->materialIssueDocument?->number ?? $movement->nonProductionMaterialUsageDocument?->number ?? $movement->wipIssueDocument?->number ?? $movement->scrapReceiptDocument?->number ?? $movement->productionReturnDocument?->number,
+            $movement->subcontractMaterialIssueDocument?->number ?? $movement->goodsReceipt?->number ?? $movement->purchaseReturn?->number ?? $movement->stockOpname?->number ?? $movement->materialIssueDocument?->number ?? $movement->nonProductionMaterialUsageDocument?->number ?? $movement->wipIssueDocument?->number ?? $movement->scrapReceiptDocument?->number ?? $movement->productionReturnDocument?->number,
             $movement->lotAllocations->map(fn ($allocation) => ($allocation->inventoryLot?->lot_number ?? '—') . ' (' . abs((float) $allocation->quantity) . ')')->implode(', '),
             match ($movement->movement_type) {
+                'subcontract_receipt' => __('subcontract_receipt.title'),
+                'subcontract_material_issue' => __(($movement->subcontractMaterialIssueDocument?->issue_kind === 'wip' ? 'subcontract_wip_issue' : 'subcontract_material_issue').'.title'),
                 'purchase_receipt' => 'Penerimaan Barang',
                 'purchase_return' => 'Purchase Return',
                 'customer_return' => 'Customer Return',

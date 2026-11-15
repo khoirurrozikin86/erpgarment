@@ -28,6 +28,7 @@ class StockCardQuery
             ->with([
                 'product:id,code,name,unit_id',
                 'product.unit:id,name,symbol',
+                'subcontractMaterialIssueDocument:id,number,issue_kind',
                 'goodsReceipt:id,number',
                 'purchaseReturn:id,number',
                 'stockOpname:id,number',
@@ -47,6 +48,7 @@ class StockCardQuery
             ->select([
                 'id',
                 'product_id',
+                'subcontract_material_issue_document_id',
                 'goods_receipt_id',
                 'purchase_return_id',
                 'stock_opname_id',

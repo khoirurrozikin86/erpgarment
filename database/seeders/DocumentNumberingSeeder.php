@@ -83,6 +83,9 @@ class DocumentNumberingSeeder extends Seeder
             ['document_type' => 'equipment_receipt', 'prefix' => 'MCHI'],
             ['document_type' => 'equipment_issue', 'prefix' => 'MCHO'],
             ['document_type' => 'subcontract_contract', 'prefix' => 'TIMW', 'format' => '{PREFIX}/{NUMBER}/KTRKS/{MM}/{YY}', 'number_length' => 1],
+            ['document_type' => 'subcontract_receipt', 'prefix' => 'TIMW', 'format' => '{PREFIX}/{NUMBER}/SBBM/{MM}/{YY}', 'number_length' => 1],
+            ['document_type' => 'subcontract_wip_issue', 'prefix' => 'TIMW', 'format' => '{PREFIX}/{NUMBER}/SBSJK/{MM}/{YY}', 'number_length' => 1],
+            ['document_type' => 'subcontract_material_issue', 'prefix' => 'TIMW', 'format' => '{PREFIX}/{NUMBER}/SBBK/{MM}/{YY}', 'number_length' => 1],
             ['document_type' => 'subcontract_semi_finished', 'prefix' => 'TIMW', 'format' => '{PREFIX}/{NUMBER}/HBSJD/{MM}/{YY}', 'number_length' => 1],
         ];
 

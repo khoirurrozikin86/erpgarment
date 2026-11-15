@@ -107,6 +107,25 @@
                 <li class="nav-item"><a href="{{ route('super.purchase-orders.index') }}" class="nav-link {{ request()->routeIs('super.purchase-orders.*') ? 'active' : '' }}"><i class="link-icon" data-feather="shopping-bag"></i><span class="link-title">{{ __('ui.nav.purchase_orders') }}</span></a></li>
             @endcan
 
+            @canany(['bc23.view','bc262.view','bc27.view','bc40.view','bc20.view'])
+                <li class="nav-item nav-category">{{ __('bc23.group') }}</li>
+            @endcanany
+            @can('bc23.view')
+                <li class="nav-item"><a href="{{ route('super.bc-in.bc23.index') }}" class="nav-link {{ request()->routeIs('super.bc-in.bc23.*') ? 'active' : '' }}"><i class="link-icon" data-feather="file-text"></i><span class="link-title">BC 2.3</span></a></li>
+            @endcan
+            @can('bc262.view')
+                <li class="nav-item"><a href="{{ route('super.bc-in.bc262.index') }}" class="nav-link {{ request()->routeIs('super.bc-in.bc262.*') ? 'active' : '' }}"><i class="link-icon" data-feather="file-text"></i><span class="link-title">BC 2.6.2</span></a></li>
+            @endcan
+            @can('bc27.view')
+                <li class="nav-item"><a href="{{ route('super.bc-in.bc27.index') }}" class="nav-link {{ request()->routeIs('super.bc-in.bc27.*') ? 'active' : '' }}"><i class="link-icon" data-feather="file-text"></i><span class="link-title">{{ __('bc27.menu') }}</span></a></li>
+            @endcan
+            @can('bc40.view')
+                <li class="nav-item"><a href="{{ route('super.bc-in.bc40.index') }}" class="nav-link {{ request()->routeIs('super.bc-in.bc40.*') ? 'active' : '' }}"><i class="link-icon" data-feather="file-text"></i><span class="link-title">{{ __('bc40.menu') }}</span></a></li>
+            @endcan
+            @can('bc20.view')
+                <li class="nav-item"><a href="{{ route('super.bc-in.bc20.index') }}" class="nav-link {{ request()->routeIs('super.bc-in.bc20.*') ? 'active' : '' }}"><i class="link-icon" data-feather="file-text"></i><span class="link-title">{{ __('bc20.menu') }}</span></a></li>
+            @endcan
+
             @canany(['goods-receipts.view', 'purchase-returns.view', 'material-issues.view', 'warehouse-production-receipts.view', 'damaged-items.view', 'lost-items.view'])
                 <li class="nav-item nav-category">{{ __('ui.nav.warehouse') }}</li>
             @endcanany
@@ -198,7 +217,7 @@
             @can('stock-card.view')
                 <li class="nav-item"><a href="{{ route('super.equipment-stock-card.index') }}" class="nav-link {{ request()->routeIs('super.equipment-stock-card.*') ? 'active' : '' }}"><i class="link-icon" data-feather="layers"></i><span class="link-title">{{ __('ui.machine_stock_card.title') }}</span></a></li>
             @endcan
-            @canany(['subcontractors.view', 'subcontract-contracts.view', 'subcontract-semi-finished.view'])
+            @canany(['subcontractors.view', 'subcontract-contracts.view', 'subcontract-semi-finished.view', 'subcontract-material-issues.view', 'subcontract-wip-issues.view', 'subcontract-receipts.view'])
                 <li class="nav-item nav-category">{{ __('ui.nav.subcontract_group') }}</li>
             @endcanany
             @canany(['subcontractors.view', 'subcontract-contracts.view'])
@@ -206,6 +225,38 @@
             @endcanany
             @can('subcontract-semi-finished.view')
                 <li class="nav-item"><a href="{{ route('super.subcontract.semi-finished.index') }}" class="nav-link {{ request()->routeIs('super.subcontract.semi-finished.*') ? 'active' : '' }}"><i class="link-icon" data-feather="layers"></i><span class="link-title">{{ __('ui.nav.subcontract_semi_finished') }}</span></a></li>
+            @endcan
+            @can('subcontract-material-issues.view')
+                <li class="nav-item"><a href="{{ route('super.subcontract.material-issues.index') }}" class="nav-link {{ request()->routeIs('super.subcontract.material-issues.*') ? 'active' : '' }}"><i class="link-icon" data-feather="send"></i><span class="link-title">{{ __('subcontract_material_issue.title') }}</span></a></li>
+            @endcan
+            @can('subcontract-wip-issues.view')
+                <li class="nav-item"><a href="{{ route('super.subcontract.wip-issues.index') }}" class="nav-link {{ request()->routeIs('super.subcontract.wip-issues.*') ? 'active' : '' }}"><i class="link-icon" data-feather="send"></i><span class="link-title">{{ __('subcontract_wip_issue.title') }}</span></a></li>
+            @endcan
+            @can('subcontract-receipts.view')
+                <li class="nav-item"><a href="{{ route('super.subcontract.receipts.index') }}" class="nav-link {{ request()->routeIs('super.subcontract.receipts.*') ? 'active' : '' }}"><i class="link-icon" data-feather="inbox"></i><span class="link-title">{{ __('subcontract_receipt.title') }}</span></a></li>
+            @endcan
+            @can('subcontract-contracts.view')
+                <li class="nav-item"><a href="{{ route('super.subcontract.contract-monitoring.index') }}" class="nav-link {{ request()->routeIs('super.subcontract.contract-monitoring.*') ? 'active' : '' }}"><i class="link-icon" data-feather="clipboard"></i><span class="link-title">{{ __('subcontract_contract_monitoring.title') }}</span></a></li>
+                <li class="nav-item"><a href="{{ route('super.subcontract.goods-monitoring.index') }}" class="nav-link {{ request()->routeIs('super.subcontract.goods-monitoring.*') ? 'active' : '' }}"><i class="link-icon" data-feather="package"></i><span class="link-title">{{ __('subcontract_goods_monitoring.title') }}</span></a></li>
+            @endcan
+
+            @canany(['bc30.view','bc261.view','bc27out.view','bc41.view','bc25.view'])
+                <li class="nav-item nav-category">BC OUT</li>
+            @endcanany
+            @can('bc30.view')
+                <li class="nav-item"><a href="{{ route('super.bc-out.bc30.index') }}" class="nav-link {{ request()->routeIs('super.bc-out.bc30.*') ? 'active' : '' }}"><i class="link-icon" data-feather="file-text"></i><span class="link-title">BC 3.0</span></a></li>
+            @endcan
+            @can('bc261.view')
+                <li class="nav-item"><a href="{{ route('super.bc-out.bc261.index') }}" class="nav-link {{ request()->routeIs('super.bc-out.bc261.*') ? 'active' : '' }}"><i class="link-icon" data-feather="file-text"></i><span class="link-title">BC 2.6.1 Out</span></a></li>
+            @endcan
+            @can('bc27out.view')
+                <li class="nav-item"><a href="{{ route('super.bc-out.bc27out.index') }}" class="nav-link {{ request()->routeIs('super.bc-out.bc27out.*') ? 'active' : '' }}"><i class="link-icon" data-feather="file-text"></i><span class="link-title">BC 2.7 Out</span></a></li>
+            @endcan
+            @can('bc41.view')
+                <li class="nav-item"><a href="{{ route('super.bc-out.bc41.index') }}" class="nav-link {{ request()->routeIs('super.bc-out.bc41.*') ? 'active' : '' }}"><i class="link-icon" data-feather="file-text"></i><span class="link-title">BC 4.1 Out</span></a></li>
+            @endcan
+            @can('bc25.view')
+                <li class="nav-item"><a href="{{ route('super.bc-out.bc25.index') }}" class="nav-link {{ request()->routeIs('super.bc-out.bc25.*') ? 'active' : '' }}"><i class="link-icon" data-feather="file-text"></i><span class="link-title">BC 2.5 Out</span></a></li>
             @endcan
 
             @canany(['purchase-report.view', 'inventory-report.view', 'audit-logs.view'])

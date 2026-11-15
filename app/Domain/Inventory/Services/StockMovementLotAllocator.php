@@ -11,7 +11,7 @@ class StockMovementLotAllocator
     public function allocate(StockMovement $movement): void
     {
         // These inventory actions already write explicit lot allocations.
-        if (in_array($movement->movement_type, ['purchase_receipt', 'purchase_return', 'material_issue', 'material_issue_reversal', 'production_output'], true)) {
+        if (in_array($movement->movement_type, ['subcontract_receipt', 'purchase_receipt', 'purchase_return', 'material_issue', 'material_issue_reversal', 'production_output'], true)) {
             return;
         }
 

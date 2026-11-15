@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class StockMovement extends Model
 {
     protected $fillable = [
+        'subcontract_material_issue_document_id',
+        'subcontract_material_issue_item_id',
         'product_id',
         'goods_receipt_id',
         'goods_receipt_item_id',
@@ -55,6 +57,11 @@ class StockMovement extends Model
             'quantity_after' => 'decimal:4',
             'cost_amount' => 'decimal:2',
         ];
+    }
+
+    public function subcontractMaterialIssueDocument(): BelongsTo
+    {
+        return $this->belongsTo(SubcontractMaterialIssueDocument::class,'subcontract_material_issue_document_id')->withTrashed();
     }
 
     public function product(): BelongsTo

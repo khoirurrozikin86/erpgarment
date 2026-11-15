@@ -827,7 +827,153 @@ Route::middleware(['auth'])
             Route::middleware('permission:equipment-issues.delete')->delete('/{equipmentIssue}', [EquipmentIssueController::class, 'destroy'])->name('destroy');
         });
 
+        Route::prefix('bc-in/bc23')->name('bc-in.bc23.')->group(function () {
+            Route::middleware('permission:bc23.view')->get('/', [\App\Http\Controllers\Admin\Bc23Controller::class, 'index'])->name('index');
+            Route::middleware('permission:bc23.view')->get('/export', [\App\Http\Controllers\Admin\Bc23Controller::class, 'export'])->name('export');
+            Route::middleware('permission:bc23.create')->get('/create', [\App\Http\Controllers\Admin\Bc23Controller::class, 'create'])->name('create');
+            Route::middleware('permission:bc23.create|bc23.update')->get('/products', [\App\Http\Controllers\Admin\Bc23Controller::class, 'products'])->name('products');
+            Route::middleware('permission:bc23.create|bc23.update')->get('/grns', [\App\Http\Controllers\Admin\Bc23Controller::class, 'grns'])->name('grns');
+            Route::middleware('permission:bc23.create')->post('/', [\App\Http\Controllers\Admin\Bc23Controller::class, 'store'])->name('store');
+            Route::middleware('permission:bc23.update')->get('/{document}/edit', [\App\Http\Controllers\Admin\Bc23Controller::class, 'edit'])->name('edit');
+            Route::middleware('permission:bc23.update')->put('/{document}', [\App\Http\Controllers\Admin\Bc23Controller::class, 'update'])->name('update');
+            Route::middleware('permission:bc23.delete')->delete('/{document}', [\App\Http\Controllers\Admin\Bc23Controller::class, 'destroy'])->name('destroy');
+        });
+        Route::prefix('bc-out/bc30')->name('bc-out.bc30.')->group(function () {
+            Route::middleware('permission:bc30.view')->get('/', [\App\Http\Controllers\Admin\Bc30Controller::class, 'index'])->name('index');
+            Route::middleware('permission:bc30.view')->get('/export', [\App\Http\Controllers\Admin\Bc30Controller::class, 'export'])->name('export');
+            Route::middleware('permission:bc30.create')->get('/create', [\App\Http\Controllers\Admin\Bc30Controller::class, 'create'])->name('create');
+            Route::middleware('permission:bc30.create|bc30.update')->get('/products', [\App\Http\Controllers\Admin\Bc30Controller::class, 'products'])->name('products');
+            Route::middleware('permission:bc30.create|bc30.update')->get('/gsns', [\App\Http\Controllers\Admin\Bc30Controller::class, 'gsns'])->name('gsns');
+            Route::middleware('permission:bc30.create')->post('/', [\App\Http\Controllers\Admin\Bc30Controller::class, 'store'])->name('store');
+            Route::middleware('permission:bc30.update')->get('/{document}/edit', [\App\Http\Controllers\Admin\Bc30Controller::class, 'edit'])->name('edit');
+            Route::middleware('permission:bc30.update')->put('/{document}', [\App\Http\Controllers\Admin\Bc30Controller::class, 'update'])->name('update');
+            Route::middleware('permission:bc30.delete')->delete('/{document}', [\App\Http\Controllers\Admin\Bc30Controller::class, 'destroy'])->name('destroy');
+        });
+        Route::prefix('bc-out/bc261')->name('bc-out.bc261.')->group(function () {
+            Route::middleware('permission:bc261.view')->get('/', [\App\Http\Controllers\Admin\Bc261Controller::class, 'index'])->name('index');
+            Route::middleware('permission:bc261.view')->get('/export', [\App\Http\Controllers\Admin\Bc261Controller::class, 'export'])->name('export');
+            Route::middleware('permission:bc261.create')->get('/create', [\App\Http\Controllers\Admin\Bc261Controller::class, 'create'])->name('create');
+            Route::middleware('permission:bc261.create|bc261.update')->get('/products', [\App\Http\Controllers\Admin\Bc261Controller::class, 'products'])->name('products');
+            Route::middleware('permission:bc261.create|bc261.update')->get('/gsns', [\App\Http\Controllers\Admin\Bc261Controller::class, 'gsns'])->name('gsns');
+            Route::middleware('permission:bc261.create')->post('/', [\App\Http\Controllers\Admin\Bc261Controller::class, 'store'])->name('store');
+            Route::middleware('permission:bc261.update')->get('/{document}/edit', [\App\Http\Controllers\Admin\Bc261Controller::class, 'edit'])->name('edit');
+            Route::middleware('permission:bc261.update')->put('/{document}', [\App\Http\Controllers\Admin\Bc261Controller::class, 'update'])->name('update');
+            Route::middleware('permission:bc261.delete')->delete('/{document}', [\App\Http\Controllers\Admin\Bc261Controller::class, 'destroy'])->name('destroy');
+        });
+        Route::prefix('bc-out/bc25')->name('bc-out.bc25.')->group(function () {
+            Route::middleware('permission:bc25.view')->get('/', [\App\Http\Controllers\Admin\Bc25Controller::class, 'index'])->name('index');
+            Route::middleware('permission:bc25.view')->get('/export', [\App\Http\Controllers\Admin\Bc25Controller::class, 'export'])->name('export');
+            Route::middleware('permission:bc25.create')->get('/create', [\App\Http\Controllers\Admin\Bc25Controller::class, 'create'])->name('create');
+            Route::middleware('permission:bc25.create|bc25.update')->get('/products', [\App\Http\Controllers\Admin\Bc25Controller::class, 'products'])->name('products');
+            Route::middleware('permission:bc25.create|bc25.update')->get('/gsns', [\App\Http\Controllers\Admin\Bc25Controller::class, 'gsns'])->name('gsns');
+            Route::middleware('permission:bc25.create')->post('/', [\App\Http\Controllers\Admin\Bc25Controller::class, 'store'])->name('store');
+            Route::middleware('permission:bc25.update')->get('/{document}/edit', [\App\Http\Controllers\Admin\Bc25Controller::class, 'edit'])->name('edit');
+            Route::middleware('permission:bc25.update')->put('/{document}', [\App\Http\Controllers\Admin\Bc25Controller::class, 'update'])->name('update');
+            Route::middleware('permission:bc25.delete')->delete('/{document}', [\App\Http\Controllers\Admin\Bc25Controller::class, 'destroy'])->name('destroy');
+        });
+        Route::prefix('bc-out/bc41')->name('bc-out.bc41.')->group(function () {
+            Route::middleware('permission:bc41.view')->get('/', [\App\Http\Controllers\Admin\Bc41Controller::class, 'index'])->name('index');
+            Route::middleware('permission:bc41.view')->get('/export', [\App\Http\Controllers\Admin\Bc41Controller::class, 'export'])->name('export');
+            Route::middleware('permission:bc41.create')->get('/create', [\App\Http\Controllers\Admin\Bc41Controller::class, 'create'])->name('create');
+            Route::middleware('permission:bc41.create|bc41.update')->get('/products', [\App\Http\Controllers\Admin\Bc41Controller::class, 'products'])->name('products');
+            Route::middleware('permission:bc41.create|bc41.update')->get('/gsns', [\App\Http\Controllers\Admin\Bc41Controller::class, 'gsns'])->name('gsns');
+            Route::middleware('permission:bc41.create|bc41.update')->get('/grns', [\App\Http\Controllers\Admin\Bc41Controller::class, 'grns'])->name('grns');
+            Route::middleware('permission:bc41.create')->post('/', [\App\Http\Controllers\Admin\Bc41Controller::class, 'store'])->name('store');
+            Route::middleware('permission:bc41.update')->get('/{document}/edit', [\App\Http\Controllers\Admin\Bc41Controller::class, 'edit'])->name('edit');
+            Route::middleware('permission:bc41.update')->put('/{document}', [\App\Http\Controllers\Admin\Bc41Controller::class, 'update'])->name('update');
+            Route::middleware('permission:bc41.delete')->delete('/{document}', [\App\Http\Controllers\Admin\Bc41Controller::class, 'destroy'])->name('destroy');
+        });
+        Route::prefix('bc-out/bc27out')->name('bc-out.bc27out.')->group(function () {
+            Route::middleware('permission:bc27out.view')->get('/', [\App\Http\Controllers\Admin\Bc27OutController::class, 'index'])->name('index');
+            Route::middleware('permission:bc27out.view')->get('/export', [\App\Http\Controllers\Admin\Bc27OutController::class, 'export'])->name('export');
+            Route::middleware('permission:bc27out.create')->get('/create', [\App\Http\Controllers\Admin\Bc27OutController::class, 'create'])->name('create');
+            Route::middleware('permission:bc27out.create|bc27out.update')->get('/products', [\App\Http\Controllers\Admin\Bc27OutController::class, 'products'])->name('products');
+            Route::middleware('permission:bc27out.create|bc27out.update')->get('/gsns', [\App\Http\Controllers\Admin\Bc27OutController::class, 'gsns'])->name('gsns');
+            Route::middleware('permission:bc27out.create')->post('/', [\App\Http\Controllers\Admin\Bc27OutController::class, 'store'])->name('store');
+            Route::middleware('permission:bc27out.update')->get('/{document}/edit', [\App\Http\Controllers\Admin\Bc27OutController::class, 'edit'])->name('edit');
+            Route::middleware('permission:bc27out.update')->put('/{document}', [\App\Http\Controllers\Admin\Bc27OutController::class, 'update'])->name('update');
+            Route::middleware('permission:bc27out.delete')->delete('/{document}', [\App\Http\Controllers\Admin\Bc27OutController::class, 'destroy'])->name('destroy');
+        });
+        Route::prefix('bc-in/bc20')->name('bc-in.bc20.')->group(function () {
+            Route::middleware('permission:bc20.view')->get('/', [\App\Http\Controllers\Admin\Bc20Controller::class, 'index'])->name('index');
+            Route::middleware('permission:bc20.view')->get('/export', [\App\Http\Controllers\Admin\Bc20Controller::class, 'export'])->name('export');
+            Route::middleware('permission:bc20.create')->get('/create', [\App\Http\Controllers\Admin\Bc20Controller::class, 'create'])->name('create');
+            Route::middleware('permission:bc20.create|bc20.update')->get('/products', [\App\Http\Controllers\Admin\Bc20Controller::class, 'products'])->name('products');
+            Route::middleware('permission:bc20.create|bc20.update')->get('/grns', [\App\Http\Controllers\Admin\Bc20Controller::class, 'grns'])->name('grns');
+            Route::middleware('permission:bc20.create')->post('/', [\App\Http\Controllers\Admin\Bc20Controller::class, 'store'])->name('store');
+            Route::middleware('permission:bc20.update')->get('/{document}/edit', [\App\Http\Controllers\Admin\Bc20Controller::class, 'edit'])->name('edit');
+            Route::middleware('permission:bc20.update')->put('/{document}', [\App\Http\Controllers\Admin\Bc20Controller::class, 'update'])->name('update');
+            Route::middleware('permission:bc20.delete')->delete('/{document}', [\App\Http\Controllers\Admin\Bc20Controller::class, 'destroy'])->name('destroy');
+        });
+        Route::prefix('bc-in/bc27')->name('bc-in.bc27.')->group(function () {
+            Route::middleware('permission:bc27.view')->get('/', [\App\Http\Controllers\Admin\Bc27Controller::class, 'index'])->name('index');
+            Route::middleware('permission:bc27.view')->get('/export', [\App\Http\Controllers\Admin\Bc27Controller::class, 'export'])->name('export');
+            Route::middleware('permission:bc27.create')->get('/create', [\App\Http\Controllers\Admin\Bc27Controller::class, 'create'])->name('create');
+            Route::middleware('permission:bc27.create|bc27.update')->get('/products', [\App\Http\Controllers\Admin\Bc27Controller::class, 'products'])->name('products');
+            Route::middleware('permission:bc27.create|bc27.update')->get('/grns', [\App\Http\Controllers\Admin\Bc27Controller::class, 'grns'])->name('grns');
+            Route::middleware('permission:bc27.create')->post('/', [\App\Http\Controllers\Admin\Bc27Controller::class, 'store'])->name('store');
+            Route::middleware('permission:bc27.update')->get('/{document}/edit', [\App\Http\Controllers\Admin\Bc27Controller::class, 'edit'])->name('edit');
+            Route::middleware('permission:bc27.update')->put('/{document}', [\App\Http\Controllers\Admin\Bc27Controller::class, 'update'])->name('update');
+            Route::middleware('permission:bc27.delete')->delete('/{document}', [\App\Http\Controllers\Admin\Bc27Controller::class, 'destroy'])->name('destroy');
+        });
+        Route::prefix('bc-in/bc40')->name('bc-in.bc40.')->group(function () {
+            Route::middleware('permission:bc40.view')->get('/', [\App\Http\Controllers\Admin\Bc40Controller::class, 'index'])->name('index');
+            Route::middleware('permission:bc40.view')->get('/export', [\App\Http\Controllers\Admin\Bc40Controller::class, 'export'])->name('export');
+            Route::middleware('permission:bc40.create')->get('/create', [\App\Http\Controllers\Admin\Bc40Controller::class, 'create'])->name('create');
+            Route::middleware('permission:bc40.create|bc40.update')->get('/products', [\App\Http\Controllers\Admin\Bc40Controller::class, 'products'])->name('products');
+            Route::middleware('permission:bc40.create|bc40.update')->get('/grns', [\App\Http\Controllers\Admin\Bc40Controller::class, 'grns'])->name('grns');
+            Route::middleware('permission:bc40.create')->post('/', [\App\Http\Controllers\Admin\Bc40Controller::class, 'store'])->name('store');
+            Route::middleware('permission:bc40.update')->get('/{document}/edit', [\App\Http\Controllers\Admin\Bc40Controller::class, 'edit'])->name('edit');
+            Route::middleware('permission:bc40.update')->put('/{document}', [\App\Http\Controllers\Admin\Bc40Controller::class, 'update'])->name('update');
+            Route::middleware('permission:bc40.delete')->delete('/{document}', [\App\Http\Controllers\Admin\Bc40Controller::class, 'destroy'])->name('destroy');
+        });
+        Route::prefix('bc-in/bc262')->name('bc-in.bc262.')->group(function () {
+            Route::middleware('permission:bc262.view')->get('/', [\App\Http\Controllers\Admin\Bc262Controller::class, 'index'])->name('index');
+            Route::middleware('permission:bc262.view')->get('/export', [\App\Http\Controllers\Admin\Bc262Controller::class, 'export'])->name('export');
+            Route::middleware('permission:bc262.create')->get('/create', [\App\Http\Controllers\Admin\Bc262Controller::class, 'create'])->name('create');
+            Route::middleware('permission:bc262.create|bc262.update')->get('/products', [\App\Http\Controllers\Admin\Bc262Controller::class, 'products'])->name('products');
+            Route::middleware('permission:bc262.create|bc262.update')->get('/grns', [\App\Http\Controllers\Admin\Bc262Controller::class, 'grns'])->name('grns');
+            Route::middleware('permission:bc262.create')->post('/', [\App\Http\Controllers\Admin\Bc262Controller::class, 'store'])->name('store');
+            Route::middleware('permission:bc262.update')->get('/{document}/edit', [\App\Http\Controllers\Admin\Bc262Controller::class, 'edit'])->name('edit');
+            Route::middleware('permission:bc262.update')->put('/{document}', [\App\Http\Controllers\Admin\Bc262Controller::class, 'update'])->name('update');
+            Route::middleware('permission:bc262.delete')->delete('/{document}', [\App\Http\Controllers\Admin\Bc262Controller::class, 'destroy'])->name('destroy');
+        });
+
         Route::prefix('subcontract')->name('subcontract.')->group(function () {
+            Route::middleware('permission:subcontract-contracts.view')->get('/goods-monitoring', [\App\Http\Controllers\Admin\SubcontractGoodsMonitoringController::class, 'index'])->name('goods-monitoring.index');
+
+            Route::middleware('permission:subcontract-contracts.view')->get('/contract-monitoring', [\App\Http\Controllers\Admin\SubcontractContractMonitoringController::class, 'index'])->name('contract-monitoring.index');
+
+            Route::middleware('permission:subcontract-receipts.view')->get('/receipts', [\App\Http\Controllers\Admin\SubcontractReceiptController::class, 'index'])->name('receipts.index');
+            Route::middleware('permission:subcontract-receipts.view')->get('/receipts/export', [\App\Http\Controllers\Admin\SubcontractReceiptController::class, 'export'])->name('receipts.export');
+            Route::middleware('permission:subcontract-receipts.create')->get('/receipts/create', [\App\Http\Controllers\Admin\SubcontractReceiptController::class, 'create'])->name('receipts.create');
+            Route::middleware('permission:subcontract-receipts.create|subcontract-receipts.update')->get('/receipts/products', [\App\Http\Controllers\Admin\SubcontractReceiptController::class, 'products'])->name('receipts.products');
+            Route::middleware('permission:subcontract-receipts.create')->post('/receipts', [\App\Http\Controllers\Admin\SubcontractReceiptController::class, 'store'])->name('receipts.store');
+            Route::middleware('permission:subcontract-receipts.update')->get('/receipts/{document}/edit', [\App\Http\Controllers\Admin\SubcontractReceiptController::class, 'edit'])->name('receipts.edit');
+            Route::middleware('permission:subcontract-receipts.update')->put('/receipts/{document}', [\App\Http\Controllers\Admin\SubcontractReceiptController::class, 'update'])->name('receipts.update');
+            Route::middleware('permission:subcontract-receipts.confirm')->post('/receipts/{document}/confirm', [\App\Http\Controllers\Admin\SubcontractReceiptController::class, 'confirm'])->name('receipts.confirm');
+            Route::middleware('permission:subcontract-receipts.delete')->delete('/receipts/{document}', [\App\Http\Controllers\Admin\SubcontractReceiptController::class, 'destroy'])->name('receipts.destroy');
+
+            Route::middleware('permission:subcontract-wip-issues.view')->get('/wip-issues', [\App\Http\Controllers\Admin\SubcontractWipIssueController::class, 'index'])->name('wip-issues.index');
+            Route::middleware('permission:subcontract-wip-issues.view')->get('/wip-issues/export', [\App\Http\Controllers\Admin\SubcontractWipIssueController::class, 'export'])->name('wip-issues.export');
+            Route::middleware('permission:subcontract-wip-issues.create')->get('/wip-issues/create', [\App\Http\Controllers\Admin\SubcontractWipIssueController::class, 'create'])->name('wip-issues.create');
+            Route::middleware('permission:subcontract-wip-issues.create|subcontract-wip-issues.update')->get('/wip-issues/products', [\App\Http\Controllers\Admin\SubcontractWipIssueController::class, 'products'])->name('wip-issues.products');
+            Route::middleware('permission:subcontract-wip-issues.create')->post('/wip-issues', [\App\Http\Controllers\Admin\SubcontractWipIssueController::class, 'store'])->name('wip-issues.store');
+            Route::middleware('permission:subcontract-wip-issues.update')->get('/wip-issues/{document}/edit', [\App\Http\Controllers\Admin\SubcontractWipIssueController::class, 'edit'])->name('wip-issues.edit');
+            Route::middleware('permission:subcontract-wip-issues.update')->put('/wip-issues/{document}', [\App\Http\Controllers\Admin\SubcontractWipIssueController::class, 'update'])->name('wip-issues.update');
+            Route::middleware('permission:subcontract-wip-issues.confirm')->post('/wip-issues/{document}/confirm', [\App\Http\Controllers\Admin\SubcontractWipIssueController::class, 'confirm'])->name('wip-issues.confirm');
+            Route::middleware('permission:subcontract-wip-issues.delete')->delete('/wip-issues/{document}', [\App\Http\Controllers\Admin\SubcontractWipIssueController::class, 'destroy'])->name('wip-issues.destroy');
+
+            Route::middleware('permission:subcontract-material-issues.view')->get('/material-issues', [\App\Http\Controllers\Admin\SubcontractMaterialIssueController::class, 'index'])->name('material-issues.index');
+            Route::middleware('permission:subcontract-material-issues.view')->get('/material-issues/export', [\App\Http\Controllers\Admin\SubcontractMaterialIssueController::class, 'export'])->name('material-issues.export');
+            Route::middleware('permission:subcontract-material-issues.create')->get('/material-issues/create', [\App\Http\Controllers\Admin\SubcontractMaterialIssueController::class, 'create'])->name('material-issues.create');
+            Route::middleware('permission:subcontract-material-issues.create|subcontract-material-issues.update')->get('/material-issues/products', [\App\Http\Controllers\Admin\SubcontractMaterialIssueController::class, 'products'])->name('material-issues.products');
+            Route::middleware('permission:subcontract-material-issues.create')->post('/material-issues', [\App\Http\Controllers\Admin\SubcontractMaterialIssueController::class, 'store'])->name('material-issues.store');
+            Route::middleware('permission:subcontract-material-issues.update')->get('/material-issues/{document}/edit', [\App\Http\Controllers\Admin\SubcontractMaterialIssueController::class, 'edit'])->name('material-issues.edit');
+            Route::middleware('permission:subcontract-material-issues.update')->put('/material-issues/{document}', [\App\Http\Controllers\Admin\SubcontractMaterialIssueController::class, 'update'])->name('material-issues.update');
+            Route::middleware('permission:subcontract-material-issues.confirm')->post('/material-issues/{document}/confirm', [\App\Http\Controllers\Admin\SubcontractMaterialIssueController::class, 'confirm'])->name('material-issues.confirm');
+            Route::middleware('permission:subcontract-material-issues.delete')->delete('/material-issues/{document}', [\App\Http\Controllers\Admin\SubcontractMaterialIssueController::class, 'destroy'])->name('material-issues.destroy');
+
             Route::middleware('permission:subcontract-semi-finished.view')->get('/semi-finished', [SubcontractSemiFinishedController::class, 'index'])->name('semi-finished.index');
             Route::middleware('permission:subcontract-semi-finished.view')->get('/semi-finished/dt', [SubcontractSemiFinishedController::class, 'dt'])->name('semi-finished.dt');
             Route::middleware('permission:subcontract-semi-finished.create|subcontract-semi-finished.update')->get('/semi-finished/products/dt', [SubcontractSemiFinishedController::class, 'productsDt'])->name('semi-finished.products.dt');
