@@ -69,6 +69,7 @@ class DocumentNumberingSeeder extends Seeder
             ],
             ['document_type' => 'wip_issue', 'prefix' => 'WIP'],
             ['document_type' => 'scrap_receipt', 'prefix' => 'SCI'],
+            ['document_type' => 'scrap_issue', 'prefix' => 'SCO'],
             [
                 'document_type' => 'return_to_warehouse',
                 'prefix' => 'RETG',
@@ -79,6 +80,10 @@ class DocumentNumberingSeeder extends Seeder
             ['document_type' => 'packing', 'prefix' => 'PKG'],
             ['document_type' => 'finished_goods', 'prefix' => 'FIN'],
             ['document_type' => 'goods_sent_note', 'prefix' => 'GSN'],
+            ['document_type' => 'equipment_receipt', 'prefix' => 'MCHI'],
+            ['document_type' => 'equipment_issue', 'prefix' => 'MCHO'],
+            ['document_type' => 'subcontract_contract', 'prefix' => 'TIMW', 'format' => '{PREFIX}/{NUMBER}/KTRKS/{MM}/{YY}', 'number_length' => 1],
+            ['document_type' => 'subcontract_semi_finished', 'prefix' => 'TIMW', 'format' => '{PREFIX}/{NUMBER}/HBSJD/{MM}/{YY}', 'number_length' => 1],
         ];
 
         Company::query()->each(function (Company $company) use ($documentNumberings) {
@@ -92,9 +97,9 @@ class DocumentNumberingSeeder extends Seeder
                     ],
                     [
                         'prefix' => $numbering['prefix'],
-                        'format' => '{PREFIX}/{YYYY}/{MM}/{NUMBER}',
+                        'format' => $numbering['format'] ?? '{PREFIX}/{YYYY}/{MM}/{NUMBER}',
                         'next_number' => 1,
-                        'number_length' => 5,
+                        'number_length' => $numbering['number_length'] ?? 5,
                         'reset_period' => 'monthly',
                         'is_active' => true,
                     ]

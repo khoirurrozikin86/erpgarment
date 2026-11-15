@@ -12,7 +12,7 @@ Diagram `image1` membagi proses ke Sales/PPIC, Gudang, dan Production/WIP. Ia me
 4. **Stok gudang** — penerimaan dan retur produksi masuk ke gudang. Pengiriman/transfer ke produksi (MIS), retur ke supplier, barang rusak/hilang tercatat sebagai transaksi yang berpengaruh pada stok. Kartu stok menunjukkan saldo/mutasi.
    Pemakaian material non-produksi mencatat transaksi bernomor, barang, kuantitas, harga, dan total; stok/lot berkurang serta mutasi tercatat pada kartu stok.
 5. **Produksi** — material diminta/dikeluarkan dari gudang; catatan hasil Cutting, Sewing dan Packing memiliki nomor dokumen, tanggal, user, serta kaitan ke MO/planning; hasil akhir tercatat sebagai Barang Jadi. Surat Jalan (GSN) mengirim hasil dan kemudian disetujui.
-6. **Subkontrak** — kontrak mengandung subkon, nomor kontrak, nomor skep BC, tanggal berlaku, keterangan dan kuota. Bahan baku/WIP dikeluarkan dan penerimaan subkon serta barang setengah jadi dimonitor. Kuota dan aturan pengurangan/pemulihan **NEEDS CONFIRMATION**.
+6. **Subkontrak** — master subkon dan kontrak (nomor kontrak, nomor skep BC, keterangan, masa berlaku, kuota) tersedia. Input Barang Setengah Jadi mencatat hasil produksi dengan item kategori WIP, jumlah, tanggal, dan relasi MO opsional. Pengeluaran bahan/WIP dan penerimaan hasil dari subkon belum diimplementasikan. Hubungan hasil ke kontrak/kuota serta dampak stok tetap **NEEDS CONFIRMATION**; input hasil saat ini tidak memposting mutasi stok.
 7. **Barang sisa/mesin** — scrap masuk/keluar dan aset/mesin masuk/keluar dicatat, kemudian disajikan dalam kartu stok/laporan.
 8. **Dokumen keluar & laporan** — BC keluar mencatat dokumen pengeluaran, barang, customer, jumlah dan nilai. Laporan pemasukan/pengeluaran, mutasi, WIP, produksi, barang jadi dan retur dapat ditampilkan menurut periode serta diekspor.
 
@@ -37,6 +37,12 @@ Diagram `image1` membagi proses ke Sales/PPIC, Gudang, dan Production/WIP. Ia me
 ### Scrap Masuk Gudang — implementasi awal
 
 Pencatatan menerima satu barang scrap kategori `WASTE` dan menambahkan jumlah ke stok melalui mutasi `scrap_receipt`; mutasi memuat nomor dokumen sumber dan membuat lot stok generik. Edit/hapus ditolak jika sudah ada mutasi stok yang lebih baru untuk SKU scrap yang sama; koreksi dilakukan dengan mutasi pembalik agar riwayat tetap utuh. **NEEDS CONFIRMATION:** kebijakan biaya/valuasi dan jurnal, apakah No. Produksi wajib terhubung ke MO/produksi, item perca mana yang boleh menjadi sumber, dan kebutuhan dokumen multi-item.
+
+### Scrap Keluar Gudang — implementasi awal
+Dokumen satu baris mengaitkan pelanggan dan produk kategori `WASTE`. Jumlah keluar mengurangi saldo gudang dengan transaksi atomik dan konsumsi lot FIFO; stok/lot yang tidak cukup menolak transaksi. Edit/hapus membuat mutasi pembalik dan mensyaratkan dokumen sebagai mutasi stok terakhir untuk produk tersebut agar urutan saldo tetap konsisten. Mutasi menampilkan nomor scrap keluar pada kartu stok. Prefix `SCO` dapat diatur lewat Document Numbering. **NEEDS CONFIRMATION:** arti pelanggan/tujuan scrap, apakah biaya scrap perlu dijurnal, serta perlakuan retur/koreksi setelah transaksi stok berikutnya.
+
+### Kartu Stok Scrap
+Memilih produk aktif yang melacak stok dan berkategori `WASTE`; kartu detail membaca semua mutasi produk dari `stock_movements`, termasuk Scrap Masuk/Keluar, pembalik, dan penyesuaian stok. Saldo diambil dari `quantity_after`, tanggal dokumen scrap dari dokumen sumber (fallback ke waktu mutasi), dan ekspor Excel memuat kolom yang sama dengan kartu detail. Tidak ada saldo atau transaksi baru yang dibuat oleh laporan ini.
 
 ## Contoh alur minimum untuk konfirmasi pemilik proses
 
@@ -108,3 +114,16 @@ MO aktif hanya dapat dipacking sebesar hasil baik Sewing yang belum diproses. Qt
 Penerimaan memilih MO yang memiliki hasil baik Packing belum tercatat di tahap Barang Jadi. Qty terima dibatasi sisa output Packing; qty hasil Barang Jadi tidak boleh lebih besar daripada qty terima. Sistem menyimpan tahap `finishing` pada MO untuk menutup perubahan tahap sebelumnya.
 
 Saldo stok tidak ditambah lagi di tahap ini: modul Hasil Packing yang sudah berjalan telah mem-posting hasil baik ke stok barang jadi. Pencatatan baru ini menjaga jejak penerimaan dan mencegah stok ganda.
+
+### Mesin/Peralatan Masuk Kaber — implementasi awal
+
+Pengguna mencatat header penerimaan berkategori Own/Sewa, tanggal, invoice, supplier, mata uang, lalu satu atau lebih baris mesin/peralatan beserta jumlah, harga, PO Supplier dan keterangan. Dokumen memakai penomoran otomatis, dapat dilihat, diedit, dihapus, dan diekspor. Saat ini transaksi hanya menjadi catatan penerimaan; tidak membentuk mutasi stok atau jurnal.
+**NEEDS CONFIRMATION:** “Kaber” dan alur sumbernya; apakah Sewa dicatat sebagai penerimaan/aset; identitas serial, lokasi pemakaian, approval, pengembalian sewa, kapitalisasi/depresiasi, serta dampak ke persediaan/akuntansi.
+
+### Mesin/Peralatan Keluar Kaber — implementasi awal
+
+Form mencatat satu barang mesin/peralatan per dokumen dengan nomor otomatis, tanggal, kuantitas, dan keterangan. Pemilihan item dibatasi ke master aktif kategori MACHINE/EQUIPMENT. CRUD diaudit dan dilindungi permission. **NEEDS CONFIRMATION:** apakah keluar berarti transfer lokasi, peminjaman/sewa, disposal, atau pengurangan aset/stok; tujuan/penerima dan approval belum ditentukan. Modul saat ini tidak membuat mutasi saldo/aset/jurnal.
+
+### Kartu Stok Mesin/Peralatan
+
+`equipment_receipt_items` menambah saldo informatif dan `equipment_issue_items` menguranginya. Detail diurutkan menurut tanggal transaksi, lalu waktu pencatatan; hanya dokumen aktif milik company aktif yang dihitung. Kartu dan Excel bersifat baca-saja serta tidak membuat `stock_movements` atau mengubah stok master. Apakah transaksi mesin harus memengaruhi stok/aset tetap **NEEDS CONFIRMATION**.

@@ -2,15 +2,30 @@
 
 Pengerjaan dilakukan satu modul per instruksi. Tidak ada coding modul berikutnya sebelum pengguna memberikan arahan.
 
+## 2026-11-14 — Scrap Keluar Gudang
+
+- **Status:** implementasi dibuat dengan dokumen satu item, nomor SCO, pilihan pelanggan dan barang `WASTE`, filter tanggal, DataTable, ekspor Excel, modal tambah/edit, hapus, audit, permission, dan menu Bahan Sisa.
+- **Stok:** transaksi mengurangi ProductStock dan lot FIFO; perubahan saldo tertaut ke dokumen pada kartu stok. Edit/hapus membuat mutasi pembalik dan dibatasi bila ada transaksi produk yang lebih baru.
+- **Verifikasi:** hasil test terarah dicatat setelah perbaikan permission akses kartu stok.
+- **Environment:** jalankan `php artisan migrate` untuk membuat tabel dan relasi stok; permission dan numbering ikut dipasang migration.
+- **NEEDS CONFIRMATION:** valuasi/jurnal scrap dan arti pelanggan sebagai tujuan scrap.
+
 ## 2026-11-14 — Scrap Masuk Gudang dan grup sidebar
 
-- **Status:** implementasi kode Scrap Masuk Gudang selesai; migration perlu dijalankan pada environment aplikasi. Grup sidebar Bahan Sisa berisi Damage, Lost, dan Scrap Masuk Gudang. Grup Mesin tampil sebagai placeholder, tanpa operasi mesin.
+- **Status:** implementasi kode Scrap Masuk Gudang selesai; migration perlu dijalankan pada environment aplikasi. Scrap Masuk Gudang berada di grup Bahan Sisa; Barang Rusak dan Barang Hilang berada di Gudang & Persediaan sesuai arahan terbaru. Grup Mesin tampil sebagai placeholder, tanpa operasi mesin.
 - **Referensi UI:** tanggal/nomor penerimaan, scrap code/name, unit, qty; modal juga mempertahankan kode/nama perca, No. Produksi, dan keterangan. DataTable pemilih barang; filter tanggal dan ekspor Excel.
 - **Stok:** produk scrap dipilih dari kategori `WASTE`; penerimaan menambah ProductStock dan lot melalui StockMovement. Edit/hapus membuat mutasi koreksi dan dicegah jika terdapat transaksi lebih baru untuk SKU yang sama. Baris dapat dirujuk dari Kartu Stok.
 - **Izin/nomor:** permission `scrap-receipts.view/create/update/delete`; nomor dokumen `scrap_receipt` prefix SCI. Migration memasang hak untuk role saat ini dan menambah relasi mutasi stok.
 - **NEEDS CONFIRMATION:** apakah sumber perca harus kategori tertentu, arti dan relasi No. Produksi, aturan valuasi/jurnal, dan apakah satu penerimaan dapat memuat beberapa item. Sampai dikonfirmasi, nomor produksi teks opsional dan nilai biaya scrap nol.
 - **Verifikasi:** `php artisan test --compact tests/Feature/Inventory/ScrapReceiptTest.php` lulus (2 test, 21 assertions); `php artisan view:cache`, `php artisan view:clear`, `php artisan route:list --path=scrap-receipts`, PHP lint untuk controller/action/test, dan `git diff --check` berhasil.
 - **Environment:** jalankan `php artisan migrate` untuk menambah tabel, permission, penomoran, dan FK transaksi stok.
+
+## 2026-11-14 — Pemulihan sidebar dan penataan Scrap
+
+- Area isi sidebar kembali memiliki scroll internal agar seluruh menu dapat dijangkau; header/sidebar tetap mengikuti kerangka NobleUI.
+- Scrap Masuk Gudang dipindahkan ke grup Bahan Sisa; Damage dan Lost masuk ke Gudang & Persediaan.
+- Simbol Scrap menggunakan `package`, ikon yang tersedia di Feather Icons project. Ikon `recycle` tidak tersedia; `feather.replace()` melempar exception saat memprosesnya, menghentikan inisialisasi scroll sidebar serta callback DataTable.
+- Verifikasi view cache dan `git diff --check` dilakukan setelah perubahan.
 
 ## 2026-11-13 — Goods Receipt (GRN)
 
@@ -384,9 +399,54 @@ Pengerjaan dilakukan satu modul per instruksi. Tidak ada coding modul berikutnya
 - Modul memakai `stock-card.view` dan sumber data `stock_movements`; tidak ada tabel saldo atau mutasi baru.
 - **Test:** `FinishedGoodsStockCardTest` lulus, 1 test / 20 assertion.
 
+## 2026-11-14 — Kartu Stok Scrap
+- Menambahkan daftar item aktif kategori `WASTE` dengan kelompok tampilan SCRAP, kategori, kode/nama, satuan, dan tombol Tampil; detail mengikuti format kartu stok pada referensi dan dapat diekspor ke Excel.
+- Sumber histori adalah `stock_movements`; nomor/tanggal diambil dari dokumen Scrap Masuk/Keluar, saldo dari `quantity_after`, termasuk mutasi pembalik dan stock opname. Tidak ada tabel baru.
+- Sidebar berada dalam grup Bahan Sisa dan memakai permission `stock-card.view`.
+- **NEEDS CONFIRMATION:** kelompok SCRAP saat ini hanya label presentasi, bukan field/master; kategori WASTE nonaktif tidak ditampilkan.
+
 ## 2026-11-14 — Pengeluaran WIP
 - Menambahkan dokumen/baris pengeluaran WIP, nomor dokumen configurable (`wip_issue`), permission CRUD, sidebar Production, modal pemilih DataTable, filter tanggal dan ekspor Excel.
 - Setiap simpan mengurangi stok dan lot dalam transaksi serta menambah StockMovement dan audit. Koreksi edit/hapus membalik mutasi; diblokir jika ada transaksi stok setelah sumber pada barang yang sama.
 - Kriteria item WIP: kategori berkode `WIP`/bernama Barang Setengah Jadi atau garment item type `work_in_process`, dan stok dilacak.
 - Pengujian terfokus: `php artisan test tests/Feature/Inventory/WipIssueTest.php` — lulus (1 test, 17 assertions). PHP lint untuk controller/action/migration/locale juga lulus.
 - **NEEDS CONFIRMATION:** tautan MO/permintaan dan tujuan/subkontrak, dokumen multi-item, approval, lokasi gudang, valuasi/akun biaya.
+
+## 2026-11-14 — Mesin/Peralatan Masuk Kaber
+
+## 2026-11-14 — Mesin/Peralatan Keluar Kaber
+
+- CRUD dokumen keluar satu item, modal item DataTable, rentang tanggal, ekspor Excel, nomor dokumen MCHO, audit, permissions, dan sidebar Mesin.
+- Tidak membuat mutasi stok/aset/jurnal. Tujuan/penerima dan perlakuan keluar ditandai **NEEDS CONFIRMATION**.
+- Automated feature test mencakup create/edit/delete, listing, pemilih item, export, dan tidak adanya mutasi stok.
+
+- **Status:** implementasi awal selesai; migration perlu dijalankan pada environment aplikasi.
+- **Referensi/UI:** daftar filter tanggal dengan kategori Own/Sewa, nomor/tanggal penerimaan, invoice/tanggal invoice, supplier dan keterangan. Modal tambah/edit mendukung banyak baris item; picker mesin/peralatan dan supplier menggunakan DataTable. Detail via tombol Detail, aksi ringkas, ekspor Excel satu baris per item.
+- **Data/aturan:** item berasal dari master aktif kategori MACHINE/EQUIPMENT; menyimpan snapshot kode/nama/unit, qty, harga, total, No. PO Supplier dan keterangan. Nomor `equipment_receipt` prefix MCHI. Audit serta permission view/create/update/delete.
+- **Posting:** saat ini hanya mencatat dokumen; tidak mengubah kartu stok, lot, aset tetap, atau jurnal sampai kebijakan dikonfirmasi.
+- **Verifikasi:** `php artisan test --compact tests/Feature/Inventory/EquipmentReceiptTest.php` lulus (1 test / 26 assertion), termasuk daftar, pemilih produk/supplier, detail, edit, hapus, dan ekspor; route:list menampilkan 10 route; `php artisan view:cache`/`view:clear`, PHP lint untuk file modul, dan `git diff --check` berhasil.
+- **NEEDS CONFIRMATION:** arti Kaber; perlakuan sewa, serial/lokasi/umur manfaat, approval, retur, kapitalisasi/depresiasi, posting persediaan/jurnal, currency dan relasi PO Supplier.
+
+## 2026-11-14 — Kartu Stok Mesin/Peralatan
+
+- Menambahkan daftar item aktif kategori MACHINE/EQUIPMENT dan detail kartu berdasarkan Mesin Masuk/Keluar Kaber, dengan saldo berjalan, tanggal, nomor mutasi, uraian, arah, pengguna, dan ekspor Excel.
+- Akses memakai permission `stock-card.view`; hanya dokumen aktif pada company aktif dihitung. Tidak ada perubahan schema atau posting stock movement.
+- **NEEDS CONFIRMATION:** saldo laporan ini bersifat informatif, belum menjadi saldo fisik/aset karena aturan posting mesin masuk/keluar belum diputuskan.
+- **Test terfokus:** `php artisan test --compact tests/Feature/Inventory/EquipmentStockCardTest.php`.
+
+## 2026-11-14 — Master Subkon dan Kontrak Subkon
+
+- Menambahkan CRUD master subkon dan kontrak, modal add/edit, DataTable, filter periode kontrak, serta nomor kontrak otomatis melalui Document Numbering dengan format `TIMW/{NUMBER}/KTRKS/{MM}/{YY}`.
+- Menambahkan permission CRUD, entri sidebar di kelompok Master, audit log, validasi kepemilikan company, dan perlindungan hapus master yang masih memiliki kontrak.
+- Migration baru membuat tabel master/kontrak dengan relasi company dan subkon; jalankan `php artisan migrate`. Untuk perusahaan lama yang belum memiliki konfigurasi nomor dokumen, jalankan `php artisan db:seed --class=DocumentNumberingSeeder`.
+- Pengeluaran/penerimaan subkon belum dibuat. Kolom Pengeluaran/Penerimaan di referensi tidak diisi dengan data rekaan; aturan kuota, dampak stok, hubungan MO, dan approval tetap **NEEDS CONFIRMATION**.
+- **Test terfokus:** `php artisan test --compact tests/Feature/Subcontract/SubcontractTest.php`.
+
+## 2026-11-14 — Input Barang Setengah Jadi Subkon
+
+- Menambahkan daftar dengan filter tanggal produksi dan kolom nomor/tanggal, keterangan, PO Buyer, style, kode/nama barang, satuan, jumlah, serta MO. Tambah/edit dilakukan melalui modal; pemilih barang WIP dan MO memakai DataTable.
+- Nomor memakai Document Numbering (`subcontract_semi_finished`, format awal `TIMW/{NUMBER}/HBSJD/{MM}/{YY}`). Validasi membatasi pilihan ke barang aktif yang dilacak stok dan berkategori WIP/Barang Setengah Jadi; MO opsional dibatasi company aktif.
+- Menambahkan permission view/create/update/delete, audit perubahan, transaksi database untuk CRUD dokumen-detail, dan relasi company, produk, unit, MO, serta creator. Tidak membuat mutasi persediaan.
+- Migration: `2026_11_14_000066_create_subcontract_semi_finished_tables` dan `2026_11_14_000067_grant_subcontract_semi_finished_permissions`; jalankan `php artisan migrate`. Pastikan Document Numbering disemai untuk company yang belum memiliki konfigurasi.
+- **Verifikasi:** `php artisan test --compact tests/Feature/Subcontract/SubcontractSemiFinishedTest.php` lulus (1 test / 10 assertions); `php artisan test --compact tests/Feature/Subcontract/SubcontractTest.php` lulus (2 tests / 22 assertions); route modul terdaftar.
+- **NEEDS CONFIRMATION:** apakah satu dokumen dapat memuat beberapa produk; relasi hasil terhadap kontrak subkon dan kuota; apakah hasil menambah stok WIP, gudang/lokasi tujuan, serta aturan approval dan koreksi.

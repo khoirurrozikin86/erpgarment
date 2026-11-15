@@ -49,6 +49,8 @@ class ScrapReceiptTest extends TestCase
 
         $this->assertDatabaseHas('product_stocks', ['product_id' => $scrap->id, 'quantity' => '4.2500']);
         $this->assertDatabaseHas('stock_movements', ['scrap_receipt_document_id' => $document->id, 'movement_type' => 'scrap_receipt', 'quantity' => '4.2500']);
+        $this->getJson(route('super.scrap-receipts.dt', ['draw' => 1, 'start' => 0, 'length' => 10]))
+            ->assertOk()->assertJsonPath('recordsTotal', 1)->assertJsonFragment(['scrap_code' => 'SCRAP-1', 'source_code' => 'FABRIC-1']);
         $this->getJson(route('super.stock-card.dt', ['product_id' => $scrap->id]))->assertOk()->assertJsonFragment(['reference_number' => 'SCI/2026/11/00001']);
         Excel::fake();
         $this->get(route('super.scrap-receipts.export'))->assertOk();

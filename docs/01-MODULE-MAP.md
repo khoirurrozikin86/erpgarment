@@ -15,7 +15,7 @@ Referensi: `IT INVENTORY.docx`, berisi 192 objek gambar berurutan `image1.png`�
 | Produksi | Penerimaan Produksi dari Gudang | Daftar transfer MIS, detail item yang diterima produksi, dan konfirmasi penerimaan |
 | Produksi | Order Bahan Baku, Order Bahan Penolong, Penerimaan Bahan dari Gudang, Pemakaian Bahan Non Produksi, Retur ke Gudang, Hasil Cutting, Hasil Sewing, Hasil Packing, Barang Jadi, Surat Jalan (GSN), Surat Jalan Approve, Pengeluaran WIP, Kartu Stok Barang Jadi | MO/BOM → material issue → hasil per tahap → barang jadi → pengiriman/approval |
 | Scrap & mesin/peralatan | Scrap Masuk Gudang, Scrap Keluar Gudang, Kartu Stok Scrap, Mesin/Peralatan Masuk Kaber, Mesin/Peralatan Keluar Kaber, Kartu Stok Mesin/Peralatan | Transaksi masuk/keluar aset atau scrap → saldo dan laporan mutasi |
-| Subkontrak | Kontrak Subkon, Hasil Barang Setengah Jadi (Input Barang Setengah Jadi), Pengeluaran Bahan Baku, Pengeluaran Barang Setengah Jadi, Penerimaan Subkon, Monitoring Kontrak, Monitoring Barang Subkon | Kontrak + kuota → bahan/WIP keluar → barang/hasil kembali → monitoring kuota dan saldo |
+| Subkontrak | Master Subkon, Kontrak Subkon, dan Input Barang Setengah Jadi sudah diimplementasikan; Pengeluaran Bahan/WIP, Penerimaan Subkon, serta Monitoring masih belum tersedia | Kontrak + kuota → bahan/WIP keluar → barang/hasil kembali → monitoring kuota dan saldo; posting stok serta aturan kuota **NEEDS CONFIRMATION** |
 | BC Keluar / dokumen pabean keluar | BC 3.0, BC 2.6.1, BC 2.7, BC 4.1, BC 2.5 | Barang/dokumen pengeluaran atau pengiriman, customer/penerima, barang, nilai, HS code |
 | Laporan BC & operasional | Pemasukan Barang, Pengeluaran Barang, Mutasi Bahan Baku dan Bahan Penolong, Posisi Barang dalam Proses (WIP), Mutasi Barang Jadi, Mutasi Barang Modal dan Barang Lain, Mutasi Reject/Scrap/Waste, Log Histori User, Rencana Produksi, Status Produksi Harian, Barang Jadi, Retur ke Supplier, Retur ke Gudang, Retur Barang Jadi | Agregasi master dan transaksi; rentang tanggal/periode; ekspor Excel; jejak aktivitas |
 
@@ -25,11 +25,20 @@ Menu utama pada screenshot memperlihatkan Pengaturan, PPIC, BC Masuk, Gudang, Pr
 
 ## Status pengembangan: Scrap Masuk Gudang
 
-Sidebar memisahkan grup **Bahan Sisa** dari Gudang dan menempatkan Scrap Masuk Gudang bersama pencatatan barang rusak/hilang. Grup **Mesin** sudah disediakan, tetapi saat ini hanya menandai bahwa modul mesin belum tersedia; tidak ada aksi mesin yang dibuat.
+Sidebar menempatkan Scrap Masuk Gudang di grup **Bahan Sisa**; Barang Rusak dan Barang Hilang berada di grup **Gudang & Persediaan** sesuai arahan pemilik proses. Mesin/Peralatan Masuk Kaber tersedia di grup Mesin; implementasi mencatat penerimaan dan rincian tanpa posting saldo persediaan.
+
+Mesin/Peralatan Keluar Kaber tersedia pada grup yang sama. Modul ini mencatat item keluar dan keterangannya, tetapi tidak memutasi saldo karena perlakuan aset/stok serta tujuan keluar masih **NEEDS CONFIRMATION**.
 
 Scrap Masuk Gudang memakai master barang kategori `WASTE` sebagai barang scrap yang menambah stok. Form mencatat tanggal, nomor otomatis, kode/nama scrap, satuan, jumlah, kode/nama item perca sumber, No. Produksi, dan keterangan. Daftar berfilter tanggal, mendukung CRUD modal dan Excel; setiap mutasi masuk/koreksi tercatat pada kartu stok.
 
+Scrap Keluar Gudang berada pada grup yang sama. Form mencatat nomor/tanggal, pelanggan, barang kategori `WASTE`, jumlah, dan keterangan. Pengeluaran mengurangi stok gudang dan tampil sebagai mutasi keluar di kartu stok; daftar menyediakan filter tanggal, CRUD modal, dan ekspor Excel.
+
 **NEEDS CONFIRMATION:** arti operasional `No. Produksi` dan relasinya ke item perca, sumber/tujuan proses scrap, valuasi scrap dan dampak akuntansi, serta apakah satu dokumen penerimaan seharusnya memuat banyak baris.
+
+### Mesin/Peralatan Masuk Kaber — implementasi awal
+
+Mencatat header penerimaan (nomor otomatis, tanggal, kategori Own/Sewa, invoice, supplier, mata uang, keterangan) dan satu atau lebih rincian barang dari master kategori MACHINE/EQUIPMENT. Daftar berfilter tanggal; detail, edit, hapus, pemilih DataTable, audit, permission, dan Excel tersedia. Saldo stok/aset tidak diposting.
+**NEEDS CONFIRMATION:** arti “Kaber”, perlakuan kepemilikan sewa, serial/lokasi/umur manfaat, kebutuhan kartu mutasi mesin, kapitalisasi/depresiasi, approval, serta apakah harga dan PO Supplier wajib.
 
 ## Batas cakupan
 

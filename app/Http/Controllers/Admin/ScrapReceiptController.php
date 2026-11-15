@@ -29,10 +29,14 @@ class ScrapReceiptController extends Controller
         return DataTables::eloquent($query->builder($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null))
             ->addColumn('date_label', fn (ScrapReceiptDocument $row) => $row->receipt_date?->format('Y-m-d'))
             ->addColumn('scrap_code', fn (ScrapReceiptDocument $row) => $row->scrapProduct?->code ?? '—')
+            ->filterColumn('scrap_code', fn ($query, $keyword) => $query->whereHas('scrapProduct', fn ($product) => $product->where('code', 'like', "%{$keyword}%")))
             ->addColumn('scrap_name', fn (ScrapReceiptDocument $row) => $row->scrapProduct?->name ?? '—')
+            ->filterColumn('scrap_name', fn ($query, $keyword) => $query->whereHas('scrapProduct', fn ($product) => $product->where('name', 'like', "%{$keyword}%")))
             ->addColumn('unit_label', fn (ScrapReceiptDocument $row) => $row->scrapProduct?->unit?->symbol ?: $row->scrapProduct?->unit?->name ?: '—')
             ->addColumn('source_code', fn (ScrapReceiptDocument $row) => $row->sourceProduct?->code ?? '—')
+            ->filterColumn('source_code', fn ($query, $keyword) => $query->whereHas('sourceProduct', fn ($product) => $product->where('code', 'like', "%{$keyword}%")))
             ->addColumn('source_name', fn (ScrapReceiptDocument $row) => $row->sourceProduct?->name ?? '—')
+            ->filterColumn('source_name', fn ($query, $keyword) => $query->whereHas('sourceProduct', fn ($product) => $product->where('name', 'like', "%{$keyword}%")))
             ->addColumn('actions', function (ScrapReceiptDocument $row) {
                 $items = '';
                 if (auth()->user()->can('scrap-receipts.update')) {

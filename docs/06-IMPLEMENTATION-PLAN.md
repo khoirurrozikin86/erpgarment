@@ -36,10 +36,13 @@ Persetujuan implementasi diberikan pengguna pada 2026-11-13. Progres per modul d
 
 ## Tahap 5 — Subkontrak serta scrap/aset
 
-- Kontrak dan kuota; pengeluaran bahan/WIP; penerimaan hasil; monitoring serta laporan rekonsiliasi.
+Status Subkontrak: master subkon, kontrak, dan Input Barang Setengah Jadi selesai untuk pencatatan CRUD. Pengeluaran bahan/WIP, penerimaan hasil dari subkon, dan monitoring kuota masih perlu direncanakan setelah aturan stok, relasi kontrak/MO, serta alur approval dikonfirmasi.
+
+- Kontrak dan kuota (master/CRUD selesai); input hasil barang setengah jadi (CRUD selesai, tanpa posting stok); pengeluaran bahan/WIP; penerimaan hasil dari subkon; monitoring serta laporan rekonsiliasi belum diimplementasikan.
 
 ### Progress scrap
-Scrap Masuk Gudang sudah tersedia untuk transaksi satu baris dari produk kategori `WASTE`, termasuk nomor dokumen, filter dan Excel, modal, audit, serta mutasi stok yang tampil pada kartu stok. Fitur mesin/aset belum dibuat; sidebar hanya menunjukkan grup Mesin sebagai placeholder. Aturan costing, relasi No. Produksi, dan multi-item masih **NEEDS CONFIRMATION**.
+Scrap Masuk Gudang dan Scrap Keluar Gudang sudah tersedia sebagai transaksi satu baris produk kategori `WASTE`, memakai numbering, filter dan Excel, modal, audit, permission, serta mutasi stok yang tampil pada kartu stok. Scrap Keluar mengurangi saldo dan mengonsumsi lot; koreksi mengembalikan stok melalui mutasi pembalik. Fitur mesin/aset belum dibuat; sidebar hanya menunjukkan grup Mesin sebagai placeholder. Aturan costing, relasi No. Produksi, tujuan/pelanggan scrap keluar, dan multi-item masih **NEEDS CONFIRMATION**.
+- Kartu Stok Scrap selesai sebagai laporan baca-saja daftar produk `WASTE` aktif/lacak stok, riwayat ledger, dan ekspor Excel; tidak menambah tabel atau membuat transaksi.
 - Scrap masuk/keluar dan transaksi mesin/peralatan; tentukan apakah sebagai stok, aset tetap, atau pelacakan kuantitas sederhana.
 
 ## Tahap 6 — Laporan, histori dan kontrol
@@ -97,3 +100,11 @@ GSN dibuat sebagai dokumen multi-item dari MO/barang jadi dengan Document Number
 
 ### Status modul WIP
 Pengeluaran WIP tersedia sebagai transaksi stok terlacak dengan nomor dokumen, CRUD, filter tanggal, ekspor, audit, permission, dan kartu stok. Batas proses yang belum disepakati tetap NEEDS CONFIRMATION; lihat `docs/05-FUNCTIONAL-REQUIREMENTS.md`.
+
+### Tahap aset/mesin — penerimaan Mesin/Peralatan Masuk Kaber
+
+**Status: CRUD penerimaan dan pengeluaran awal selesai (2026-11-14).** Penerimaan dan pengeluaran tersimpan dengan nomor otomatis, filter/ekspor, modal CRUD, permission, audit, dan relasi master item. Kedua modul belum membuat mutasi stok/aset/jurnal. Lanjutan kartu mutasi/pencatatan aset menunggu konfirmasi kepemilikan Own/Sewa, serial/lokasi, tujuan keluar, approval, retur, dan perlakuan akuntansi/persediaan.
+
+### Kartu Stok Mesin/Peralatan
+
+**Status: laporan informatif selesai (2026-11-14).** Menggabungkan dokumen Mesin Masuk/Keluar aktif sebagai baris positif/negatif, menghitung saldo berjalan, dan mengekspor Excel. Implementasi tidak mengubah dokumen sumber atau membuat posting stock movement. Perlakuan aset/stok fisik tetap **NEEDS CONFIRMATION**.

@@ -13,7 +13,7 @@ Ini adalah model konseptual dari layar, bukan skema final. Nama tabel, kardinali
 | BC masuk/keluar | customs_documents, customs_document_items (atau tipe dokumen terpisah) | Dokumen berisi tipe BC, No Aju, No/Tgl daftar, referensi receipt/delivery, mitra, HS code, item, kuantitas, nilai, mata uang/faktur |
 | Gudang | inventory_transactions, inventory_transaction_items, stock_balances atau ledger-derived balance, stock_counts, stock_count_items | Transaksi masuk/keluar/transfer/retur/adjustment; item mengacu barang, lokasi/gudang dan satuan; hasil pencacahan dibanding saldo buku |
 | Produksi | production_plans, production_orders, production_stage_entries, material_issues, finished_goods_receipts, delivery_notes (GSN), delivery_items, delivery_approvals | Stage entry bertipe cutting/sewing/packing; dokumen terkait buyer/style/MO/nomor planning/item; GSN berisi tujuan dan tanggal kirim |
-| Subkontrak | subcontractors, subcontract_contracts, subcontract_material_issues, subcontract_receipts, subcontract_items | Kontrak memiliki periode, kuota dan referensi BC; issue/receipt item terkait kontrak dan monitoring |
+| Subkontrak | `subcontractors`, `subcontract_contracts`, `subcontract_semi_finished_documents`, `subcontract_semi_finished_items` (implemented); pengeluaran bahan/WIP, penerimaan hasil, dan monitoring (pending) | Dokumen hasil WIP memiliki company, nomor/tanggal, deskripsi, buyer PO, relasi MO opsional dan creator; detail menghubungkan dokumen ke produk serta kuantitas. Posting ke stock ledger dan relasi ke kontrak belum dibuat sampai aturan proses dikonfirmasi |
 | Scrap & mesin | scrap_transactions/items, equipment_transactions/items | Jenis masuk/keluar, tanggal, kode/nama, unit, kuantitas, referensi sumber dan keterangan |
 | Audit/laporan | audit_logs | Aktivitas berisi user, waktu dan deskripsi; laporan kemungkinan query dari dokumen/transaksi, bukan tabel saldo duplikat |
 
@@ -30,6 +30,8 @@ Ini adalah model konseptual dari layar, bukan skema final. Nama tabel, kardinali
 
 `scrap_receipt_documents` menyimpan company, nomor/tanggal, produk scrap (`products`, harus kategori `WASTE`), produk perca sumber, No. Produksi teks opsional, jumlah, keterangan, pencatat, dan soft delete. `stock_movements.scrap_receipt_document_id` menghubungkan mutasi stok ke dokumen. Lot dibuat oleh allocator stok yang sudah ada; biaya mutasi bernilai nol sampai aturan valuasi ditetapkan. Nomor `scrap_receipt` memakai prefix SCI dan reset bulanan.
 
+`scrap_issue_documents` menyimpan company, nomor/tanggal, pelanggan, produk scrap kategori `WASTE`, jumlah, keterangan, pencatat, dan soft delete. `stock_movements.scrap_issue_document_id` menghubungkan transaksi keluar dan pembalik ke dokumen. Mutasi negatif mengonsumsi lot melalui allocator; pembalik mengembalikan jumlah melalui lot baru agar ledger tetap append-only. Penomoran `scrap_issue` ber-prefix SCO dan reset bulanan. Nilai biaya disimpan nol sementara, menunggu aturan costing scrap.
+
 Pilihan barang scrap dan sumber memakai `products` yang aktif dan terlacak stok. **NEEDS CONFIRMATION:** apakah sumber harus dibatasi kategori tertentu, apakah No. Produksi harus FK ke MO/tahapan produksi, valuasi scrap dan jurnal, multi-line, serta apakah mesin berbagi struktur master barang atau memerlukan aset tersendiri.
 
 ### GSN yang diterapkan
@@ -37,6 +39,8 @@ Pilihan barang scrap dan sumber memakai `products` yang aktif dan terlacak stok.
 Header `goods_sent_notes` menyimpan nomor, tanggal kirim, nomor/tanggal kontrak, rute, gudang (teks karena master gudang belum tersedia), kendaraan, driver, seal, receiver/container, perusahaan, pembuat, approver, dan waktu approval. `goods_sent_note_items` menyimpan MO, barang jadi keluaran MO, customer, kuantitas, serta karton. `stock_movements` merujuk header/baris GSN sehingga pengiriman dan reversal dapat ditelusuri di kartu stok; dokumen/baris memakai soft delete agar FK ledger tidak terputus. Sesuai perilaku GSN yang sudah ada, stok diposting saat simpan; layar approval baru mencatat status/user/waktu.
 
 Kartu Stok Barang Jadi tidak memerlukan tabel baru: daftar mengambil `products` dengan `track_stock` dan kategori `FG`/“Finished Goods”; kartu detail membaca `stock_movements` berdasarkan `product_id`, menggunakan `quantity_after` sebagai saldo historis dan relasi dokumen sumber/pengguna untuk jejak mutasi.
+
+Kartu Stok Scrap juga tidak memerlukan tabel baru: daftar memakai `products` aktif yang `track_stock` dan kategori `WASTE`; histori mengambil `stock_movements` beserta relasi Scrap Receipt, Scrap Issue, Stock Opname, dan pengguna. `quantity_after` adalah saldo berjalan pada setiap mutasi. No. Kelompok `SCRAP` merupakan label tampilan sesuai referensi, bukan kolom produk baru.
 
 **NEEDS CONFIRMATION:** apakah titik posting harus dipindahkan ke approval dan apakah cancel approval harus membalik stok; master gudang, daftar jalur kirim/receiver, satu customer per GSN atau per baris, makna nomor kontrak vs tanggal pesanan, serta aturan edit/hapus setelah dicetak. Migration approval menandai GSN lama yang sudah memiliki stock movement sebagai approved.
 
@@ -58,7 +62,7 @@ Tabel `importers` memiliki `id`, `tax_number` (NPWP), `name`, `address`, `apip`,
 
 ## Hubungan minimum
 
-`item` → detail penerimaan/pengeluaran/BC/produksi/retur → `inventory_transaction` → laporan saldo. `supplier/customer` dan `user` menghubungkan header dokumen; `BOM` dan `style` mendukung perencanaan; `subcontract_contract` mengikat issue dan receipt subkon. Kardinalitas final tetap perlu dikonfirmasi.
+`item` → detail penerimaan/pengeluaran/BC/produksi/retur → `inventory_transaction` → laporan saldo. `supplier/customer` dan `user` menghubungkan header dokumen; `BOM` dan `style` mendukung perencanaan. Secara konseptual `subcontract_contract` akan mengikat issue dan receipt subkon; tabel transaksi serta kardinalitas detail masih pending.
 
 ### Material Order
 
@@ -184,3 +188,15 @@ Memperluas `production_order_stage_entries` dengan `sewing_number` dan indeks; r
 - `wip_issue_lines`: dokumen, item WIP, jumlah positif, keterangan, soft delete. Satu item per dokumen saat ini; kebutuhan multi-item **NEEDS CONFIRMATION**.
 - `stock_movements` menyimpan referensi dokumen/baris WIP dan movement `wip_issue` negatif. Edit/hapus membuat reversal positif dan tidak menghapus histori mutasi. Stok/lot berubah di dalam transaksi DB; pengeluaran ditolak bila saldo menjadi negatif.
 - Biaya pergerakan memakai average cost stok yang tersedia. Akun beban, gudang/lokasi, tautan MO/permintaan, tujuan/subkontrak, approval, batas kuantitas, serta perlakuan reversal **NEEDS CONFIRMATION**.
+
+### Mesin/Peralatan Masuk Kaber — implementasi awal
+
+`equipment_receipt_documents` menyimpan company, nomor unik per company, tanggal, kategori `own`/`rent`, nomor/tanggal invoice, supplier opsional, currency, keterangan, pembuat, dan soft delete. `equipment_receipt_items` memisahkan rincian dengan FK opsional ke `products` serta snapshot kode/nama/unit, jumlah, harga satuan/total, No. PO Supplier teks, dan keterangan. Pemilih baris membatasi master aktif ke kategori `MACHINE` atau `EQUIPMENT`; nomor memakai Document Numbering `equipment_receipt` ber-prefix MCHI. Simpan/edit/hapus diaudit. Belum ada relasi ke `stock_movements`, aset tetap, atau jurnal.
+
+`equipment_issue_documents` menyimpan company, nomor unik per company, tanggal, pembuat, dan soft delete. `equipment_issue_items` menyimpan satu rincian per dokumen (constraint unik), product FK nullable, snapshot kode/nama/unit, kuantitas, dan keterangan. Nomor memakai Document Numbering `equipment_issue` ber-prefix MCHO. Tidak terhubung ke stock movements atau asset ledger sampai aturan pengeluaran dikonfirmasi (**NEEDS CONFIRMATION**).
+
+**NEEDS CONFIRMATION:** kategori master resmi, arti “Kaber”, apakah Sewa memerlukan tanggal kontrak/masa sewa dan proses retur, serial number/lokasi/penanggung jawab, approval, kapitalisasi/depresiasi, perlakuan stok, mata uang yang diizinkan, sumber No. PO Supplier, serta aturan delete setelah dipakai.
+
+### Kartu Stok Mesin/Peralatan
+
+Tidak menambah tabel/migrasi. Daftar memakai produk aktif berkategori `MACHINE` atau `EQUIPMENT`; histori menggabungkan item `equipment_receipt_items` dan `equipment_issue_items` melalui dokumen induk dan company. Penerimaan dihitung positif, pengeluaran negatif, lalu saldo berjalan dihitung saat query. Dokumen soft-deleted dikecualikan. Rincian dengan `product_id` kosong tidak bisa ditautkan ke kartu produk. Belum ada mutasi fisik pada `stock_movements`.

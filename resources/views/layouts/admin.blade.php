@@ -74,6 +74,20 @@
         .sidebar {
             background: #ffffff !important;
             border-right: 1px solid #e5eee8;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Keep the navigation independently scrollable when its menu grows. */
+        .sidebar .sidebar-body {
+            flex: 1 1 auto;
+            min-height: 0;
+            height: auto;
+            max-height: none;
+            overflow-y: auto !important;
+            overflow-x: hidden;
+            scrollbar-width: thin;
+            scrollbar-color: #d1fae5 transparent;
         }
 
 

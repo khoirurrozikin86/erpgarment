@@ -30,6 +30,7 @@ class StockMovement extends Model
         'goods_sent_note_id', 'goods_sent_note_item_id',
         'wip_issue_document_id', 'wip_issue_line_id',
         'scrap_receipt_document_id',
+        'scrap_issue_document_id',
         'created_by',
         'movement_type',
         'quantity',
@@ -140,6 +141,11 @@ class StockMovement extends Model
     public function scrapReceiptDocument(): BelongsTo
     {
         return $this->belongsTo(ScrapReceiptDocument::class, 'scrap_receipt_document_id');
+    }
+
+    public function scrapIssueDocument(): BelongsTo
+    {
+        return $this->belongsTo(ScrapIssueDocument::class, 'scrap_issue_document_id');
     }
 
     public function createdBy(): BelongsTo

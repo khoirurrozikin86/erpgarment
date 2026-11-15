@@ -45,8 +45,9 @@
 | Dokumen BC | Filter tanggal dokumen; tabel lebar berisi No Aju, No/Tgl dokumen, referensi transaksi penerimaan/pengiriman, supplier/customer, kode/nama barang, kuantitas, satuan, harga, mata uang dan HS code; administrasi data serta ekspor | BC masuk `image39`–`image48`, BC keluar `image137`–`image151` |
 | Mutasi/kartu stok | Pilih/tampilkan barang atau periode, tabel agregat saldo awal, pemasukan, pengeluaran, adjustment, saldo akhir dan pencacahan/selisih; ekspor Excel | Kartu stok bahan baku `image70`, laporan mutasi `image168`–`image179` |
 | Kartu Stok Barang Jadi | Tabel pilih barang kategori Finished Goods dengan kode/nama/satuan dan tombol Tampil; detail memuat tanggal, nomor mutasi, uraian, jumlah, tanda +/- (S untuk saldo fisik), saldo berjalan, pengguna; ekspor Excel pada daftar dan detail | Screenshot Kartu Stock Barang Jadi yang diberikan pemilik |
+| Kartu Stok Scrap | Tabel pilih item `WASTE` dengan kelompok SCRAP, kategori, kode/nama barang, satuan dan tombol Tampil; detail memuat tanggal, nomor mutasi, uraian, jumlah, tanda +/- (S untuk saldo fisik), saldo berjalan, pengguna; ekspor Excel pada detail | Screenshot Kartu Stock Scrap yang diberikan pemilik |
 | Produksi | Daftar bernomor MO/planning, tanggal, user, dokumen dan jumlah; subhalaman Detail; beberapa menu produksi menunjukkan record hasil tiap tahap | Hasil cutting `image83`, hasil packing `image89`, barang setengah jadi `image127` |
-| Monitoring | Filter tanggal; kontrak, subkon, nomor kontrak/BC, keterangan, mulai/berakhir, kuota; beberapa tabel detail keluar/masuk | Kontrak `image125`/`image132`, monitoring `image133`–`image135` |
+| Subkontrak | Master subkon dan kontrak dalam tabel terpisah; kontrak difilter tanggal, tambah/edit melalui modal, nomor kontrak ditampilkan otomatis, aksi edit/hapus. Input Barang Setengah Jadi memakai filter tanggal, tabel per rincian, modal tambah/edit, pemilih barang dan MO berbentuk DataTable. Kolom keluar/masuk belum menjadi transaksi | Kontrak `image125`/`image132`, Input Barang Setengah Jadi pada referensi terbaru, monitoring `image133`–`image135` |
 | Laporan | Filter periode/tanggal, kadang pilihan kategori atau jenis BC; Tampilkan Data dan Export Excel; tabel baca-saja dengan kolom agregat atau lintas tahap | Laporan pemasukan `image153`, WIP `image171`, status harian `image185` |
 
 ## Catatan konsistensi
@@ -92,5 +93,29 @@ Daftar menggunakan filter tanggal, Show Data, export Excel, dan DataTable ringka
 
 - Daftar mengikuti referensi: filter rentang tanggal dan kolom nomor/tanggal penerimaan, kode/nama scrap, satuan, dan jumlah; ditambah kode/nama perca sumber, No. Produksi, dan keterangan untuk mempertahankan field form yang terlihat.
 - Add/edit menggunakan modal; master barang kategori `WASTE` dan item sumber dipilih melalui DataTable. Nomor mengikuti Document Numbering, daftar memiliki ekspor Excel dan aksi koreksi/hapus kecil.
-- Grup sidebar **Bahan Sisa** berisi Damage, Lost, dan Scrap Masuk Gudang. Grup **Mesin** tampil sebagai placeholder tanpa fitur transaksi sampai scope mesin dikonfirmasi.
+- Scrap Masuk Gudang berada di grup **Bahan Sisa**; Barang Rusak dan Barang Hilang berada di grup **Gudang & Persediaan** sesuai arahan pemilik proses. Grup **Mesin** tampil sebagai placeholder tanpa fitur transaksi sampai scope mesin dikonfirmasi.
+
+### Scrap Keluar Gudang
+- Daftar memuat filter rentang tanggal, tombol tampilkan dan ekspor Excel, serta DataTable nomor dokumen/tanggal, pelanggan, kode/nama barang, satuan, jumlah, keterangan, dan aksi edit/hapus.
+- Form modal memuat nomor otomatis, tanggal, pelanggan, pemilih item scrap melalui DataTable, jumlah dan keterangan. Picker pelanggan juga berbentuk DataTable.
+- Simpanan mengurangi saldo produk `WASTE`; perubahan dan pembatalan ditulis ke histori kartu stok.
 - Makna relasi item perca/No. Produksi, valuasi, serta apakah dokumen dapat multi-item **NEEDS CONFIRMATION**.
+
+## Mesin/Peralatan Masuk Kaber — implementasi awal
+
+- Daftar mengikuti referensi: filter tanggal penerimaan; tabel nomor, aksi Detail/Edit/Hapus, kategori Own/Sewa, nomor dan tanggal penerimaan, nomor/tanggal invoice, supplier, serta keterangan.
+- Form tambah/edit menggunakan modal header dan daftar baris: item mesin/peralatan (dipilih melalui DataTable), kode/nama/satuan, jumlah, harga, total harga, No. PO Supplier, dan keterangan. Header juga menyimpan mata uang.
+- Ekspor Excel satu baris per item; nomor penerimaan otomatis melalui Document Numbering. Menu Mesin mengikuti izin `equipment-receipts.*`.
+
+### Mesin/Peralatan Keluar Kaber
+
+- Daftar berfilter tanggal dengan kolom nomor/tanggal keluar, kode/nama barang, satuan, jumlah, keterangan, serta aksi edit/hapus ringkas; ekspor Excel mengikuti filter tanggal.
+- Tambah/edit memakai modal. Satu dokumen memiliki satu item yang dipilih melalui modal DataTable dari master aktif kategori MACHINE/EQUIPMENT. Nomor otomatis `equipment_issue` ber-prefix MCHO.
+- Pengurangan saldo/aset dan informasi tujuan belum tampak pada referensi; tandai **NEEDS CONFIRMATION**.
+- Detail item dibuka dari aksi Detail agar tabel utama tetap ringkas. Pengaruh terhadap stok/aset tidak diposting sampai perlakuannya dikonfirmasi.
+
+### Kartu Stok Mesin/Peralatan
+
+- Halaman awal menampilkan item aktif kategori MACHINE/EQUIPMENT (kode, nama, satuan) dengan aksi **Tampil**; detail item membuka kartu transaksi, bukan form edit.
+- Kartu detail berisi tanggal, nomor mutasi, uraian, jumlah, arah (+/-), saldo berjalan, dan pengguna, dengan Export Excel serta Kembali.
+- Saldo diturunkan dari dokumen aktif Mesin Masuk/Keluar Kaber. Ini laporan informatif karena dokumen sumber belum mem-posting mutasi stok fisik.

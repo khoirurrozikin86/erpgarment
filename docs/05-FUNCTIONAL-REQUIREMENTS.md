@@ -53,7 +53,9 @@ Label **Terlihat** berasal langsung dari menu/form/tabel pada screenshot; **Infe
 
 ## F. Subkontrak, scrap, aset
 
-- **Terlihat** — catat kontrak subkon berisi subkon, nomor kontrak/BC, keterangan, periode dan kuota; tersedia transaksi pengeluaran bahan/WIP dan penerimaan serta monitoring.
+- **Diimplementasikan** — master subkon dan CRUD kontrak dengan nomor kontrak, referensi SKep BC, keterangan, masa berlaku, kuota, filter tanggal, dan nomor otomatis.
+- **Diimplementasikan** — Input Barang Setengah Jadi mencatat tanggal/nomor, satu item kategori WIP, jumlah, deskripsi, PO Buyer, serta MO opsional. Daftar dapat difilter tanggal; tambah/edit dan pemilihan item/MO memakai modal DataTable. Hak akses, audit, validasi company, serta Document Numbering diterapkan.
+- **Belum diimplementasikan** — transaksi pengeluaran bahan/WIP, penerimaan hasil dari subkon, dan monitoring kuota. Input WIP belum mengubah kartu stok. Relasi hasil ke kontrak, kuota, approval, dan dampak stok memerlukan konfirmasi.
 - **Terlihat** — catat scrap masuk/keluar dan mesin/peralatan masuk/keluar Kaber, termasuk kartu stok.
 - **NEEDS CONFIRMATION** — arti Kaber, asal dan tujuan scrap/aset, satuan kuota, pengurangan kuota, pelaporan kehilangan/kerusakan, persetujuan dan kebutuhan nilai aset.
 
@@ -203,6 +205,12 @@ Label **Terlihat** berasal langsung dari menu/form/tabel pada screenshot; **Infe
 - Kartu ini hanya membaca histori ledger yang sudah ada; tidak membuat saldo maupun transaksi baru. Kolom No MO di daftar dibiarkan kosong karena satu produk dapat memiliki banyak order produksi.
 - Endpoint pencatatan stage generik menolak tahap Packing agar penomoran dan mutasi selalu melalui modul ini.
 
+### Kartu Stok Scrap
+- Daftar mengambil produk aktif kategori `WASTE` yang melacak stok, menampilkan kelompok SCRAP, kategori, kode/nama, satuan, dan tombol Tampil.
+- Detail menampilkan tanggal transaksi, nomor sumber, uraian, jumlah absolut, tanda `+`/`-` (`S` untuk saldo fisik), saldo setelah mutasi, serta pengguna. Sumber saldo adalah `stock_movements.quantity_after`.
+- Ekspor Excel tersedia pada detail dan menggunakan urutan/kolom ledger yang sama. Akses memakai permission `stock-card.view`; tidak ada perubahan schema.
+- **NEEDS CONFIRMATION:** arti kelompok SCRAP sebagai klasifikasi bisnis (saat ini hanya label presentasi) dan apakah kategori WASTE yang tidak aktif perlu ikut ditampilkan.
+
 ## Good Sent Notes (GSN)
 
 - Daftar memakai filter tanggal dan DataTable dengan nomor GSN, MO, kontrak, tanggal, kendaraan, user, detail, edit, cetak, hapus, serta export Excel (satu baris per item).
@@ -225,4 +233,28 @@ Label **Terlihat** berasal langsung dari menu/form/tabel pada screenshot; **Infe
 
 ## Scrap Masuk Gudang — implementasi awal (2026-11-14)
 - **Diimplementasikan:** grup sidebar Bahan Sisa/Mesin; Scrap Masuk Gudang memakai nomor SCI dari Document Numbering, filter tanggal, DataTable, modal tambah/edit, pemilih barang WASTE dan perca sumber, jumlah, No. Produksi/keterangan, ekspor Excel, CRUD dengan koreksi saldo/lot terlacak, audit log, permission, dan referensi kartu stok.
+
+## Scrap Keluar Gudang — implementasi awal (2026-11-14)
+- **Diimplementasikan:** nomor SCO dari Document Numbering; filter tanggal; tabel, Excel, modal tambah/edit, picker DataTable untuk pelanggan dan barang WASTE, hapus, permission, audit log, dan mutasi stok keluar serta koreksi terlacak pada kartu stok.
+- **Aturan:** stok dan lot tidak boleh negatif; edit/hapus ditolak jika ada mutasi stok yang lebih baru untuk item yang sama.
+- **NEEDS CONFIRMATION:** aturan costing/jurnal, tujuan scrap yang diwakili pelanggan, retur scrap, dan koreksi setelah transaksi lanjutan.
 - **NEEDS CONFIRMATION:** makna/relasi No. Produksi dan sumber perca, valuasi/jurnal, pembatasan kategori item perca, serta apakah satu dokumen dapat memuat banyak item. Grup Mesin hanya placeholder navigasi karena tidak ada spesifikasi transaksi mesin pada permintaan ini.
+
+## Mesin/Peralatan Masuk Kaber — implementasi awal (2026-11-14)
+
+- **Diimplementasikan:** daftar filter tanggal, DataTable, modal tambah/edit dengan banyak baris, modal pemilihan item, detail, hapus, supplier picker, ekspor Excel satu baris per rincian, audit log, permission, sidebar Mesin, dan penomoran `equipment_receipt` prefix MCHI.
+- **Field header:** nomor/tanggal penerimaan, kategori Own/Sewa, nomor/tanggal invoice, supplier, mata uang, keterangan. **Field rincian:** produk kategori master MACHINE/EQUIPMENT, jumlah, harga satuan/total, PO Supplier, keterangan; kode/nama/unit diambil dari master dan disimpan sebagai snapshot.
+- **Batas implementasi:** penyimpanan penerimaan tidak mengubah saldo stok, lot, aset tetap, atau jurnal karena aturan tersebut belum disepakati.
+- **NEEDS CONFIRMATION:** arti Kaber dan dokumen sumber; perlakuan sewa, serial/lokasi/umur manfaat, approval, retur, kapitalisasi/depresiasi, posting stok/jurnal, daftar currency, dan apakah PO Supplier wajib/berelasi dengan PO.
+
+## Mesin/Peralatan Keluar Kaber — implementasi awal (2026-11-14)
+
+- **Diimplementasikan:** daftar berfilter tanggal, modal tambah/edit, picker item DataTable, satu item per dokumen, nomor MCHO, CRUD, audit, permission, sidebar Mesin, Excel berdasarkan rentang tanggal.
+- **NEEDS CONFIRMATION:** tujuan/penerima, persetujuan, dan apakah transaksi mengurangi kuantitas stok/aset atau menjadi pemindahan lokasi. Belum ada mutasi saldo/aset/jurnal.
+
+## Kartu Stok Mesin/Peralatan — implementasi (2026-11-14)
+
+- [x] Daftar item aktif kategori `MACHINE`/`EQUIPMENT`, pencarian/paginasi DataTable, dan aksi Tampil.
+- [x] Detail berisi tanggal, nomor dokumen, uraian transaksi masuk/keluar, jumlah, arah, saldo berjalan, pengguna, serta Export Excel.
+- [x] Data dibatasi company aktif dan dokumen yang belum dihapus; akses memakai `stock-card.view`.
+- [ ] Posting stok fisik/aset, valuasi, serial number, dan lokasi **NEEDS CONFIRMATION**; saldo saat ini hanya informatif dari dokumen masuk/keluar.
