@@ -12,7 +12,7 @@ class DailyProductionStatusReportExport extends DefaultValueBinder implements Fr
     public function query() { return app(DailyProductionStatusReportQuery::class)->builder($this->companyId, $this->filters); }
     public function headings(): array
     {
-        return ['Buyer', 'No Planning', 'PO Buyer', 'Style', 'Kode Barang', 'Nama Barang', 'Jumlah Order (1)', 'Cutting Today (2)', 'Cutting Total (3)', '4 = 3 - 1', 'Sewing Today (5)', 'Sewing Total (6)', '7 = 6 - 3', 'Finishing Today (8)', 'Finishing Total (9)', '10 = 9 - 6', 'Delivery Today (11)', 'Delivery Total (12)'];
+        return [__('bc_reports.buyer'), __('bc_reports.planning_no'), __('bc_reports.buyer_po'), __('bc_reports.style'), __('bc_reports.item_code'), __('bc_reports.item_name'), __('bc_reports.order_quantity_1'), __('bc_reports.cutting_today_export'), __('bc_reports.cutting_total_export'), '4 = 3 - 1', __('bc_reports.sewing_today_export'), __('bc_reports.sewing_total_export'), '7 = 6 - 3', __('bc_reports.finishing_today_export'), __('bc_reports.finishing_total_export'), '10 = 9 - 6', __('bc_reports.delivery_today_export'), __('bc_reports.delivery_total_export')];
     }
     public function map($row): array
     {

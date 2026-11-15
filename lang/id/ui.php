@@ -1,6 +1,24 @@
 <?php
 
 return [
+    'report_menu' => [
+        'bc' => 'Laporan BC',
+        'operational' => 'Laporan Operasional',
+        'incoming' => 'Laporan Pemasukan Barang',
+        'supplier_return' => 'Laporan Retur ke Supplier',
+        'outgoing' => 'Laporan Pengeluaran Barang',
+        'material_mutation' => 'Mutasi Bahan Baku & Penolong',
+        'finished_goods_mutation' => 'Mutasi Barang Jadi (Hasil Produksi)',
+        'capital_goods_mutation' => 'Mutasi Barang Modal & Barang Lain',
+        'reject_scrap_mutation' => 'Mutasi Reject & Scrap/Waste',
+        'production_plan' => 'Laporan Rencana Produksi',
+        'daily_production_status' => 'Status Produksi Harian',
+        'production_result' => 'Laporan Hasil Produksi',
+        'warehouse_return' => 'Laporan Retur ke Gudang',
+        'finished_goods_return' => 'Laporan Retur Barang Jadi',
+        'wip_position' => 'Posisi Barang dalam Proses (WIP)',
+    ],
+    'menu_search' => ['label' => 'Cari menu', 'placeholder' => 'Cari menu…', 'empty' => 'Menu tidak ditemukan.'],
     'modules' => [
         'purchase_return_subtitle' => 'Catat barang yang dikembalikan kepada pemasok dari penerimaan.', 'purchase_return_create_title' => 'Catat Retur Pembelian',
         'purchase_return_create_help' => 'Pilih penerimaan asal dan catat barang yang dikembalikan kepada pemasok.', 'search_receipt' => 'Cari Penerimaan',

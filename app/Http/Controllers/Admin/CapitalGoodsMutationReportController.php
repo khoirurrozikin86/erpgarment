@@ -20,7 +20,7 @@ class CapitalGoodsMutationReportController extends Controller
         ]);
         $filters['from_date'] ??= now()->startOfMonth()->toDateString();
         $filters['to_date'] ??= now()->toDateString();
-        if ($filters['from_date'] > $filters['to_date']) throw ValidationException::withMessages(['to_date' => 'Tanggal akhir harus sama atau setelah tanggal awal.']);
+        if ($filters['from_date'] > $filters['to_date']) throw ValidationException::withMessages(['to_date' => __('bc_reports.the_end_date_must_be_on_or_after_the_start_date')]);
         $filters['_company_id'] = app(CompanyContext::class)->id();
         return $filters;
     }

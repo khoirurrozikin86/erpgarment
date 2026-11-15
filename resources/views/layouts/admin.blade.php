@@ -335,13 +335,13 @@
 
         /* Keep long menu labels inside the expanded sidebar. */
         :is(body:not(.sidebar-folded), body.open-sidebar-folded) .sidebar .sidebar-body .nav {
-            padding: 20px 10px 40px;
+            padding: 8px 10px 16px;
         }
         :is(body:not(.sidebar-folded), body.open-sidebar-folded) .sidebar .sidebar-body .nav .nav-item .nav-link {
             height: auto;
-            min-height: 40px;
-            margin: 3px 4px;
-            padding: 9px 10px;
+            min-height: 30px;
+            margin: 1px 4px;
+            padding: 5px 10px;
             gap: 10px;
             white-space: normal;
         }
@@ -362,6 +362,14 @@
         .sidebar-search .form-control {min-width:0}
         .sidebar [hidden] {display:none !important}
         .sidebar-folded:not(.open-sidebar-folded) .sidebar-search {display:none}
+        :is(body:not(.sidebar-folded), body.open-sidebar-folded) .sidebar .sidebar-body .nav .nav-item.nav-category {
+            margin-top: 10px;
+            margin-bottom: 3px;
+            padding-top: 0;
+            padding-bottom: 0;
+            height: auto;
+            line-height: 1.4;
+        }
     </style>
 
 </head>

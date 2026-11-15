@@ -12,7 +12,7 @@ class FinishedGoodsMutationReportExport extends DefaultValueBinder implements Fr
     public function query() { return app(FinishedGoodsMutationReportQuery::class)->builder($this->filters); }
     public function headings(): array
     {
-        return ['Kode Barang', 'Nama Barang', 'Satuan Barang', 'Jumlah Barang', 'Saldo Awal', 'Jumlah Pemasukan Barang', 'Jumlah Pengeluaran Barang', 'Penyesuaian (Adjustment)', 'Saldo Akhir', 'Hasil Pencacahan', 'Jumlah Selisih', 'Keterangan'];
+        return [__('bc_reports.item_code'), __('bc_reports.item_name'), __('bc_reports.item_unit'), __('bc_reports.item_quantity'), __('bc_reports.opening_balance'), __('bc_reports.incoming_quantity'), __('bc_reports.outgoing_quantity'), __('bc_reports.adjustment'), __('bc_reports.closing_balance'), __('bc_reports.physical_count'), __('bc_reports.difference'), __('bc_reports.remarks')];
     }
     public function map($product): array
     {

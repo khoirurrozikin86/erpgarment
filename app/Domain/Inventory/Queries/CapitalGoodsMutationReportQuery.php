@@ -53,6 +53,6 @@ class CapitalGoodsMutationReportQuery extends MaterialMutationReportQuery
         $outgoing = (float) $product->issued_period;
         return ['opening' => $opening, 'incoming' => $incoming, 'outgoing' => $outgoing, 'adjustment' => null,
             'closing' => round($opening + $incoming - $outgoing, 4), 'counted' => null, 'difference' => null,
-            'notes' => 'Dokumen mesin/peralatan'];
+            'notes' => __('bc_reports.machine_equipment_documents')];
     }
 }

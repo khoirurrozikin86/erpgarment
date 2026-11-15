@@ -10,7 +10,7 @@ class ProductionResultReportExport extends DefaultValueBinder implements FromQue
 {
     public function __construct(private int $companyId, private array $filters) {}
     public function query() { return app(ProductionResultReportQuery::class)->builder($this->companyId, $this->filters); }
-    public function headings(): array { return ['No Planning', 'PO Buyer', 'No Produksi', 'Tanggal', 'Kode Barang', 'Nama Barang', 'Satuan', 'Dari Sewing', 'Hasil Produksi', 'Gudang']; }
+    public function headings(): array { return [__('bc_reports.planning_no'), __('bc_reports.buyer_po'), __('bc_reports.production_no'), __('bc_reports.date'), __('bc_reports.item_code'), __('bc_reports.item_name'), __('bc_reports.unit'), __('bc_reports.received_from_sewing'), __('bc_reports.production_output'), __('bc_reports.warehouse')]; }
     public function map($row): array
     {
         $product = $row->productionOrder?->outputProduct;

@@ -10,7 +10,7 @@ class ProductionPlanReportExport extends DefaultValueBinder implements FromQuery
 {
     public function __construct(private int $companyId, private array $filters) {}
     public function query() { return app(ProductionPlanReportQuery::class)->builder($this->companyId, $this->filters); }
-    public function headings(): array { return ['No Rencana Produksi', 'Tanggal', 'Kode Barang', 'Nama Barang', 'Jumlah Order', 'Jumlah Reject', 'Jumlah Prod', 'Jumlah Export']; }
+    public function headings(): array { return [__('bc_reports.production_plan_no'), __('bc_reports.date'), __('bc_reports.item_code'), __('bc_reports.item_name'), __('bc_reports.order_quantity'), __('bc_reports.rejected_quantity'), __('bc_reports.produced_quantity'), __('bc_reports.export_quantity')]; }
     public function map($row): array
     {
         return [$row->number, $row->po_date?->format('d-m-Y'), $row->outputProduct?->code, $row->outputProduct?->name, (float) $row->planned_quantity, (float) ($row->report_rejected ?? 0), (float) ($row->report_produced ?? 0), '—'];

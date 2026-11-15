@@ -1,6 +1,24 @@
 <?php
 
 return [
+    'report_menu' => [
+        'bc' => 'Customs Reports',
+        'operational' => 'Operational Reports',
+        'incoming' => 'Incoming Goods Report',
+        'supplier_return' => 'Supplier Return Report',
+        'outgoing' => 'Outgoing Goods Report',
+        'material_mutation' => 'Raw & Auxiliary Material Movements',
+        'finished_goods_mutation' => 'Finished Goods Movements (Production Output)',
+        'capital_goods_mutation' => 'Capital & Other Goods Movements',
+        'reject_scrap_mutation' => 'Reject & Scrap/Waste Movements',
+        'production_plan' => 'Production Plan Report',
+        'daily_production_status' => 'Daily Production Status',
+        'production_result' => 'Production Output Report',
+        'warehouse_return' => 'Warehouse Return Report',
+        'finished_goods_return' => 'Finished Goods Return Report',
+        'wip_position' => 'Work in Process (WIP) Position',
+    ],
+    'menu_search' => ['label' => 'Search menus', 'placeholder' => 'Search menus…', 'empty' => 'No menus found.'],
     'modules' => [
         'purchase_return_subtitle' => 'Record goods returned to a supplier from a receipt.', 'purchase_return_create_title' => 'Record Purchase Return',
         'purchase_return_create_help' => 'Select the source receipt and record the items returned to the supplier.', 'search_receipt' => 'Search Receipt',

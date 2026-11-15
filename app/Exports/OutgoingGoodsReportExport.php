@@ -10,7 +10,7 @@ class OutgoingGoodsReportExport extends DefaultValueBinder implements FromQuery,
 {
     public function __construct(private int $companyId, private array $filters) {}
     public function query() { return app(OutgoingGoodsReportQuery::class)->builder($this->companyId, $this->filters); }
-    public function headings(): array { return ['Jenis BC', 'No. Daftar', 'Tgl. Daftar', 'No Pengeluaran', 'Tanggal Pengeluaran', 'Penerima Barang', 'Kode HS', 'Kode Barang', 'Nama Barang', 'Satuan Barang', 'Jumlah Barang', 'Harga Satuan', 'Jumlah Harga']; }
+    public function headings(): array { return [__('bc_reports.customs_document_type'), __('bc_reports.registration_no'), __('bc_reports.registration_date'), __('bc_reports.issue_no'), __('bc_reports.issue_date'), __('bc_reports.recipient'), __('bc_reports.hs_code'), __('bc_reports.item_code'), __('bc_reports.item_name'), __('bc_reports.item_unit'), __('bc_reports.item_quantity'), __('bc_reports.unit_price'), __('bc_reports.total_amount')]; }
     public function map($row): array
     {
         return [null, null, null, $row->number, $row->document_date, $row->recipient, null, $row->item_code, $row->item_name, $row->unit, (float) $row->quantity, null, null];

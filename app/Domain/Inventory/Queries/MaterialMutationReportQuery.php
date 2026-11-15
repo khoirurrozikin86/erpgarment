@@ -56,7 +56,7 @@ class MaterialMutationReportQuery
             'adjustment' => $adjustment, 'closing' => round($opening + $incoming - $outgoing + $adjustment, 4),
             'counted' => $product->counted_quantity === null ? null : (float) $product->counted_quantity,
             'difference' => $product->count_difference === null ? null : (float) $product->count_difference,
-            'notes' => $product->count_number ? 'Opname '.$product->count_number : null,
+            'notes' => $product->count_number ? __('bc_reports.stock_count').$product->count_number : null,
         ];
     }
 }
