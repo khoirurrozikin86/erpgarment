@@ -33,8 +33,8 @@ class PurchaseOrderController extends Controller
                 }
             }],
         ]);
-        $fromDate = $filters['from_date'] ?? null;
-        $toDate = $filters['to_date'] ?? null;
+        $fromDate = $filters['from_date'] ?? now()->startOfMonth()->toDateString();
+        $toDate = $filters['to_date'] ?? now()->toDateString();
 
         return Excel::download(
             new PurchaseOrdersExport($fromDate, $toDate),
@@ -65,7 +65,7 @@ class PurchaseOrderController extends Controller
             }],
         ]);
 
-        return DataTables::eloquent($query->builder($filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->builder($filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('purchase_request_number', fn (PurchaseOrder $order) => $order->purchaseRequest?->number ?? '—')
             ->addColumn('supplier_name', fn (PurchaseOrder $order) => $order->supplier?->name ?? __('ui.workflow.deleted_supplier'))
             ->addColumn('creator_name', fn (PurchaseOrder $order) => $order->creator?->name ?? __('ui.workflow.deleted_user'))

@@ -31,7 +31,7 @@ class FinishedGoodsController extends Controller
     public function dt(Request $request, CompanyContext $company, FinishedGoodsTableQuery $query): JsonResponse
     {
         $filters = $this->filters($request);
-        return DataTables::eloquent($query->builder($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null))->addIndexColumn()
+        return DataTables::eloquent($query->builder($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))->addIndexColumn()
             ->addColumn('date', fn ($row) => $row->processed_at?->format('Y-m-d'))
             ->addColumn('style', fn ($row) => $row->productionOrder?->outputProduct?->style_code ?: '—')
             ->addColumn('item_code', fn ($row) => $row->productionOrder?->outputProduct?->code)
@@ -58,7 +58,7 @@ class FinishedGoodsController extends Controller
     }
 
     public function preview(DocumentNumberService $numbers): JsonResponse { return response()->json(['number' => $numbers->preview('finished_goods')]); }
-    public function export(Request $request, CompanyContext $company) { $filters = $this->filters($request); return Excel::download(new FinishedGoodsExport($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null), 'finished-goods.xlsx'); }
+    public function export(Request $request, CompanyContext $company) { $filters = $this->filters($request); return Excel::download(new FinishedGoodsExport($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()), 'finished-goods.xlsx'); }
     public function store(Request $request, SaveFinishedGoodsAction $action): JsonResponse { $action->create($this->validated($request), (int) $request->user()->id); return response()->json(['message' => __('ui.finished_goods.saved')], 201); }
 
     public function update(Request $request, ProductionOrderStageEntry $entry, CompanyContext $company, SaveFinishedGoodsAction $action): JsonResponse

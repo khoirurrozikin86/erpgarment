@@ -20,7 +20,7 @@ class SubcontractSemiFinishedController extends Controller
     public function dt(Request $request, CompanyContext $company, SubcontractSemiFinishedTableQuery $query): JsonResponse
     {
         $filters = $request->validate(['from_date' => ['nullable', 'date'], 'to_date' => ['nullable', 'date', 'after_or_equal:from_date']]);
-        return DataTables::eloquent($query->builder($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->builder($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('number_label', fn (SubcontractSemiFinishedItem $row) => $row->document?->number ?? '—')
             ->addColumn('date_label', fn (SubcontractSemiFinishedItem $row) => $row->document?->production_date?->format('d-m-Y') ?? '—')
             ->addColumn('description_label', fn (SubcontractSemiFinishedItem $row) => $row->document?->description ?: '—')

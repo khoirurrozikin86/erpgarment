@@ -8,7 +8,7 @@
 @section('content')
 <div class="card"><div class="card-header d-flex justify-content-between align-items-center"><h5 class="mb-0">{{ __('ui.scrap_issue.title') }}</h5>@can('scrap-issues.create')<button class="btn btn-primary btn-sm" id="addScrapIssue"><i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.scrap_issue.add') }}</button>@endcan</div>
 <div class="card-body"><div class="row g-2 align-items-end mb-3">
-    <div class="col-sm-4 col-md-3"><label class="form-label mb-1" for="scrapIssueFrom">{{ __('ui.common.from_date') }}</label><input type="date" id="scrapIssueFrom" class="form-control form-control-sm" value="{{ now()->subDays(30)->toDateString() }}"></div>
+    <div class="col-sm-4 col-md-3"><label class="form-label mb-1" for="scrapIssueFrom">{{ __('ui.common.from_date') }}</label><input type="date" id="scrapIssueFrom" class="form-control form-control-sm" value="{{ now()->startOfMonth()->toDateString() }}"></div>
     <div class="col-sm-4 col-md-3"><label class="form-label mb-1" for="scrapIssueTo">{{ __('ui.common.to_date') }}</label><input type="date" id="scrapIssueTo" class="form-control form-control-sm" value="{{ now()->toDateString() }}"></div>
     <div class="col-auto"><button class="btn btn-primary btn-sm" id="showScrapIssues"><i data-feather="search" class="icon-sm me-1"></i>{{ __('ui.common.show_data') }}</button></div>
     <div class="col-auto"><a class="btn btn-outline-success btn-sm" id="exportScrapIssues" href="{{ route('super.scrap-issues.export') }}"><i data-feather="download" class="icon-sm me-1"></i>{{ __('ui.common.export_excel') }}</a></div>

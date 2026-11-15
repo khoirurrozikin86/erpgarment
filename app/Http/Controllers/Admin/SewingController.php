@@ -21,7 +21,7 @@ class SewingController extends Controller
     public function dt(Request $r, CompanyContext $company, SewingTableQuery $query): JsonResponse
     {
         $f = $this->filters($r);
-        return DataTables::eloquent($query->builder($company->id(), $f['from_date'] ?? null, $f['to_date'] ?? null))->addIndexColumn()
+        return DataTables::eloquent($query->builder($company->id(), $f['from_date'] ?? now()->startOfMonth()->toDateString(), $f['to_date'] ?? now()->toDateString()))->addIndexColumn()
             ->addColumn('number', fn ($x) => $x->sewing_number)->addColumn('cutting_reception', fn ($x) => $x->productionOrder?->stageEntries->sum('good_quantity') ?? 0)->addColumn('date', fn ($x) => $x->processed_at?->format('Y-m-d'))
             ->addColumn('mo', fn ($x) => $x->productionOrder?->number)->addColumn('po_buyer', fn ($x) => $x->productionOrder?->buyer_po_number ?: '—')
             ->addColumn('style', fn ($x) => $x->productionOrder?->outputProduct?->style_code ?: '—')->addColumn('product_code', fn ($x) => $x->productionOrder?->outputProduct?->code)
@@ -54,7 +54,7 @@ class SewingController extends Controller
             ->addColumn('actions', fn ($x) => '<button type="button" class="btn btn-sm btn-primary btn-select-sewing-material" data-id="'.$x->product_id.'" data-label="'.e($x->product?->code.' — '.$x->product?->name).'" data-unit="'.e($x->product?->unit?->symbol ?: $x->product?->unit?->name).'">'.e(__('ui.common.select')).'</button>')->rawColumns(['actions'])->toJson();
     }
 
-    public function export(Request $r, CompanyContext $company) { $f = $this->filters($r); return Excel::download(new SewingExport($company->id(), $f['from_date'] ?? null, $f['to_date'] ?? null), 'sewing.xlsx'); }
+    public function export(Request $r, CompanyContext $company) { $f = $this->filters($r); return Excel::download(new SewingExport($company->id(), $f['from_date'] ?? now()->startOfMonth()->toDateString(), $f['to_date'] ?? now()->toDateString()), 'sewing.xlsx'); }
     public function store(Request $r, SaveSewingAction $action): JsonResponse { $action->create($this->validated($r), (int) $r->user()->id); return response()->json(['message' => __('ui.sewing.saved')], 201); }
     public function update(Request $r, ProductionOrderStageEntry $entry, CompanyContext $company, SaveSewingAction $action): JsonResponse { abort_unless($entry->stage === 'sewing' && $entry->productionOrder()->where('company_id',$company->id())->exists(),404); $action->update($entry,$this->validated($r),(int)$r->user()->id); return response()->json(['message'=>__('ui.sewing.updated')]); }
     public function destroy(Request $r, ProductionOrderStageEntry $entry, CompanyContext $company, SaveSewingAction $action): JsonResponse { abort_unless($entry->stage === 'sewing' && $entry->productionOrder()->where('company_id',$company->id())->exists(),404); $action->delete($entry,(int)$r->user()->id); return response()->json(['message'=>__('ui.sewing.deleted')]); }

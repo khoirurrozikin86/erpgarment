@@ -29,7 +29,7 @@ class PurchaseReturnController extends Controller
     {
         $filters = $this->dateFilters($request);
 
-        return DataTables::eloquent($query->builder($filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->builder($filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('receipt_number', fn (PurchaseReturn $purchaseReturn) => $purchaseReturn->goodsReceipt?->number ?? '—')
             ->addColumn('supplier_name', fn (PurchaseReturn $purchaseReturn) => $purchaseReturn->supplier?->name ?? __('ui.modules.supplier_deleted'))
             ->addColumn('returner_name', fn (PurchaseReturn $purchaseReturn) => $purchaseReturn->returner?->name ?? __('ui.modules.user_deleted'))

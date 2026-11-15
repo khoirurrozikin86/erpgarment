@@ -40,7 +40,7 @@ class GoodsReceiptController extends Controller
             }],
         ]);
 
-        return DataTables::eloquent($query->builder($filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->builder($filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('purchase_order_number', fn (GoodsReceipt $receipt) => $receipt->purchaseOrder?->number ?? '—')
             ->addColumn('supplier_name', fn (GoodsReceipt $receipt) => $receipt->supplier?->name ?? __('ui.workflow.deleted_supplier'))
             ->addColumn('material_request_number', fn (GoodsReceipt $receipt) => $receipt->purchaseOrder?->purchaseRequest?->materialRequest?->number ?? '—')
@@ -72,8 +72,8 @@ class GoodsReceiptController extends Controller
                 if ($value && $request->input('from_date') && $value < $request->input('from_date')) $fail('Tanggal akhir harus sama atau setelah tanggal awal.');
             }],
         ]);
-        $from = $filters['from_date'] ?? null;
-        $to = $filters['to_date'] ?? null;
+        $from = $filters['from_date'] ?? now()->startOfMonth()->toDateString();
+        $to = $filters['to_date'] ?? now()->toDateString();
 
         return Excel::download(new GoodsReceiptsExport($from, $to), 'goods-receipts-' . ($from ?: 'all') . '-to-' . ($to ?: 'all') . '.xlsx');
     }

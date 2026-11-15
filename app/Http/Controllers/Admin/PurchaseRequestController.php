@@ -41,7 +41,7 @@ class PurchaseRequestController extends Controller
             }],
         ]);
 
-        return DataTables::eloquent($query->builder($filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->builder($filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('material_request_number', fn (PurchaseRequest $request) => $request->materialRequest?->number ?? '—')
             ->addColumn('buyer_po_number', fn (PurchaseRequest $request) => $request->materialRequest?->productionOrder?->buyer_po_number ?: '—')
             ->addColumn('production_item', function (PurchaseRequest $request) {
@@ -109,8 +109,8 @@ class PurchaseRequestController extends Controller
             }],
         ]);
 
-        $fromDate = $filters['from_date'] ?? null;
-        $toDate = $filters['to_date'] ?? null;
+        $fromDate = $filters['from_date'] ?? now()->startOfMonth()->toDateString();
+        $toDate = $filters['to_date'] ?? now()->toDateString();
 
         return Excel::download(
             new PurchaseRequestsExport($fromDate, $toDate),

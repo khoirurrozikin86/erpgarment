@@ -22,7 +22,7 @@ class EquipmentReceiptController extends Controller
     public function dt(Request $request, CompanyContext $company, EquipmentReceiptTableQuery $query): JsonResponse
     {
         $filters = $this->filters($request);
-        return DataTables::eloquent($query->documents($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->documents($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('date_label', fn (EquipmentReceiptDocument $r) => $r->receipt_date?->format('Y-m-d'))
             ->addColumn('invoice_date_label', fn (EquipmentReceiptDocument $r) => $r->invoice_date?->format('Y-m-d') ?? '—')
             ->addColumn('ownership_label', fn (EquipmentReceiptDocument $r) => __('ui.machine_receipt.ownership_'.$r->ownership_type))
@@ -59,7 +59,7 @@ class EquipmentReceiptController extends Controller
     public function store(Request $request, SaveEquipmentReceiptAction $action): JsonResponse { $r = $action->create($this->validated($request), (int)$request->user()->id); return response()->json(['message' => __('ui.machine_receipt.saved'), 'number' => $r->number], 201); }
     public function update(Request $request, EquipmentReceiptDocument $equipmentReceipt, SaveEquipmentReceiptAction $action): JsonResponse { $r = $action->update($equipmentReceipt, $this->validated($request), (int)$request->user()->id); return response()->json(['message' => __('ui.machine_receipt.updated'), 'number' => $r->number]); }
     public function destroy(Request $request, EquipmentReceiptDocument $equipmentReceipt, SaveEquipmentReceiptAction $action): JsonResponse { $action->delete($equipmentReceipt, (int)$request->user()->id); return response()->json(['message' => __('ui.machine_receipt.deleted')]); }
-    public function export(Request $request, CompanyContext $company) { $f = $this->filters($request); return Excel::download(new EquipmentReceiptsExport($company->id(), $f['from_date'] ?? null, $f['to_date'] ?? null), 'equipment-receipts.xlsx'); }
+    public function export(Request $request, CompanyContext $company) { $f = $this->filters($request); return Excel::download(new EquipmentReceiptsExport($company->id(), $f['from_date'] ?? now()->startOfMonth()->toDateString(), $f['to_date'] ?? now()->toDateString()), 'equipment-receipts.xlsx'); }
     private function filters(Request $r): array { return $r->validate(['from_date' => ['nullable', 'date'], 'to_date' => ['nullable', 'date', 'after_or_equal:from_date']]); }
     private function validated(Request $r): array { return $r->validate(['receipt_date' => ['required', 'date'], 'ownership_type' => ['required', 'in:own,rent'], 'invoice_number' => ['nullable', 'string', 'max:150'], 'invoice_date' => ['nullable', 'date'], 'supplier_id' => ['nullable', 'integer', 'exists:suppliers,id'], 'currency_code' => ['nullable', 'string', 'max:10'], 'description' => ['nullable', 'string', 'max:5000'], 'items' => ['required', 'array', 'min:1'], 'items.*.product_id' => ['required', 'integer', 'exists:products,id'], 'items.*.quantity' => ['required', 'numeric', 'gt:0', 'max:999999999999.9999'], 'items.*.unit_price' => ['nullable', 'numeric', 'gte:0', 'max:999999999999.9999'], 'items.*.supplier_po_number' => ['nullable', 'string', 'max:150'], 'items.*.description' => ['nullable', 'string', 'max:5000']]); }
 }

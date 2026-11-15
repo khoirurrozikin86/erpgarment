@@ -21,7 +21,7 @@ class EquipmentIssueController extends Controller
     public function dt(Request $request, CompanyContext $company, EquipmentIssueTableQuery $query): JsonResponse
     {
         $filters = $this->filters($request);
-        return DataTables::eloquent($query->documents($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->documents($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('date_label', fn ($r) => $r->issue_date?->format('Y-m-d'))
             ->addColumn('item_code', fn ($r) => $r->item?->item_code ?? '—')->addColumn('item_name', fn ($r) => $r->item?->item_name ?? '—')
             ->addColumn('unit', fn ($r) => $r->item?->unit ?? '—')->addColumn('quantity', fn ($r) => $r->item?->quantity ?? '—')->addColumn('description', fn ($r) => $r->item?->description ?? '—')
@@ -50,7 +50,7 @@ class EquipmentIssueController extends Controller
     public function store(Request $request, SaveEquipmentIssueAction $action): JsonResponse { $r = $action->create($this->validated($request), (int)$request->user()->id); return response()->json(['message' => __('ui.machine_issue.saved'), 'number' => $r->number], 201); }
     public function update(Request $request, EquipmentIssueDocument $equipmentIssue, SaveEquipmentIssueAction $action): JsonResponse { $r = $action->update($equipmentIssue, $this->validated($request), (int)$request->user()->id); return response()->json(['message' => __('ui.machine_issue.updated'), 'number' => $r->number]); }
     public function destroy(Request $request, EquipmentIssueDocument $equipmentIssue, SaveEquipmentIssueAction $action): JsonResponse { $action->delete($equipmentIssue, (int)$request->user()->id); return response()->json(['message' => __('ui.machine_issue.deleted')]); }
-    public function export(Request $request, CompanyContext $company) { $f = $this->filters($request); return Excel::download(new EquipmentIssuesExport($company->id(), $f['from_date'] ?? null, $f['to_date'] ?? null), 'equipment-issues.xlsx'); }
+    public function export(Request $request, CompanyContext $company) { $f = $this->filters($request); return Excel::download(new EquipmentIssuesExport($company->id(), $f['from_date'] ?? now()->startOfMonth()->toDateString(), $f['to_date'] ?? now()->toDateString()), 'equipment-issues.xlsx'); }
 
     private function filters(Request $r): array { return $r->validate(['from_date' => ['nullable', 'date'], 'to_date' => ['nullable', 'date', 'after_or_equal:from_date']]); }
     private function validated(Request $r): array { return $r->validate(['issue_date' => ['required', 'date'], 'product_id' => ['required', 'integer', 'exists:products,id'], 'quantity' => ['required', 'numeric', 'gt:0', 'max:999999999999.9999'], 'description' => ['nullable', 'string', 'max:5000']]); }

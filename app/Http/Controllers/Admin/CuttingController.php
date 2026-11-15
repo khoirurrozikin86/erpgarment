@@ -19,7 +19,7 @@ class CuttingController extends Controller
  private function filters(Request $r):array{return $r->validate(['from_date'=>['nullable','date_format:Y-m-d'],'to_date'=>['nullable','date_format:Y-m-d',function($a,$v,$fail)use($r){if($v&&$r->from_date&&$v<$r->from_date)$fail(__('ui.cutting.invalid_range'));}]]);}
  public function dt(Request $r,CompanyContext $company,CuttingTableQuery $query):JsonResponse
  {
-  $f=$this->filters($r);return DataTables::eloquent($query->builder($company->id(),$f['from_date']??null,$f['to_date']??null))->addIndexColumn()
+  $f=$this->filters($r);return DataTables::eloquent($query->builder($company->id(),$f['from_date'] ?? now()->startOfMonth()->toDateString(),$f['to_date'] ?? now()->toDateString()))->addIndexColumn()
    ->addColumn('number',fn($x)=>$x->cutting_number)->addColumn('date',fn($x)=>$x->processed_at?->format('Y-m-d'))
    ->addColumn('mo',fn($x)=>$x->productionOrder?->number)->addColumn('po_buyer',fn($x)=>$x->productionOrder?->buyer_po_number?:'—')
    ->addColumn('style',fn($x)=>$x->productionOrder?->outputProduct?->style_code?:'—')->addColumn('product_code',fn($x)=>$x->productionOrder?->outputProduct?->code)
@@ -50,7 +50,7 @@ class CuttingController extends Controller
    ->addColumn('actions',fn($x)=>'<button class="btn btn-sm btn-primary btn-select-cutting-material" data-id="'.$x->product_id.'" data-label="'.e($x->product?->code.' — '.$x->product?->name).'" data-unit="'.e($x->product?->unit?->symbol?:$x->product?->unit?->name).'">'.e(__('ui.common.select')).'</button>')
    ->rawColumns(['actions'])->toJson();
  }
- public function export(Request $r,CompanyContext $company){$f=$this->filters($r);return Excel::download(new CuttingExport($company->id(),$f['from_date']??null,$f['to_date']??null),'cutting.xlsx');}
+ public function export(Request $r,CompanyContext $company){$f=$this->filters($r);return Excel::download(new CuttingExport($company->id(),$f['from_date'] ?? now()->startOfMonth()->toDateString(),$f['to_date'] ?? now()->toDateString()),'cutting.xlsx');}
  public function store(Request $r,SaveCuttingAction $action):JsonResponse{$action->create($this->validated($r),(int)$r->user()->id);return response()->json(['message'=>__('ui.cutting.saved')],201);}
  public function update(Request $r,ProductionOrderStageEntry $entry,CompanyContext $company,SaveCuttingAction $action):JsonResponse{abort_unless($entry->stage==='cutting'&&$entry->productionOrder()->where('company_id',$company->id())->exists(),404);$action->update($entry,$this->validated($r),(int)$r->user()->id);return response()->json(['message'=>__('ui.cutting.updated')]);}
  public function destroy(Request $r,ProductionOrderStageEntry $entry,CompanyContext $company,SaveCuttingAction $action):JsonResponse{abort_unless($entry->stage==='cutting'&&$entry->productionOrder()->where('company_id',$company->id())->exists(),404);$action->delete($entry,(int)$r->user()->id);return response()->json(['message'=>__('ui.cutting.deleted')]);}

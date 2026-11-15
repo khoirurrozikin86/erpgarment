@@ -27,7 +27,7 @@ class DeliveryNoteApprovalController extends Controller
     public function dt(Request $request, CompanyContext $company, GoodsSentNoteTableQuery $query): JsonResponse
     {
         $filters = $this->filters($request);
-        return DataTables::eloquent($query->approvals($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->approvals($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addIndexColumn()
             ->addColumn('customer', fn (GoodsSentNote $note) => $note->items->map(fn ($item) => $item->customer?->name)->filter()->unique()->implode(', ') ?: '—')
             ->addColumn('po_buyer', fn (GoodsSentNote $note) => $note->items->map(fn ($item) => $item->productionOrder?->buyer_po_number)->filter()->unique()->implode(', ') ?: '—')

@@ -22,7 +22,7 @@ class AccountPayableController extends Controller
     public function dt(Request $request, AccountsPayableQuery $query): JsonResponse
     {
         $filters = $this->dateFilters($request);
-        return DataTables::eloquent($query->receipts($filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->receipts($filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('supplier_name', fn (GoodsReceipt $receipt) => $receipt->supplier?->name ?? __('ui.modules.supplier_deleted'))
             ->addColumn('purchase_order_number', fn (GoodsReceipt $receipt) => $receipt->purchaseOrder?->number ?? '—')
             ->addColumn('receipt_amount_value', fn (GoodsReceipt $receipt) => round((float) ($receipt->receipt_amount ?? 0), 2))

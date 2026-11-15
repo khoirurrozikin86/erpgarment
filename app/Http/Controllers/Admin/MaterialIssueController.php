@@ -47,7 +47,7 @@ class MaterialIssueController extends Controller
     public function historyDt(Request $request, CompanyContext $company, MaterialIssueTableQuery $query): JsonResponse
     {
         $filters = $this->dateFilters($request);
-        return DataTables::eloquent($query->history($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->history($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('number', fn (MaterialIssueItem $item) => $item->document?->number)
             ->addColumn('issue_date', fn (MaterialIssueItem $item) => $item->document?->issue_date?->format('Y-m-d'))
             ->addColumn('request_number', fn (MaterialIssueItem $item) => $item->rawMaterialOrderItem?->number ?: $item->document?->request?->number ?: '—')
@@ -173,7 +173,7 @@ class MaterialIssueController extends Controller
     public function export(Request $request, CompanyContext $company)
     {
         $filters = $this->dateFilters($request);
-        return Excel::download(new MaterialIssuesExport($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null), 'material-issues.xlsx');
+        return Excel::download(new MaterialIssuesExport($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()), 'material-issues.xlsx');
     }
 
     private function dateFilters(Request $request): array

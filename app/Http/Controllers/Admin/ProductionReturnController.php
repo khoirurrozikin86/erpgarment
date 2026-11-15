@@ -134,6 +134,6 @@ class ProductionReturnController extends Controller
     {
         $data=$request->validate(['from_date'=>['nullable','date_format:Y-m-d'],'to_date'=>['nullable','date_format:Y-m-d']]);
         if(!empty($data['from_date'])&&!empty($data['to_date'])&&$data['to_date']<$data['from_date'])throw ValidationException::withMessages(['to_date'=>__('ui.production_return.invalid_date_range')]);
-        return [$data['from_date']??null,$data['to_date']??null];
+        return [$data['from_date'] ?? now()->startOfMonth()->toDateString(),$data['to_date'] ?? now()->toDateString()];
     }
 }

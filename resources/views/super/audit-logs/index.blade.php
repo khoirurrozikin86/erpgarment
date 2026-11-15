@@ -34,7 +34,7 @@
                             {{ __('ui.modules.date_from') }}
                         </label>
 
-                        <input type="date" class="form-control" id="date_from" value="{{ now()->format('Y-m-d') }}">
+                        <input type="date" class="form-control" id="date_from" value="{{ now()->startOfMonth()->format('Y-m-d') }}">
                     </div>
 
                     {{-- Date To --}}

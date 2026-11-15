@@ -32,6 +32,7 @@ class AuditLogController extends Controller
         Request $request,
         AuditLogTableQuery $query
     ): JsonResponse {
+        $request->merge(['date_from'=>$request->input('date_from') ?: now()->startOfMonth()->toDateString(), 'date_to'=>$request->input('date_to') ?: now()->toDateString()]);
         $builder = $query->builder();
 
         if ($request->filled('date_from')) {
@@ -139,7 +140,7 @@ class AuditLogController extends Controller
     public function export(Request $request)
     {
         $dateFrom = $request->date_from
-            ?: now()->format('Y-m-d');
+            ?: now()->startOfMonth()->format('Y-m-d');
 
         $dateTo = $request->date_to
             ?: now()->format('Y-m-d');

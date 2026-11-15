@@ -44,8 +44,8 @@ class StockCardController extends Controller
 
         return DataTables::eloquent($query->movements(
             isset($filters['product_id']) ? (int) $filters['product_id'] : null,
-            $filters['from_date'] ?? null,
-            $filters['to_date'] ?? null,
+            $filters['from_date'] ?? now()->startOfMonth()->toDateString(),
+            $filters['to_date'] ?? now()->toDateString(),
         ))
             ->addColumn('reference_number', fn(StockMovement $movement) => $movement->subcontractMaterialIssueDocument?->number ?? $movement->goodsReceipt?->number ?? $movement->purchaseReturn?->number ?? $movement->stockOpname?->number ?? $movement->damagedItemDocument?->number ?? $movement->lostItemDocument?->number ?? $movement->materialRequestItem?->request?->number ?? $movement->materialIssueDocument?->number ?? $movement->nonProductionMaterialUsageDocument?->number ?? $movement->wipIssueDocument?->number ?? $movement->scrapReceiptDocument?->number ?? $movement->scrapIssueDocument?->number ?? $movement->productionReturnDocument?->number ?? $movement->productionOrderStageEntry?->packing_number ?? $movement->productionOrderStageEntry?->sewing_number ?? $movement->productionOrderStageEntry?->cutting_number ?? $movement->productionOrderStageEntry?->productionOrder?->number ?? '—')
             ->addColumn('movement_label', fn(StockMovement $movement) => match ($movement->movement_type) {
@@ -97,7 +97,7 @@ class StockCardController extends Controller
         return response()->json([
             'product' => trim($product->code . ' — ' . $product->name),
             'unit' => $product->unit?->symbol ?: $product->unit?->name ?: '',
-            ...$query->summary($product, $filters['from_date'] ?? null, $filters['to_date'] ?? null),
+            ...$query->summary($product, $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()),
         ]);
     }
 
@@ -114,8 +114,8 @@ class StockCardController extends Controller
         return Excel::download(
             new StockCardExport(
                 (int) $product->id,
-                $filters['from_date'] ?? null,
-                $filters['to_date'] ?? null,
+                $filters['from_date'] ?? now()->startOfMonth()->toDateString(),
+                $filters['to_date'] ?? now()->toDateString(),
             ),
             'stock-card-' . $filenamePart . '-' . now()->format('Y-m-d-His') . '.xlsx',
         );

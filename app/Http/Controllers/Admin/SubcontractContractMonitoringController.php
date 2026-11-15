@@ -15,7 +15,7 @@ class SubcontractContractMonitoringController extends Controller
             'from_date'=>['nullable','date_format:Y-m-d'],'to_date'=>['nullable','date_format:Y-m-d'],
             'search'=>['nullable','string','max:100'],'per_page'=>['nullable','integer','in:10,25,50,100'],
         ]);
-        $filters['from_date']??=now()->startOfYear()->toDateString();
+        $filters['from_date']??=now()->startOfMonth()->toDateString();
         $filters['to_date']??=now()->toDateString();
         if($filters['from_date']>$filters['to_date'])throw ValidationException::withMessages(['to_date'=>__('subcontract_contract_monitoring.invalid_range')]);
         return $filters;

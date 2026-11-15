@@ -27,7 +27,7 @@ class GoodsSentNoteController extends Controller
     public function dt(Request $request, CompanyContext $company, GoodsSentNoteTableQuery $query): JsonResponse
     {
         $f = $this->filters($request);
-        return DataTables::eloquent($query->builder($company->id(), $f['from_date'] ?? null, $f['to_date'] ?? null))->addIndexColumn()
+        return DataTables::eloquent($query->builder($company->id(), $f['from_date'] ?? now()->startOfMonth()->toDateString(), $f['to_date'] ?? now()->toDateString()))->addIndexColumn()
             ->addColumn('mo', fn ($n) => $n->items->pluck('productionOrder.number')->filter()->unique()->implode(', '))
             ->addColumn('order_date', fn ($n) => $n->items->first()?->productionOrder?->po_date?->format('Y-m-d') ?: '—')
             ->addColumn('date', fn ($n) => $n->sent_date?->format('Y-m-d'))
@@ -59,7 +59,7 @@ class GoodsSentNoteController extends Controller
     public function destroy(Request $request, GoodsSentNote $note, CompanyContext $company, SaveGoodsSentNoteAction $action): JsonResponse { abort_unless($note->company_id === $company->id(), 404); $action->delete($note, (int) $request->user()->id); return response()->json(['message' => __('ui.gsn.deleted')]); }
     public function show(GoodsSentNote $note, CompanyContext $company): JsonResponse { abort_unless($note->company_id === $company->id(), 404); return response()->json($note->load(['items.productionOrder.outputProduct.unit', 'items.customer'])); }
     public function print(GoodsSentNote $note, CompanyContext $company) { abort_unless($note->company_id === $company->id(), 404); return view('super.goods-sent-notes.print', ['note' => $note->load(['items.productionOrder.outputProduct.unit', 'items.productionOrder.buyer', 'items.customer']), 'company' => $company->get()]); }
-    public function export(Request $request, CompanyContext $company) { $f = $this->filters($request); return Excel::download(new GoodsSentNotesExport($company->id(), $f['from_date'] ?? null, $f['to_date'] ?? null), 'goods-sent-notes.xlsx'); }
+    public function export(Request $request, CompanyContext $company) { $f = $this->filters($request); return Excel::download(new GoodsSentNotesExport($company->id(), $f['from_date'] ?? now()->startOfMonth()->toDateString(), $f['to_date'] ?? now()->toDateString()), 'goods-sent-notes.xlsx'); }
 
     private function validated(Request $request): array
     {

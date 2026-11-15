@@ -32,7 +32,7 @@ class NonProductionMaterialUsageController extends Controller
             }],
         ]);
         return Excel::download(
-            new NonProductionMaterialUsagesExport($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null),
+            new NonProductionMaterialUsagesExport($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()),
             'non-production-material-usages.xlsx',
         );
     }
@@ -45,7 +45,7 @@ class NonProductionMaterialUsageController extends Controller
                 if ($value && $request->input('from_date') && $value < $request->input('from_date')) $fail(__('ui.non_production_usage.invalid_date_range'));
             }],
         ]);
-        return DataTables::eloquent($query->builder($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->builder($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('number', fn (NonProductionMaterialUsageItem $item) => $item->document?->number)
             ->addColumn('transaction_date', fn (NonProductionMaterialUsageItem $item) => $item->document?->transaction_date?->format('Y-m-d'))
             ->addColumn('code', fn (NonProductionMaterialUsageItem $item) => $item->product?->code)

@@ -47,8 +47,8 @@ class ProductionOrderController extends Controller
                 }
             }],
         ]);
-        $fromDate = $filters['from_date'] ?? null;
-        $toDate = $filters['to_date'] ?? null;
+        $fromDate = $filters['from_date'] ?? now()->startOfMonth()->toDateString();
+        $toDate = $filters['to_date'] ?? now()->toDateString();
 
         return Excel::download(
             new MaterialOrdersExport($company->id(), $fromDate, $toDate),

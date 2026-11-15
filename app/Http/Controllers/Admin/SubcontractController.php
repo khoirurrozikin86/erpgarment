@@ -39,7 +39,7 @@ class SubcontractController extends Controller
     public function contractsDt(Request $request, CompanyContext $company, SubcontractTableQuery $query): JsonResponse
     {
         $filters = $request->validate(['from_date' => ['nullable', 'date'], 'to_date' => ['nullable', 'date', 'after_or_equal:from_date']]);
-        return DataTables::eloquent($query->contracts($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->contracts($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('subcontractor_name', fn (SubcontractContract $row) => $row->subcontractor?->name ?? '—')
             ->addColumn('starts_label', fn (SubcontractContract $row) => $row->starts_on?->format('d-m-Y'))
             ->addColumn('ends_label', fn (SubcontractContract $row) => $row->ends_on?->format('d-m-Y'))

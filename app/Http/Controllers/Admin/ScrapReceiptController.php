@@ -26,7 +26,7 @@ class ScrapReceiptController extends Controller
     public function dt(Request $request, CompanyContext $company, ScrapReceiptTableQuery $query): JsonResponse
     {
         $filters = $this->filters($request);
-        return DataTables::eloquent($query->builder($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->builder($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('date_label', fn (ScrapReceiptDocument $row) => $row->receipt_date?->format('Y-m-d'))
             ->addColumn('scrap_code', fn (ScrapReceiptDocument $row) => $row->scrapProduct?->code ?? '—')
             ->filterColumn('scrap_code', fn ($query, $keyword) => $query->whereHas('scrapProduct', fn ($product) => $product->where('code', 'like', "%{$keyword}%")))
@@ -79,7 +79,7 @@ class ScrapReceiptController extends Controller
     public function export(Request $request, CompanyContext $company)
     {
         $filters = $this->filters($request);
-        return Excel::download(new ScrapReceiptsExport($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null), 'scrap-receipts.xlsx');
+        return Excel::download(new ScrapReceiptsExport($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()), 'scrap-receipts.xlsx');
     }
 
     private function filters(Request $request): array

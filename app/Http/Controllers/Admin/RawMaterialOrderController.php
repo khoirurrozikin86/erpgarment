@@ -39,7 +39,7 @@ class RawMaterialOrderController extends Controller
     public function dt(Request $request, CompanyContext $company, RawMaterialOrderTableQuery $query): JsonResponse
     {
         $filters = $this->dateFilters($request);
-        return DataTables::eloquent($query->rows($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->rows($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('number', fn (RawMaterialOrderItem $item) => $item->number)
             ->addColumn('order_date', fn (RawMaterialOrderItem $item) => $item->document->order_date?->format('Y-m-d'))
             ->addColumn('mo_number', fn (RawMaterialOrderItem $item) => $item->document->production_order_number)
@@ -98,7 +98,7 @@ class RawMaterialOrderController extends Controller
     public function export(Request $request, CompanyContext $company)
     {
         $filters = $this->dateFilters($request);
-        return Excel::download(new RawMaterialOrdersExport($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null), 'raw-material-orders.xlsx');
+        return Excel::download(new RawMaterialOrdersExport($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()), 'raw-material-orders.xlsx');
     }
 
     private function validated(Request $request): array

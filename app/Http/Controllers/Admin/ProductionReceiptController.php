@@ -27,7 +27,7 @@ class ProductionReceiptController extends Controller
             }],
         ]);
 
-        return DataTables::eloquent($query->forCompany($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->forCompany($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('approval_status', fn (MaterialIssueDocument $document) => $document->production_receipt_status === 'received'
                 ? '<span class="badge bg-success">'.e(__('ui.production_receipt.received')).'</span>'
                 : '<span class="badge bg-danger">'.e(__('ui.production_receipt.not_received')).'</span>')

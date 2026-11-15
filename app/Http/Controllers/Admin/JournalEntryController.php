@@ -28,7 +28,7 @@ class JournalEntryController extends Controller
                 if ($value && $request->input('from_date') && $value < $request->input('from_date')) $fail(__('ui.modules.date_end_invalid'));
             }],
         ]);
-        return DataTables::eloquent($query->builder($filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->builder($filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('status_label', fn (JournalEntry $entry) => $entry->status === 'posted' ? '<span class="badge bg-success">' . e(__('ui.modules.delivery_posted_status')) . '</span>' : '<span class="badge bg-warning text-dark">' . e(__('ui.modules.draft_status')) . '</span>')
             ->addColumn('actions', function (JournalEntry $entry) {
                 $buttons = '<button type="button" class="btn btn-sm btn-outline-secondary btn-view-journal" data-url="' . e(route('super.journals.show', $entry)) . '" title="' . e(__('ui.modules.view_details')) . '"><i data-feather="eye"></i></button>';

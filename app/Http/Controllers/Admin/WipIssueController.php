@@ -22,7 +22,7 @@ class WipIssueController extends Controller
     public function dt(Request $request, CompanyContext $company, WipIssueTableQuery $query): JsonResponse
     {
         $filters = $this->filters($request);
-        return DataTables::eloquent($query->builder($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->builder($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('number', fn (WipIssueLine $line) => $line->document?->number)
             ->addColumn('transaction_date', fn (WipIssueLine $line) => $line->document?->transaction_date?->format('Y-m-d'))
             ->addColumn('code', fn (WipIssueLine $line) => $line->product?->code)
@@ -50,7 +50,7 @@ class WipIssueController extends Controller
     public function export(Request $request, CompanyContext $company)
     {
         $filters = $this->filters($request);
-        return Excel::download(new WipIssuesExport($company->id(), $filters['from_date'] ?? null, $filters['to_date'] ?? null), 'wip-issues.xlsx');
+        return Excel::download(new WipIssuesExport($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()), 'wip-issues.xlsx');
     }
 
     public function store(Request $request, SaveWipIssueAction $action): JsonResponse

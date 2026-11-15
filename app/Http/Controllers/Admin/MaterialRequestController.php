@@ -54,8 +54,8 @@ class MaterialRequestController extends Controller
                 }
             }],
         ]);
-        $fromDate = $filters['from_date'] ?? null;
-        $toDate = $filters['to_date'] ?? null;
+        $fromDate = $filters['from_date'] ?? now()->startOfMonth()->toDateString();
+        $toDate = $filters['to_date'] ?? now()->toDateString();
 
         return Excel::download(
             new MaterialRequestsExport($fromDate, $toDate),
@@ -149,7 +149,7 @@ class MaterialRequestController extends Controller
             }],
         ]);
 
-        return DataTables::eloquent($query->builder($filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->builder($filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('requester_name', fn (MaterialRequest $request) => $request->requester?->name ?? __('ui.workflow.deleted_user'))
             ->addColumn('buyer_po_number', fn (MaterialRequest $request) => $request->productionOrder?->buyer_po_number ?: '—')
             ->addColumn('product_label', function (MaterialRequest $request) {

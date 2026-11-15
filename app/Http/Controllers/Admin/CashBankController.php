@@ -45,7 +45,7 @@ class CashBankController extends Controller
             }],
         ]);
 
-        return DataTables::eloquent($query->transactions($filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->transactions($filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('account_name', fn($transaction) => $transaction->account?->name ?? __('ui.modules.account_deleted'))
             ->addColumn('counter_account_name', function ($transaction) {
                 if ($transaction->supplier_payment_id) return __('ui.modules.payable_source');

@@ -39,7 +39,7 @@ class StockOpnameController extends Controller
     {
         $filters = $this->dateFilters($request);
 
-        return DataTables::eloquent($query->builder($filters['from_date'] ?? null, $filters['to_date'] ?? null))
+        return DataTables::eloquent($query->builder($filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('starter_name', fn (StockOpname $stockOpname) => $stockOpname->starter?->name ?? __('ui.workflow.deleted_user'))
             ->addColumn('counter_name', fn (StockOpname $stockOpname) => $stockOpname->counter?->name ?? '—')
             ->addColumn('poster_name', fn (StockOpname $stockOpname) => $stockOpname->poster?->name ?? '—')

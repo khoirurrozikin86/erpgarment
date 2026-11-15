@@ -25,13 +25,13 @@ class SupportMaterialOrderController extends Controller
     public function export(Request $request, CompanyContext $company)
     {
         $f=$this->filters($request);
-        return Excel::download(new SupportMaterialOrdersExport($company->id(),$f['from_date']??null,$f['to_date']??null),'support-material-orders.xlsx');
+        return Excel::download(new SupportMaterialOrdersExport($company->id(),$f['from_date'] ?? now()->startOfMonth()->toDateString(),$f['to_date'] ?? now()->toDateString()),'support-material-orders.xlsx');
     }
 
     public function dt(Request $request, CompanyContext $company, SupportMaterialOrderTableQuery $query): JsonResponse
     {
         $f=$this->filters($request);
-        return DataTables::eloquent($query->builder($company->id(),$f['from_date']??null,$f['to_date']??null))
+        return DataTables::eloquent($query->builder($company->id(),$f['from_date'] ?? now()->startOfMonth()->toDateString(),$f['to_date'] ?? now()->toDateString()))
             ->addIndexColumn()->addColumn('number',fn($r)=>$r->document?->number)
             ->addColumn('order_date',fn($r)=>$r->document?->order_date?->format('Y-m-d'))
             ->addColumn('code',fn($r)=>$r->product?->code)->addColumn('name',fn($r)=>$r->product?->name)
