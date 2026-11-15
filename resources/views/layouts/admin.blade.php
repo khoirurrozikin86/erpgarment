@@ -97,7 +97,11 @@
 
         .sidebar .sidebar-header {
             background: #ffffff;
-            border-bottom: 1px solid #edf4ef;
+            flex: 0 0 60px;
+            height: 60px;
+            min-height: 60px;
+            box-sizing: border-box;
+            border-bottom: 1px solid #e9ecef;
         }
 
 
@@ -328,6 +332,36 @@
             width: 24px;
             margin-left: 5px;
         }
+
+        /* Keep long menu labels inside the expanded sidebar. */
+        :is(body:not(.sidebar-folded), body.open-sidebar-folded) .sidebar .sidebar-body .nav {
+            padding: 20px 10px 40px;
+        }
+        :is(body:not(.sidebar-folded), body.open-sidebar-folded) .sidebar .sidebar-body .nav .nav-item .nav-link {
+            height: auto;
+            min-height: 40px;
+            margin: 3px 4px;
+            padding: 9px 10px;
+            gap: 10px;
+            white-space: normal;
+        }
+        :is(body:not(.sidebar-folded), body.open-sidebar-folded) .sidebar .sidebar-body .nav .nav-item .nav-link .link-icon {
+            position: static;
+            flex: 0 0 18px;
+            margin-right: 0;
+        }
+        :is(body:not(.sidebar-folded), body.open-sidebar-folded) .sidebar .sidebar-body .nav .nav-item .nav-link .link-title {
+            flex: 1;
+            min-width: 0;
+            margin-left: 0;
+            white-space: normal;
+            overflow-wrap: anywhere;
+            line-height: 1.4;
+        }
+        .sidebar-search {flex:0 0 auto;padding:12px 14px 0;background:#fff}
+        .sidebar-search .form-control {min-width:0}
+        .sidebar [hidden] {display:none !important}
+        .sidebar-folded:not(.open-sidebar-folded) .sidebar-search {display:none}
     </style>
 
 </head>

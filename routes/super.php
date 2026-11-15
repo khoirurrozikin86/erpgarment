@@ -603,6 +603,73 @@ Route::middleware(['auth'])
         });
 
         Route::middleware('permission:profit-loss.view')->get('/profit-loss', [ProfitLossController::class, 'index'])->name('profit-loss.index');
+        Route::prefix('reports/wip-position')->name('reports.wip-position.')->middleware('permission:inventory-report.view')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\WipPositionReportController::class, 'index'])->name('index');
+            Route::get('/export', [\App\Http\Controllers\Admin\WipPositionReportController::class, 'export'])->name('export');
+        });
+
+        Route::prefix('reports/finished-goods-return')->name('reports.finished-goods-return.')->middleware('permission:inventory-report.view')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\FinishedGoodsReturnReportController::class, 'index'])->name('index');
+            Route::get('/export', [\App\Http\Controllers\Admin\FinishedGoodsReturnReportController::class, 'export'])->name('export');
+        });
+
+        Route::prefix('reports/warehouse-return')->name('reports.warehouse-return.')->middleware('permission:inventory-report.view')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\WarehouseReturnReportController::class, 'index'])->name('index');
+            Route::get('/export', [\App\Http\Controllers\Admin\WarehouseReturnReportController::class, 'export'])->name('export');
+        });
+
+        Route::prefix('reports/supplier-return')->name('reports.supplier-return.')->middleware('permission:purchase-report.view')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\SupplierReturnReportController::class, 'index'])->name('index');
+            Route::get('/export', [\App\Http\Controllers\Admin\SupplierReturnReportController::class, 'export'])->name('export');
+        });
+
+        Route::prefix('reports/production-result')->name('reports.production-result.')->middleware('permission:inventory-report.view')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\ProductionResultReportController::class, 'index'])->name('index');
+            Route::get('/export', [\App\Http\Controllers\Admin\ProductionResultReportController::class, 'export'])->name('export');
+        });
+
+        Route::prefix('reports/daily-production-status')->name('reports.daily-production-status.')->middleware('permission:inventory-report.view')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\DailyProductionStatusReportController::class, 'index'])->name('index');
+            Route::get('/export', [\App\Http\Controllers\Admin\DailyProductionStatusReportController::class, 'export'])->name('export');
+        });
+
+        Route::prefix('reports/production-plan')->name('reports.production-plan.')->middleware('permission:inventory-report.view')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\ProductionPlanReportController::class, 'index'])->name('index');
+            Route::get('/export', [\App\Http\Controllers\Admin\ProductionPlanReportController::class, 'export'])->name('export');
+        });
+
+        Route::prefix('reports/reject-scrap-mutation')->name('reports.reject-scrap-mutation.')->middleware('permission:inventory-report.view')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\RejectScrapMutationReportController::class, 'index'])->name('index');
+            Route::get('/export', [\App\Http\Controllers\Admin\RejectScrapMutationReportController::class, 'export'])->name('export');
+        });
+
+        Route::prefix('reports/capital-goods-mutation')->name('reports.capital-goods-mutation.')->middleware('permission:inventory-report.view')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\CapitalGoodsMutationReportController::class, 'index'])->name('index');
+            Route::get('/export', [\App\Http\Controllers\Admin\CapitalGoodsMutationReportController::class, 'export'])->name('export');
+        });
+
+        Route::prefix('reports/finished-goods-mutation')->name('reports.finished-goods-mutation.')->middleware('permission:inventory-report.view')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\FinishedGoodsMutationReportController::class, 'index'])->name('index');
+            Route::get('/export', [\App\Http\Controllers\Admin\FinishedGoodsMutationReportController::class, 'export'])->name('export');
+        });
+
+        Route::prefix('reports/material-mutation')->name('reports.material-mutation.')->middleware('permission:inventory-report.view')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\MaterialMutationReportController::class, 'index'])->name('index');
+            Route::get('/export', [\App\Http\Controllers\Admin\MaterialMutationReportController::class, 'export'])->name('export');
+        });
+
+        Route::prefix('reports/outgoing-goods')->name('reports.outgoing.')->middleware('permission:inventory-report.view')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\OutgoingGoodsReportController::class, 'index'])->name('index');
+            Route::get('/export', [\App\Http\Controllers\Admin\OutgoingGoodsReportController::class, 'export'])->name('export');
+            Route::get('/trace/{product}', [\App\Http\Controllers\Admin\OutgoingGoodsReportController::class, 'trace'])->name('trace')->whereNumber('product');
+        });
+
+        Route::prefix('reports/incoming-goods')->name('reports.incoming.')->middleware('permission:purchase-report.view')->group(function () {
+            Route::get('/', [\App\Http\Controllers\Admin\IncomingGoodsReportController::class, 'index'])->name('index');
+            Route::get('/export', [\App\Http\Controllers\Admin\IncomingGoodsReportController::class, 'export'])->name('export');
+            Route::get('/trace/{product}', [\App\Http\Controllers\Admin\IncomingGoodsReportController::class, 'trace'])->name('trace')->whereNumber('product');
+        });
+
         Route::prefix('reports/purchase')->name('reports.purchase.')->group(function () {
             Route::middleware('permission:purchase-report.view')->get('/', [PurchaseReportController::class, 'index'])->name('index');
             Route::middleware('permission:purchase-report.view')->get('/export', [PurchaseReportController::class, 'export'])->name('export');

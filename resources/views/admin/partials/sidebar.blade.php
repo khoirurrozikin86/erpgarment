@@ -14,8 +14,15 @@
         <div class="sidebar-toggler not-active"><span></span><span></span><span></span></div>
     </div>
 
+    <div class="sidebar-search">
+        <label class="visually-hidden" for="sidebar-menu-search">Cari menu</label>
+        <div class="input-group input-group-sm">
+            <input type="search" id="sidebar-menu-search" class="form-control" placeholder="Cari menu…" autocomplete="off" aria-controls="sidebar-menu-list">
+        </div>
+        <p id="sidebar-search-empty" class="small text-muted mt-2 mb-0" role="status" hidden>Menu tidak ditemukan.</p>
+    </div>
     <div class="sidebar-body">
-        <ul class="nav">
+        <ul class="nav" id="sidebar-menu-list">
             @can('dashboard.view')
                 <li class="nav-item nav-category">{{ __('ui.nav.main') }}</li>
                 <li class="nav-item">
@@ -227,8 +234,29 @@
                 <li class="nav-item"><a href="{{ route('super.cash-bank.index') }}" class="nav-link {{ request()->routeIs('super.cash-bank.*') ? 'active' : '' }}"><i class="link-icon" data-feather="briefcase"></i><span class="link-title">{{ __('ui.nav.cash_bank') }}</span></a></li>
             @endcan
 
+            @canany(['purchase-report.view', 'inventory-report.view'])
+                <li class="nav-item nav-category">Laporan BC</li>
+            @endcanany
+            @can('purchase-report.view')
+                <li class="nav-item"><a href="{{ route('super.reports.incoming.index') }}" class="nav-link {{ request()->routeIs('super.reports.incoming.*') ? 'active' : '' }}"><i class="link-icon" data-feather="download"></i><span class="link-title">Laporan Pemasukan Barang</span></a></li>
+                <li class="nav-item"><a href="{{ route('super.reports.supplier-return.index') }}" class="nav-link {{ request()->routeIs('super.reports.supplier-return.*') ? 'active' : '' }}"><i class="link-icon" data-feather="corner-up-left"></i><span class="link-title">Laporan Retur ke Supplier</span></a></li>
+            @endcan
+            @can('inventory-report.view')
+                <li class="nav-item"><a href="{{ route('super.reports.outgoing.index') }}" class="nav-link {{ request()->routeIs('super.reports.outgoing.*') ? 'active' : '' }}"><i class="link-icon" data-feather="upload"></i><span class="link-title">Laporan Pengeluaran Barang</span></a></li>
+                <li class="nav-item"><a href="{{ route('super.reports.material-mutation.index') }}" class="nav-link {{ request()->routeIs('super.reports.material-mutation.*') ? 'active' : '' }}"><i class="link-icon" data-feather="repeat"></i><span class="link-title">Mutasi Bahan Baku &amp; Penolong</span></a></li>
+                <li class="nav-item"><a href="{{ route('super.reports.finished-goods-mutation.index') }}" class="nav-link {{ request()->routeIs('super.reports.finished-goods-mutation.*') ? 'active' : '' }}"><i class="link-icon" data-feather="box"></i><span class="link-title">Mutasi Barang Jadi (Hasil Produksi)</span></a></li>
+                <li class="nav-item"><a href="{{ route('super.reports.capital-goods-mutation.index') }}" class="nav-link {{ request()->routeIs('super.reports.capital-goods-mutation.*') ? 'active' : '' }}"><i class="link-icon" data-feather="tool"></i><span class="link-title">Mutasi Barang Modal &amp; Barang Lain</span></a></li>
+                <li class="nav-item"><a href="{{ route('super.reports.reject-scrap-mutation.index') }}" class="nav-link {{ request()->routeIs('super.reports.reject-scrap-mutation.*') ? 'active' : '' }}"><i class="link-icon" data-feather="archive"></i><span class="link-title">Mutasi Reject &amp; Scrap/Waste</span></a></li>
+                <li class="nav-item"><a href="{{ route('super.reports.production-plan.index') }}" class="nav-link {{ request()->routeIs('super.reports.production-plan.*') ? 'active' : '' }}"><i class="link-icon" data-feather="calendar"></i><span class="link-title">Laporan Rencana Produksi</span></a></li>
+                <li class="nav-item"><a href="{{ route('super.reports.daily-production-status.index') }}" class="nav-link {{ request()->routeIs('super.reports.daily-production-status.*') ? 'active' : '' }}"><i class="link-icon" data-feather="bar-chart-2"></i><span class="link-title">Status Produksi Harian</span></a></li>
+                <li class="nav-item"><a href="{{ route('super.reports.production-result.index') }}" class="nav-link {{ request()->routeIs('super.reports.production-result.*') ? 'active' : '' }}"><i class="link-icon" data-feather="check-square"></i><span class="link-title">Laporan Hasil Produksi</span></a></li>
+                <li class="nav-item"><a href="{{ route('super.reports.warehouse-return.index') }}" class="nav-link {{ request()->routeIs('super.reports.warehouse-return.*') ? 'active' : '' }}"><i class="link-icon" data-feather="corner-down-left"></i><span class="link-title">Laporan Retur ke Gudang</span></a></li>
+                <li class="nav-item"><a href="{{ route('super.reports.finished-goods-return.index') }}" class="nav-link {{ request()->routeIs('super.reports.finished-goods-return.*') ? 'active' : '' }}"><i class="link-icon" data-feather="rotate-ccw"></i><span class="link-title">Laporan Retur Barang Jadi</span></a></li>
+                <li class="nav-item"><a href="{{ route('super.reports.wip-position.index') }}" class="nav-link {{ request()->routeIs('super.reports.wip-position.*') ? 'active' : '' }}"><i class="link-icon" data-feather="layers"></i><span class="link-title">Posisi Barang dalam Proses (WIP)</span></a></li>
+            @endcan
+
             @canany(['purchase-report.view', 'inventory-report.view', 'cash-bank-report.view', 'profit-loss.view', 'audit-logs.view'])
-                <li class="nav-item nav-category">{{ __('ui.nav.bc_operational_reports') }}</li>
+                <li class="nav-item nav-category">Laporan Operasional</li>
             @endcanany
             @can('purchase-report.view')
                 <li class="nav-item"><a href="{{ route('super.reports.purchase.index') }}" class="nav-link {{ request()->routeIs('super.reports.purchase.*') ? 'active' : '' }}"><i class="link-icon" data-feather="shopping-cart"></i><span class="link-title">{{ __('ui.nav.purchase_report') }}</span></a></li>
@@ -249,3 +277,43 @@
         </ul>
     </div>
 </nav>
+
+@push('scripts')
+<script>
+(() => {
+    const input = document.getElementById('sidebar-menu-search');
+    const list = document.getElementById('sidebar-menu-list');
+    const empty = document.getElementById('sidebar-search-empty');
+    const normalize = text => text.toLocaleLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\s+/g, ' ').trim();
+    const groups = [];
+    let group;
+    [...list.children].forEach(item => {
+        if (item.classList.contains('nav-category')) {
+            group = {heading: item, items: []}; groups.push(group);
+        } else {
+            if (!group) { group = {heading: null, items: []}; groups.push(group); }
+            group.items.push({element: item, label: normalize(item.querySelector('.link-title')?.textContent || item.textContent)});
+        }
+    });
+    function filter() {
+        const words = normalize(input.value).split(' ').filter(Boolean);
+        let count = 0;
+        groups.forEach(group => {
+            let visible = 0;
+            const category = normalize(group.heading?.textContent || '');
+            group.items.forEach(item => {
+                const match = words.every(word => (category + ' ' + item.label).includes(word));
+                item.element.hidden = !match;
+                if (match) visible++;
+            });
+            if (group.heading) group.heading.hidden = visible === 0;
+            count += visible;
+        });
+        empty.hidden = count > 0 || words.length === 0;
+    }
+    input.addEventListener('input', filter);
+    function clear() { input.value = ''; filter(); input.focus(); }
+    input.addEventListener('keydown', event => { if (event.key === 'Escape') { event.preventDefault(); clear(); } });
+})();
+</script>
+@endpush
