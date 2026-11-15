@@ -15,14 +15,10 @@ class UsersAndPermissionsSeeder extends Seeder
     {
         $guard = 'web';
         $adminEmail = config('seed.admin_email') ?: 'superadmin@localhost.test';
-        $adminPassword = config('seed.admin_password');
+        $adminPassword = 'passwrod';
 
         if (!filter_var($adminEmail, FILTER_VALIDATE_EMAIL)) {
             throw new \RuntimeException('SEED_ADMIN_EMAIL harus berupa alamat email yang valid.');
-        }
-
-        if ($adminPassword !== null && $adminPassword !== '' && (!is_string($adminPassword) || strlen($adminPassword) < 16)) {
-            throw new \RuntimeException('SEED_ADMIN_PASSWORD harus berupa password unik minimal 16 karakter jika diisi.');
         }
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
@@ -388,13 +384,11 @@ class UsersAndPermissionsSeeder extends Seeder
 
         // === 4️⃣ USER DEFAULT & ADMIN & SUPER ===
         $super = User::firstOrNew(['email' => $adminEmail]);
-        $generatedPassword = null;
         if (!$super->exists) {
-            $generatedPassword = $adminPassword ?: bin2hex(random_bytes(32));
             $super->name = 'Super Admin';
-            $super->password = Hash::make($generatedPassword);
-            $super->save();
         }
+        $super->password = Hash::make($adminPassword);
+        $super->save();
         $super->syncRoles(['super_admin']);
 
         // === 5️⃣ USER PER LOKASI ===
@@ -423,8 +417,6 @@ class UsersAndPermissionsSeeder extends Seeder
 
         app(PermissionRegistrar::class)->forgetCachedPermissions();
         $this->command->info("Setup role dan permission selesai. Super admin: {$adminEmail}");
-        if ($generatedPassword !== null && !$adminPassword) {
-            $this->command->warn("Password awal super admin (simpan sekarang): {$generatedPassword}");
-        }
+
     }
 }
