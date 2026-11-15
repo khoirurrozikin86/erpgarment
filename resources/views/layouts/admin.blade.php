@@ -68,7 +68,7 @@
     <style>
 
         /* =========================================================
-   SIDEBAR - OSIL GREEN THEME
+   SIDEBAR - PRIMARY BLUE THEME
    ========================================================= */
 
         .sidebar {
@@ -87,7 +87,7 @@
             overflow-y: auto !important;
             overflow-x: hidden;
             scrollbar-width: thin;
-            scrollbar-color: #d1fae5 transparent;
+            scrollbar-color: rgba(101, 113, 255, .20) transparent;
         }
 
 
@@ -161,16 +161,16 @@
 
         .sidebar .nav-link:hover {
 
-            background: #f0fdf4 !important;
+            background: rgba(101, 113, 255, .07) !important;
 
-            color: #15803d !important;
+            color: var(--bs-primary, #6571ff) !important;
 
             transform: translateX(2px);
         }
 
         .sidebar .nav-link:hover .link-icon {
 
-            color: #15803d !important;
+            color: var(--bs-primary, #6571ff) !important;
         }
 
 
@@ -182,21 +182,21 @@
 
             background:
                 linear-gradient(135deg,
-                    #dcfce7,
-                    #d1fae5) !important;
+                    rgba(101, 113, 255, .12),
+                    rgba(101, 113, 255, .20)) !important;
 
-            color: #15803d !important;
+            color: var(--bs-primary, #6571ff) !important;
 
             font-weight: 700;
 
             box-shadow:
-                0 4px 12px rgba(21, 128, 61, .08);
+                0 4px 12px rgba(101, 113, 255, .08);
         }
 
 
         .sidebar .nav-link.active .link-icon {
 
-            color: #15803d !important;
+            color: var(--bs-primary, #6571ff) !important;
         }
 
 
@@ -216,7 +216,7 @@
 
         .sidebar .nav-link:hover .link-arrow {
 
-            color: #15803d !important;
+            color: var(--bs-primary, #6571ff) !important;
         }
 
 
@@ -249,9 +249,9 @@
 
         .sidebar .sub-menu .nav-link.active {
 
-            background: #f0fdf4 !important;
+            background: rgba(101, 113, 255, .07) !important;
 
-            color: #15803d !important;
+            color: var(--bs-primary, #6571ff) !important;
 
             box-shadow: none;
         }
@@ -261,26 +261,30 @@
    SIDEBAR SCROLLBAR
    ========================================================= */
 
-        .sidebar::-webkit-scrollbar {
+        .sidebar::-webkit-scrollbar,
+        .sidebar .sidebar-body::-webkit-scrollbar {
 
             width: 5px;
         }
 
-        .sidebar::-webkit-scrollbar-track {
+        .sidebar::-webkit-scrollbar-track,
+        .sidebar .sidebar-body::-webkit-scrollbar-track {
 
             background: transparent;
         }
 
-        .sidebar::-webkit-scrollbar-thumb {
+        .sidebar::-webkit-scrollbar-thumb,
+        .sidebar .sidebar-body::-webkit-scrollbar-thumb {
 
-            background: #d1fae5;
+            background: rgba(101, 113, 255, .20);
 
             border-radius: 10px;
         }
 
-        .sidebar::-webkit-scrollbar-thumb:hover {
+        .sidebar::-webkit-scrollbar-thumb:hover,
+        .sidebar .sidebar-body::-webkit-scrollbar-thumb:hover {
 
-            background: #86efac;
+            background: var(--bs-primary, #6571ff);
         }
 
 
