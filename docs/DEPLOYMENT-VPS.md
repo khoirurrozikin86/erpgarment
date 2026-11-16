@@ -159,3 +159,13 @@ ubuntu ALL=(root) NOPASSWD: /usr/bin/systemctl reload apache2
 Workflow sudah menetapkan path, PHP dan Apache secara langsung. Pastikan `.env` VPS mempunyai `APP_URL` sebenarnya. Semua Secrets dipasang pada tingkat repository; Environment `production` tidak diperlukan.
 
 Referensi Apache: [Directory dan Options](https://httpd.apache.org/docs/2.4/mod/core.html), [PHP-FPM dengan mod_proxy_fcgi](https://httpd.apache.org/docs/2.4/mod/mod_proxy_fcgi.html).
+
+## Workflow aktif: self-hosted (menggantikan alur release di atas)
+
+Atas permintaan pengguna, `.github/workflows/deploy.yml` sekarang memakai workflow sederhana `Laravel Deploy`, trigger push/merge ke `main`, dan `runs-on: self-hosted`. Penjelasan struktur release/SSH di atas adalah referensi implementasi sebelumnya, bukan persyaratan workflow aktif.
+
+Runner GitHub Actions harus dipasang pada VPS aplikasi melalui **Settings → Actions → Runners → New self-hosted runner**, dan dijalankan sebagai service. User runner perlu akses tulis `/var/www/html/erpgarment`, akses fetch repository, PHP dan Composer pada PATH. Tanpa runner yang online, job akan menunggu. Jangan memasang runner produksi ini untuk menjalankan kode PR yang tidak dipercaya.
+
+Workflow menjalankan fetch + reset ke `origin/main`, Composer install tanpa dev dependency, clear cache, lalu cache config/route/view. Tidak memerlukan Repository Secrets SSH, environment `production`, maupun GitHub Variables. Apache tetap memakai `/var/www/html/erpgarment/public`; workflow tidak mengalihkan symlink release.
+
+`git reset --hard origin/main` membuang perubahan lokal pada file tracked di VPS, sesuai contoh yang diminta. Simpan perubahan lokal yang diperlukan sebelum deployment pertama. File `.env` yang di-ignore Git tetap dipertahankan. Workflow tidak menjalankan migration, seeder, build Vite, restart queue, atau rollback otomatis; jika perubahan membutuhkan langkah tersebut, lakukan secara terpisah atau tambahkan pada workflow sesuai kebutuhan. Pastikan assets Vite sudah tersedia di VPS.

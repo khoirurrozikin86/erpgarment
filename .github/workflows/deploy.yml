@@ -1,131 +1,45 @@
-name: CI and Deploy VPS
+name: Laravel Deploy
 
 on:
-  pull_request:
-    branches: [main]
   push:
-    branches: [main]
-  workflow_dispatch:
+    branches:
+      - main
 
 permissions:
   contents: read
 
-jobs:
-  build:
-    name: Validate and build
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: shivammathur/setup-php@v2
-        with:
-          php-version: '8.4'
-          extensions: bcmath, ctype, curl, dom, fileinfo, gd, intl, mbstring, mysqli, pdo_mysql, simplexml, xml, xmlreader, xmlwriter, zip
-          coverage: none
-          tools: composer:v2
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          cache: npm
-      - name: Validate Composer and PHP syntax
-        run: |
-          composer validate --no-check-publish
-          find app bootstrap config database routes -name '*.php' -print0 | xargs -0 -n1 php -l
-      - name: Install production PHP dependencies
-        run: composer install --no-dev --prefer-dist --no-interaction --no-progress --no-scripts --optimize-autoloader
-      - name: Build frontend
-        run: |
-          npm ci
-          npm run build
-      - name: Package release
-        if: github.event_name != 'pull_request'
-        run: |
-          printf '%s\n' "$GITHUB_SHA" > REVISION
-          tar --exclude='./.git' --exclude='./.github' --exclude='./node_modules' \
-            --exclude='./storage' --exclude='./.env' --exclude='./.env.*' \
-            --exclude='./public/storage' --exclude='./public/hot' \
-            --exclude='./tests' --exclude='*.backup' \
-            -czf "$RUNNER_TEMP/release.tar.gz" .
-      - uses: actions/upload-artifact@v4
-        if: github.event_name != 'pull_request'
-        with:
-          name: release-${{ github.sha }}
-          path: ${{ runner.temp }}/release.tar.gz
-          retention-days: 7
-          if-no-files-found: error
+concurrency:
+  group: erpgarment-deploy
+  cancel-in-progress: false
 
+jobs:
   deploy:
-    name: Deploy production
-    needs: build
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-24.04
-    timeout-minutes: 20
-    concurrency:
-      group: erpgarment-production
-      cancel-in-progress: false
+    runs-on: self-hosted
+
     steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-      - uses: actions/download-artifact@v4
-        with:
-          name: release-${{ github.sha }}
-          path: ${{ runner.temp }}/release
-      - name: Configure SSH
-        env:
-          VPS_HOST: ${{ secrets.VPS_HOST }}
-          VPS_PORT: ${{ secrets.VPS_PORT }}
-          VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
-          VPS_KNOWN_HOSTS: ${{ secrets.VPS_KNOWN_HOSTS }}
+      - name: Deploy Laravel
+        shell: bash
         run: |
           set -euo pipefail
-          : "${VPS_HOST:?Set VPS_HOST}" "${VPS_USER:?Set VPS_USER}" "${VPS_SSH_KEY:?Set VPS_SSH_KEY}" "${VPS_KNOWN_HOSTS:?Set VPS_KNOWN_HOSTS}"
-          [[ "$VPS_HOST" =~ ^[a-zA-Z0-9.:-]+$ ]]
-          [[ "$VPS_USER" =~ ^[a-zA-Z_][a-zA-Z0-9_-]*$ ]]
-          VPS_PORT="${VPS_PORT:-22}"
-          [[ "$VPS_PORT" =~ ^[0-9]+$ ]]
-          install -d -m 700 ~/.ssh
-          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/deploy_key
-          printf '%s\n' "$VPS_KNOWN_HOSTS" > ~/.ssh/known_hosts
-          chmod 600 ~/.ssh/deploy_key ~/.ssh/known_hosts
-          cat > ~/.ssh/config <<EOF
-          Host erp-vps
-            HostName $VPS_HOST
-            User $VPS_USER
-            Port $VPS_PORT
-            IdentityFile ~/.ssh/deploy_key
-            IdentitiesOnly yes
-            StrictHostKeyChecking yes
-            BatchMode yes
-            ConnectTimeout 20
-            ServerAliveInterval 15
-            ServerAliveCountMax 4
-          EOF
-          chmod 600 ~/.ssh/config
-      - name: Upload and activate release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          VPS_APP_PATH: /var/www/html/erpgarment
-          APP_HEALTH_URL: auto
-          PHP_BIN: /usr/bin/php8.4
-          PHP_FPM_SERVICE: auto
-          WEB_SERVER_SERVICE: apache2
-        run: |
-          set -euo pipefail
-          : "${VPS_APP_PATH:?Set VPS_APP_PATH}" "${APP_HEALTH_URL:?Set APP_HEALTH_URL}"
-          latest_sha="$(gh api "repos/$GITHUB_REPOSITORY/commits/main" --jq .sha)"
-          if [[ "$latest_sha" != "$GITHUB_SHA" ]]; then
-            echo 'Skipping superseded commit; a newer main revision is available.'
-            exit 0
-          fi
-          release_id="${GITHUB_SHA}-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
-          archive="/tmp/erpgarment-${release_id}.tar.gz"
-          scp "$RUNNER_TEMP/release/release.tar.gz" "erp-vps:$archive"
-          printf -v remote_command '%q ' bash -s -- "$VPS_APP_PATH" "$release_id" "$archive" "$APP_HEALTH_URL" "${PHP_BIN:-php}" "${PHP_FPM_SERVICE:-}" "${WEB_SERVER_SERVICE:-}"
-          ssh erp-vps "$remote_command" < scripts/deploy/deploy-vps.sh
-      - name: Remove runner SSH credentials
-        if: always()
-        run: rm -f ~/.ssh/deploy_key ~/.ssh/config ~/.ssh/known_hosts
+          cd /var/www/html/erpgarment
+
+          echo "=== UPDATE SOURCE ==="
+          git fetch origin main
+          git reset --hard origin/main
+
+          echo "=== INSTALL DEPENDENCIES ==="
+          composer install --no-dev --optimize-autoloader --no-interaction
+
+          echo "=== CLEAR CACHE ==="
+          php artisan optimize:clear
+
+          echo "=== CACHE CONFIG ==="
+          php artisan config:cache
+
+          echo "=== CACHE ROUTE ==="
+          php artisan route:cache
+
+          echo "=== CACHE VIEW ==="
+          php artisan view:cache
+
+          echo "=== DEPLOY SUCCESS ==="
