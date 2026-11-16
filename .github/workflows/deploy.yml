@@ -62,7 +62,6 @@ jobs:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
     timeout-minutes: 20
-    environment: production
     concurrency:
       group: erpgarment-production
       cancel-in-progress: false
@@ -109,11 +108,11 @@ jobs:
       - name: Upload and activate release
         env:
           GH_TOKEN: ${{ github.token }}
-          VPS_APP_PATH: ${{ vars.VPS_APP_PATH || '/var/www/html/erpgarment' }}
-          APP_HEALTH_URL: ${{ vars.APP_HEALTH_URL }}
-          PHP_BIN: ${{ vars.PHP_BIN }}
-          PHP_FPM_SERVICE: ${{ vars.PHP_FPM_SERVICE }}
-          WEB_SERVER_SERVICE: ${{ vars.WEB_SERVER_SERVICE }}
+          VPS_APP_PATH: /var/www/html/erpgarment
+          APP_HEALTH_URL: auto
+          PHP_BIN: /usr/bin/php8.4
+          PHP_FPM_SERVICE: auto
+          WEB_SERVER_SERVICE: apache2
         run: |
           set -euo pipefail
           : "${VPS_APP_PATH:?Set VPS_APP_PATH}" "${APP_HEALTH_URL:?Set APP_HEALTH_URL}"

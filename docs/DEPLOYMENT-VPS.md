@@ -61,39 +61,41 @@ Queue worker yang dikelola Supervisor/systemd harus menjalankan `/var/www/html/e
 * * * * * cd /var/www/html/erpgarment/current && php artisan schedule:run >> /dev/null 2>&1
 ```
 
-## GitHub Environment `production`
+## GitHub: cukup Repository Secrets
 
-Buka repository → **Settings → Environments → New environment → production**. Batasi deployment branch ke `main`. Untuk deploy tanpa klik approval manual, jangan pasang required reviewers pada environment ini.
+Tidak menggunakan GitHub Environment `production`, Environment Secrets, ataupun GitHub Variables. Pengaturan di tab Variables yang sudah dibuat tidak dibaca workflow dan boleh dibiarkan.
 
-Masukkan Environment Secrets:
+Buka **Settings → Secrets and variables → Actions → Secrets → New repository secret**:
 
 | Secret | Isi |
 | --- | --- |
-| `VPS_HOST` | IP/hostname VPS |
-| `VPS_PORT` | Port SSH; kosong berarti 22 |
-| `VPS_USER` | User deploy, contoh `deploy` |
+| `VPS_HOST` | `43.133.146.37` |
+| `VPS_PORT` | `22` |
+| `VPS_USER` | `ubuntu` |
 | `VPS_SSH_KEY` | Private key khusus deploy, tanpa passphrase |
-| `VPS_KNOWN_HOSTS` | Baris host key SSH VPS yang fingerprint-nya sudah diverifikasi |
+| `VPS_KNOWN_HOSTS` | Baris host key SSH VPS yang sudah diverifikasi |
 
-Pasang public key pasangannya di `~deploy/.ssh/authorized_keys` pada VPS. Private key hanya disimpan sebagai GitHub Secret, bukan di repository/chat. Untuk port nonstandar, known_hosts memakai nama `[host]:port`. Verifikasi fingerprint melalui console VPS; jangan sekadar mempercayai hasil scan jaringan yang belum diverifikasi.
+Public key pasangannya berada di `~ubuntu/.ssh/authorized_keys` VPS. Private key hanya di GitHub Secrets, bukan di repository/chat. Untuk port nonstandar, known_hosts menggunakan `[host]:port`.
 
-Masukkan Environment Variables:
+Pengaturan nonrahasia ditetapkan langsung di `.github/workflows/deploy.yml`:
 
-| Variable | Contoh |
+| Pengaturan | Nilai |
 | --- | --- |
-| `VPS_APP_PATH` | `/var/www/html/erpgarment` (direktori induk shared/releases/current) |
-| `APP_HEALTH_URL` | `https://erp.example.com/up` (URL tanpa login, mengarah ke VPS ini) |
-| `PHP_BIN` | `php` atau `/usr/bin/php8.4` |
-| `PHP_FPM_SERVICE` | `php8.4-fpm` hanya jika Apache menggunakan FPM; kosong jika mod_php |
-| `WEB_SERVER_SERVICE` | `apache2` untuk reload Apache setelah pergantian release |
+| Folder aplikasi | `/var/www/html/erpgarment` |
+| PHP CLI | `/usr/bin/php8.4` |
+| Web service | `apache2` |
+| PHP-FPM | Deteksi service `php8.4-fpm` yang aktif; kosong jika tidak aktif |
+| Health URL | Dibaca dari `APP_URL` pada `shared/.env`, ditambahkan `/up` |
 
-Firewall SSH harus menerima koneksi runner GitHub yang digunakan. Workflow memakai runner GitHub-hosted, bukan IP tetap. Jika VPS hanya menerima IP tertentu, gunakan runner sendiri atau jalur jaringan yang sesuai.
+`APP_URL` harus alamat aplikasi sebenarnya, termasuk HTTPS jika aplikasi memaksa HTTPS. Tidak perlu membuat variable `APP_HEALTH_URL` di GitHub. Jika FPM aktif, izin sudo reload service FPM juga diperlukan; template Apache dan PHP handler tetap harus disiapkan sekali di VPS.
 
-Agar benar-benar hanya perubahan hasil merge yang masuk production, aktifkan branch protection/ruleset `main`: require pull request, serta require status check **Validate and build**. Trigger `push main` juga berjalan bila direct push masih diizinkan.
+Firewall SSH harus menerima koneksi runner GitHub yang digunakan. Workflow memakai GitHub-hosted runner, bukan IP tetap. Untuk membatasi akses ke IP tertentu, gunakan runner sendiri/jalur jaringan yang sesuai.
+
+Aktifkan ruleset `main` dengan require pull request dan status check **Validate and build** jika production hanya boleh menerima hasil merge. Push langsung ke `main` juga men-trigger workflow jika masih diizinkan.
 
 ## Aktivasi dan pemeliharaan
 
-Commit/push file workflow dan script melalui PR, pasang secrets/variables dan konfigurasi server, lalu merge PR ke `main`. Periksa **Actions → CI and Deploy VPS**. Tidak ada push/konfigurasi server yang dilakukan otomatis dari workspace ini.
+Commit/push file workflow dan script melalui PR, pasang kelima Repository Secrets dan konfigurasi server, lalu merge PR ke `main`. Periksa **Actions → CI and Deploy VPS**. Tidak ada push/konfigurasi server yang dilakukan otomatis dari workspace ini.
 
 Setelah gagal deploy, periksa log Actions dan `shared/storage/logs/laravel.log`. Folder release gagal dipertahankan untuk pemeriksaan. Jika migration sudah berhasil sebelum kegagalan kode, periksa kompatibilitas schema sebelum memilih rollback. Tidak ada `migrate:rollback` otomatis.
 
@@ -135,7 +137,7 @@ sudo apache2ctl configtest
 sudo systemctl reload apache2
 ```
 
-Aktivasi virtual host hanya dilakukan setelah baseline/current dan sertifikat tersedia. ServerName dan `APP_HEALTH_URL` harus menggunakan domain asli. Bila sertifikat belum ada, pertahankan virtual host existing dan siapkan sertifikat/domain lebih dahulu.
+Aktivasi virtual host hanya dilakukan setelah baseline/current dan sertifikat tersedia. ServerName dan `APP_URL` di `shared/.env` harus menggunakan domain asli. Bila sertifikat belum ada, pertahankan virtual host existing dan siapkan sertifikat/domain lebih dahulu.
 
 Untuk terminal/user `ubuntu` yang diberikan, contoh izin direktori (jalankan setelah menyesuaikan struktur existing, bukan menghapus aplikasi lama):
 
@@ -154,14 +156,6 @@ ubuntu ALL=(root) NOPASSWD: /usr/bin/systemctl reload apache2
 # ubuntu ALL=(root) NOPASSWD: /usr/bin/systemctl reload php8.4-fpm
 ```
 
-Variables environment `production` yang disarankan:
-
-```text
-VPS_APP_PATH=/var/www/html/erpgarment
-PHP_BIN=/usr/bin/php8.4
-WEB_SERVER_SERVICE=apache2
-APP_HEALTH_URL=https://DOMAIN-ASLI/up
-# PHP_FPM_SERVICE=php8.4-fpm  (kosong bila mod_php)
-```
+Workflow sudah menetapkan path, PHP dan Apache secara langsung. Pastikan `.env` VPS mempunyai `APP_URL` sebenarnya. Semua Secrets dipasang pada tingkat repository; Environment `production` tidak diperlukan.
 
 Referensi Apache: [Directory dan Options](https://httpd.apache.org/docs/2.4/mod/core.html), [PHP-FPM dengan mod_proxy_fcgi](https://httpd.apache.org/docs/2.4/mod/mod_proxy_fcgi.html).

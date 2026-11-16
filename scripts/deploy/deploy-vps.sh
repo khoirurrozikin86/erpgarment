@@ -13,11 +13,15 @@ web_service="${7:-}"
 [[ "$app_root" =~ ^/[a-zA-Z0-9/_-]+$ && "$app_root" != / ]] || { echo 'Invalid application root'; exit 1; }
 [[ "$release_id" =~ ^[a-f0-9]{40}-[0-9]+-[0-9]+$ ]] || { echo 'Invalid release ID'; exit 1; }
 [[ "$archive" == "/tmp/erpgarment-${release_id}.tar.gz" && -s "$archive" ]] || { echo 'Release archive missing'; exit 1; }
-[[ "$health_url" =~ ^https?:// ]] || { echo 'Health URL must be HTTP(S)'; exit 1; }
-[[ -z "$fpm_service" || "$fpm_service" =~ ^php[0-9.]+-fpm$ ]] || { echo 'Invalid FPM service'; exit 1; }
+[[ "$health_url" == auto || "$health_url" =~ ^https?:// ]] || { echo 'Health URL must be HTTP(S)'; exit 1; }
+[[ -z "$fpm_service" || "$fpm_service" == auto || "$fpm_service" =~ ^php[0-9.]+-fpm$ ]] || { echo 'Invalid FPM service'; exit 1; }
 [[ -z "$web_service" || "$web_service" == apache2 ]] || { echo 'Invalid web server service'; exit 1; }
 for cmd in flock tar curl composer; do command -v "$cmd" >/dev/null; done
 command -v "$php_bin" >/dev/null
+if [[ "$fpm_service" == auto ]]; then
+    fpm_service=''
+    if systemctl is-active --quiet php8.4-fpm; then fpm_service=php8.4-fpm; fi
+fi
 [[ -s "$app_root/shared/.env" ]] || { echo 'Provision shared/.env on the VPS first'; exit 1; }
 mkdir -p "$app_root/releases"
 exec 9>"$app_root/.deploy.lock"
@@ -82,6 +86,24 @@ composer check-platform-reqs --no-dev
 "$php_bin" artisan config:cache
 "$php_bin" artisan route:cache
 "$php_bin" artisan view:cache
+
+# Read the configured application URL without printing any .env credentials.
+if [[ "$health_url" == auto ]]; then
+    health_url="$("$php_bin" -r '
+        require "vendor/autoload.php";
+        $app = require "bootstrap/app.php";
+        $app->make(Illuminate\Contracts\Console\Kernel::class)->bootstrap();
+        $url = rtrim((string) config("app.url"), "/");
+        $parts = parse_url($url);
+        if (!$parts || !in_array($parts["scheme"] ?? "", ["http", "https"], true)
+            || empty($parts["host"]) || isset($parts["user"]) || isset($parts["pass"])
+            || isset($parts["query"]) || isset($parts["fragment"])) {
+            fwrite(STDERR, "Set APP_URL to the real application URL in shared/.env.\n");
+            exit(1);
+        }
+        echo $url."/up";
+    ')"
+fi
 
 # Maintenance is shared with the previous release. Never seed or reset production data.
 "$php_bin" artisan down --retry=60
