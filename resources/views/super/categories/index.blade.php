@@ -27,31 +27,25 @@
     <div class="row">
 
 
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
             <div>
-                <h4 class="page-title mb-1">
-                    {{ __('ui.master.category_title') }}
-                </h4>
-
-                <span class="text-muted">
-                    {{ __('ui.master.category_subtitle') }}
-                </span>
+                <h4 class="page-title mb-1">{{ __('ui.master.category_title') }}</h4>
+                <span class="text-muted">{{ __('ui.master.category_subtitle') }}</span>
             </div>
-
-            <div class="d-flex gap-2">
+            <div class="d-flex flex-wrap gap-2">
                 @can('categories.view')
-                    <a href="{{ route('super.categories.template') }}" class="btn btn-outline-secondary">
-                        <i data-feather="file-text" class="icon-sm me-1"></i> {{ __('ui.master.template') }}
+                    <a href="{{ route('super.categories.template') }}" class="btn btn-sm btn-outline-secondary" title="{{ __('ui.master.template') }}" aria-label="{{ __('ui.master.template') }}">
+                        <i data-feather="file-text" class="icon-sm"></i>
                     </a>
-                    <a href="{{ route('super.categories.export') }}" class="btn btn-success">
-                        <i data-feather="download" class="icon-sm me-1"></i>{{ __('ui.common.export_excel') }}</a>
+                    <a href="{{ route('super.categories.export') }}" class="btn btn-sm btn-success" title="{{ __('ui.common.export_excel') }}" aria-label="{{ __('ui.common.export_excel') }}">
+                        <i data-feather="download" class="icon-sm"></i></a>
                 @endcan
                 @can('categories.create')
-                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#categoryImportModal">
-                        <i data-feather="upload" class="icon-sm me-1"></i> {{ __('ui.master.import_excel') }}
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#categoryImportModal" title="{{ __('ui.master.import_excel') }}" aria-label="{{ __('ui.master.import_excel') }}">
+                        <i data-feather="upload" class="icon-sm"></i>
                     </button>
-                    <button type="button" class="btn btn-primary" id="btn-add-category">
-                        <i data-feather="plus" class="icon-sm me-1"></i> {{ __('ui.master.add_category') }}
+                    <button type="button" class="btn btn-sm btn-primary" id="btn-add-category" title="{{ __('ui.master.add_category') }}" aria-label="{{ __('ui.master.add_category') }}">
+                        <i data-feather="plus" class="icon-sm"></i>
                     </button>
                 @endcan
             </div>

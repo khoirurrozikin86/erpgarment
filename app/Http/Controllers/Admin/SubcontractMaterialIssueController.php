@@ -31,8 +31,13 @@ class SubcontractMaterialIssueController extends Controller
     }
     public function index(Request $r,CompanyContext $c)
     {
-        $filters=$this->filters($r);$items=$this->query()->builder($c->id(),$filters)->paginate($filters['per_page']??10)->withQueryString();
-        return view('super.subcontract-material-issues.index',array_merge(compact('filters','items'),$this->navigation()));
+        $filters=$this->filters(new Request($r->except(['search'])));
+        if ($r->ajax()) return app(\App\Support\ServerSideTable::class)->response(
+            $r, $filters, fn (array $filters) => $this->query()->builder($c->id(), $filters),
+            \App\Domain\Subcontract\Queries\SubcontractDataTable::columns($this->issueKind),
+            'super.subcontract.partials.rows.issues', $this->navigation()
+        );
+        return view('super.subcontract-material-issues.index',array_merge(compact('filters'),$this->navigation()));
     }
     public function export(Request $r,CompanyContext $c)
     {
@@ -61,6 +66,11 @@ class SubcontractMaterialIssueController extends Controller
     }
     public function products(Request $r)
     {
+        if ($r->has('draw')) {
+            return \Yajra\DataTables\Facades\DataTables::eloquent($this->query()->products()->reorder())
+                ->addColumn('unit_label', fn ($product) => $product->unit?->symbol ?: $product->unit?->name)
+                ->toJson();
+        }
         $f=$r->validate(['search'=>['nullable','string','max:100']]);$search=$f['search']??'';
         return response()->json($this->query()->products()->when($search,fn($q)=>$q->where(fn($q)=>$q->where('code','like',"%{$search}%")->orWhere('name','like',"%{$search}%")))->limit(50)->get()->map(fn($p)=>['id'=>$p->id,'code'=>$p->code,'name'=>$p->name,'unit'=>$p->unit?->symbol?:$p->unit?->name,'style'=>$p->style_code]));
     }

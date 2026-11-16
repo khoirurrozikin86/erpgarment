@@ -10,9 +10,13 @@ class SubcontractGoodsMonitoringController extends SubcontractContractMonitoring
 {
     public function index(Request $request,CompanyContext $company,SubcontractTableQuery $query)
     {
-        $filters=$this->filters($request);
+        $filters=$this->filters(new Request($request->except(['search'])));
         $selection=$request->validate(['contract_id'=>['nullable','integer','min:1'],'direction'=>['nullable','in:receipt,issue']]);
-        $contracts=$this->contracts($query,$company,$filters)->paginate($filters['per_page']??10)->withQueryString();
+        if ($request->ajax() && $request->input('table') !== 'details') return app(\App\Support\ServerSideTable::class)->response(
+            $request, $filters, fn (array $filters) => $this->contracts($query, $company, $filters),
+            \App\Domain\Subcontract\Queries\SubcontractDataTable::columns('goods-monitoring'),
+            'super.subcontract.partials.rows.goods-monitoring', compact('filters'), 'contracts'
+        );
         $selected=null;$details=null;$direction=$selection['direction']??'issue';$ambiguous=false;
         if(!empty($selection['contract_id'])){
             $selected=SubcontractContract::where('company_id',$company->id())->with('subcontractor')->findOrFail($selection['contract_id']);
@@ -27,9 +31,15 @@ class SubcontractGoodsMonitoringController extends SubcontractContractMonitoring
                         if(!$ambiguous)$q->orWhere(fn($q)=>$q->whereNull('contract_id')->where('contract_number',$selected->contract_number));
                     });
                 })->select(['product_id','style'])->selectRaw('SUM(quantity) as realized_quantity')
-                ->groupBy('product_id','style')->orderBy('product_id')->orderBy('style')
-                ->paginate(25,['*'],'detail_page')->withQueryString();
+                ->groupBy('product_id','style')->orderBy('product_id')->orderBy('style');
+            if ($request->ajax() && $request->input('table') === 'details') return app(\App\Support\ServerSideTable::class)->response(
+                $request, $filters, fn (array $filters) => (clone $details)->when($filters['search'] ?? null, fn ($q, $search) =>
+                    $q->where(fn ($q) => $q->where('style', 'like', "%{$search}%")->orWhereHas('product', fn ($q) => $q->where('code', 'like', "%{$search}%")->orWhere('name', 'like', "%{$search}%")))),
+                \App\Domain\Subcontract\Queries\SubcontractDataTable::columns('goods-details'),
+                'super.subcontract.partials.rows.goods-details', [], 'details'
+            );
         }
-        return view('super.subcontract.goods-monitoring',compact('contracts','filters','selected','details','direction','ambiguous'));
+        abort_if($request->ajax() && $request->input('table') === 'details', 422);
+        return view('super.subcontract.goods-monitoring',compact('filters','selected','direction','ambiguous'));
     }
 }

@@ -26,9 +26,13 @@ class WipPositionReportController extends Controller
 
     public function index(Request $request, WipPositionReportQuery $query, CompanyContext $company)
     {
-        $filters = $this->filters($request);
-        $items = $query->builder($company->id(), $filters)->paginate($filters['per_page'] ?? 10)->withQueryString();
-        return view('super.reports.wip-position', compact('filters', 'items'));
+        $filters = $this->filters(new Request($request->except(['search'])));
+        if ($request->ajax()) {
+            return app(\App\Domain\Customs\Queries\BcReportDataTable::class)->response(
+                $request, $filters, 'wip-position', fn (array $filters) => $query->builder($company->id(), $filters)
+            );
+        }
+        return view('super.reports.wip-position', compact('filters'));
     }
 
     public function export(Request $request, CompanyContext $company)

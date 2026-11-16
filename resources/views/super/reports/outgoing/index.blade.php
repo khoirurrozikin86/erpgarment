@@ -12,18 +12,12 @@
                 <button class="btn btn-primary" type="submit">{{ __('bc_reports.show_data') }}</button>
                 <button class="btn btn-outline-primary" type="submit" formaction="{{ route('super.reports.outgoing.export') }}">{{ __('bc_reports.export_excel') }}</button>
             </div>
-            <div class="d-flex flex-wrap gap-3 justify-content-between align-items-center">
-                <label class="d-flex gap-2 align-items-center"><select name="per_page" class="form-select w-auto" onchange="this.form.requestSubmit()">@foreach([10,25,50,100] as $size)<option @selected(($filters['per_page'] ?? 10) == $size)>{{ $size }}</option>@endforeach</select> {{ __('bc_reports.records') }}</label>
-                <div class="d-flex align-items-center gap-2"><label for="search">{{ __('bc_reports.search_2') }}</label><input id="search" name="search" class="form-control" value="{{ $filters['search'] ?? '' }}" placeholder="{{ __('bc_reports.item_recipient_document') }}"><button class="btn btn-outline-primary" type="submit">{{ __('bc_reports.search') }}</button></div>
-            </div>
+            <input type="hidden" name="search" id="report-export-search" value="">
         </form>
-        <div class="table-responsive"><table class="table table-bordered table-striped align-middle outgoing-table">
+        <div class="table-responsive"><table id="bc-report-table" class="table table-bordered table-striped align-middle outgoing-table">
             <thead><tr><th rowspan="2">{{ __('bc_reports.no') }}</th><th colspan="3">{{ __('bc_reports.customs_document_details') }}</th><th colspan="2">{{ __('bc_reports.goods_issue_note_equivalent_document') }}</th><th rowspan="2">{{ __('bc_reports.recipient') }}</th><th rowspan="2">{{ __('bc_reports.hs_code') }}</th><th rowspan="2">{{ __('bc_reports.item_code') }}</th><th rowspan="2">{{ __('bc_reports.item_name') }}</th><th rowspan="2">{{ __('bc_reports.item_unit') }}</th><th rowspan="2">{{ __('bc_reports.item_quantity') }}</th><th rowspan="2">{{ __('bc_reports.unit_price') }}</th><th rowspan="2">{{ __('bc_reports.total_amount') }}</th></tr><tr><th>{{ __('bc_reports.type') }}</th><th>{{ __('bc_reports.registration_no') }}</th><th>{{ __('bc_reports.registration_date') }}</th><th>{{ __('bc_reports.no') }}</th><th>{{ __('bc_reports.date') }}</th></tr></thead>
-            <tbody>@forelse($items as $item)
-                <tr><td>{{ $items->firstItem() + $loop->index }}</td><td>—</td><td>—</td><td>—</td><td>{{ $item->number }}</td><td>{{ \Carbon\Carbon::parse($item->document_date)->format('d-m-Y') }}</td><td>{{ $item->recipient ?? '—' }}</td><td>—</td><td>@if($item->product_id)<a class="js-trace-product" href="{{ route('super.reports.outgoing.trace', $item->product_id) }}" data-code="{{ $item->item_code }}" data-name="{{ $item->item_name }}" data-unit="{{ $item->unit }}">{{ $item->item_code }}</a>@else {{ $item->item_code ?? '—' }} @endif</td><td class="item-name">{{ $item->item_name }}</td><td>{{ $item->unit }}</td><td class="text-end">{{ number_format($item->quantity, 4, ',', '.') }}</td><td>—</td><td>—</td></tr>
-            @empty<tr><td colspan="14" class="text-center py-4">{{ __('bc_reports.no_matching_records_found_11') }}</td></tr>@endforelse</tbody>
+            <tbody></tbody>
         </table></div>
-        <div class="d-flex flex-wrap justify-content-between align-items-center mt-3"><span>{{ __('bc_reports.pagination', ['first' => $items->firstItem() ?? 0, 'last' => $items->lastItem() ?? 0, 'total' => $items->total()]) }}</span><div>{{ $items->links() }}</div></div>
         <p class="small text-muted mt-3 mb-0">{{ __('bc_reports.source_approved_delivery_notes_and_equipment_issues_for_the_active_company_') }}</p>
     </div>
 </div>
@@ -43,7 +37,9 @@
     const dialog = document.getElementById('trace-dialog'), form = document.getElementById('trace-form'), select = document.getElementById('trace-mo'), submit = document.getElementById('trace-submit'), status = document.getElementById('trace-status');
     let pending;
     document.getElementById('trace-close').addEventListener('click', () => { pending?.abort(); dialog.close(); });
-    document.querySelectorAll('.js-trace-product').forEach(link => link.addEventListener('click', async event => {
+    document.addEventListener('click', async event => {
+        const link = event.target.closest('.js-trace-product');
+        if (!link) return;
         event.preventDefault(); pending?.abort(); pending = new AbortController();
         form.action = link.href;
         for (const key of ['code','name','unit']) document.getElementById('trace-' + key).value = link.dataset[key] || '';
@@ -55,8 +51,10 @@
             for (const order of data.orders) select.add(new Option(order.number, order.id));
             status.textContent = data.orders.length ? '' : @json(__('bc_reports.no_mo_produces_this_item_yet')); submit.disabled = false;
         } catch (error) { if (error.name !== 'AbortError') status.textContent = @json(__('bc_reports.could_not_load_mos_close_and_click_the_item_code_to_retry')); }
-    }));
+    });
     document.getElementById('trace-search').addEventListener('input', function () { for (const option of select.options) option.hidden = option.value !== '' && !option.text.toLowerCase().includes(this.value.toLowerCase()); });
 })();
 </script>
 @endsection
+
+@include('super.reports.partials.datatable', ['reportKey' => 'outgoing'])

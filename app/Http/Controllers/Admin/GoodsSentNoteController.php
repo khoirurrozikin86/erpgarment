@@ -31,7 +31,7 @@ class GoodsSentNoteController extends Controller
             ->addColumn('mo', fn ($n) => $n->items->pluck('productionOrder.number')->filter()->unique()->implode(', '))
             ->addColumn('order_date', fn ($n) => $n->items->first()?->productionOrder?->po_date?->format('Y-m-d') ?: '—')
             ->addColumn('date', fn ($n) => $n->sent_date?->format('Y-m-d'))
-            ->addColumn('user_input', fn ($n) => $n->creator?->username ?: $n->creator?->name ?: '—')
+            ->addColumn('user_input', fn ($n) => $n->creator?->name ?: '—')
             ->addColumn('actions', function (GoodsSentNote $n) {
                 $b = '<button class="btn btn-primary btn-sm py-0 px-1 js-show-gsn" data-id="'.$n->id.'">'.e(__('ui.common.detail')).'</button>';
                 if (auth()->user()->can('goods-sent-notes.update')) $b .= ' <a class="btn btn-outline-primary btn-sm p-1" title="'.e(__('ui.common.edit')).'" href="'.route('super.goods-sent-notes.edit', $n).'"><i data-feather="edit-2" class="icon-sm"></i></a>';

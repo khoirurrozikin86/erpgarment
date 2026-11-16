@@ -1,0 +1,137 @@
+/* Shared admin layout: keep wide reports inside their scroll containers. */
+.admin-layout .report-table-controls {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.admin-layout .report-page-size,
+.admin-layout .report-search {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    margin: 0;
+}
+
+.admin-layout .report-page-size,
+.admin-layout .report-search > label {
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+
+.admin-layout .report-search {
+    flex: 0 1 420px;
+    min-width: 0;
+}
+
+.admin-layout .report-search .form-control {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: 100%;
+}
+
+@media (max-width: 575.98px) {
+    .admin-layout .report-search {
+        flex-basis: 100%;
+    }
+}
+
+.admin-layout .page-wrapper,
+.admin-layout .page-content,
+.admin-layout .page-content .row > *,
+.admin-layout .page-content .card,
+.admin-layout .page-content .card-body,
+.admin-layout .dataTables_wrapper {
+    min-width: 0;
+}
+
+.admin-layout .table-responsive {
+    max-width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.admin-layout .page-content form .d-flex > * {
+    min-width: 0;
+}
+
+.admin-layout .admin-pagination {
+    max-width: 100%;
+    margin: .5rem 0;
+}
+
+.admin-layout .pagination {
+    flex-wrap: wrap;
+    row-gap: .25rem;
+}
+
+.admin-layout .admin-pagination .page-link {
+    min-width: 2.25rem;
+    text-align: center;
+}
+
+@media (max-width: 767.98px) {
+    .admin-layout .page-wrapper .page-content {
+        padding: 16px 12px;
+    }
+
+    .admin-layout .page-content .card-body {
+        padding: 16px;
+    }
+
+    .admin-layout .page-content .card-header {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: .5rem;
+    }
+
+    /* Filter bars and inline search groups must wrap independently of tables. */
+    .admin-layout .page-content form .d-flex {
+        flex-wrap: wrap;
+        gap: .5rem;
+    }
+
+    .admin-layout .page-content form .d-flex > div {
+        max-width: 100%;
+        flex: 1 1 180px;
+    }
+
+    .admin-layout .page-content form .d-flex input.form-control {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .admin-layout .page-content form .d-flex > .btn {
+        white-space: normal;
+    }
+
+    .admin-layout .dataTables_wrapper .dataTables_filter input {
+        max-width: 55vw;
+    }
+
+    .admin-layout .dataTables_wrapper .dataTables_paginate .pagination {
+        justify-content: center;
+    }
+
+    .admin-layout .modal-dialog {
+        max-width: calc(100% - 1rem);
+        margin: .5rem auto;
+    }
+
+    .admin-layout .modal-body {
+        overflow-wrap: anywhere;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .admin-layout .admin-pagination .pagination-number:not(.active) {
+        display: none;
+    }
+
+    .admin-layout .admin-pagination .page-link {
+        padding: .5rem .65rem;
+    }
+}

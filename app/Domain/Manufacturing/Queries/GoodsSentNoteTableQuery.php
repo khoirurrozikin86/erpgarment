@@ -13,7 +13,7 @@ class GoodsSentNoteTableQuery
         return GoodsSentNote::query()->where('company_id', $companyId)
             ->when($from, fn ($q) => $q->whereDate('sent_date', '>=', $from))
             ->when($to, fn ($q) => $q->whereDate('sent_date', '<=', $to))
-            ->with(['creator:id,name,username', 'items.productionOrder:id,number,buyer_po_number,customer_id', 'items.productionOrder.buyer:id,name', 'items.customer:id,name'])
+            ->with(['creator:id,name', 'items.productionOrder:id,number,buyer_po_number,customer_id', 'items.productionOrder.buyer:id,name', 'items.customer:id,name'])
             ->latest('sent_date')->latest('id');
     }
 
@@ -38,7 +38,7 @@ class GoodsSentNoteTableQuery
         return GoodsSentNote::query()->where('company_id', $companyId)
             ->when($from, fn ($q) => $q->whereDate('sent_date', '>=', $from))
             ->when($to, fn ($q) => $q->whereDate('sent_date', '<=', $to))
-            ->with(['approver:id,name,username', 'items.productionOrder:id,number,buyer_po_number,customer_id', 'items.productionOrder.buyer:id,name', 'items.customer:id,name', 'items.productionOrder.outputProduct:id,code,name,unit_id,style_code', 'items.productionOrder.outputProduct.unit:id,name,symbol'])
+            ->with(['approver:id,name', 'items.productionOrder:id,number,buyer_po_number,customer_id', 'items.productionOrder.buyer:id,name', 'items.customer:id,name', 'items.productionOrder.outputProduct:id,code,name,unit_id,style_code', 'items.productionOrder.outputProduct.unit:id,name,symbol'])
             ->latest('sent_date')->latest('id');
     }
 }

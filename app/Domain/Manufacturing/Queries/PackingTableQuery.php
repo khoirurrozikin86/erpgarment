@@ -11,7 +11,7 @@ class PackingTableQuery
     {
         return ProductionOrderStageEntry::query()->where('stage','packing')->whereDate('processed_at','>=',$from?:'1000-01-01')->whereDate('processed_at','<=',$to?:'9999-12-31')
             ->whereHas('productionOrder',fn(Builder $q)=>$q->where('company_id',$companyId))
-            ->with(['productionOrder:id,company_id,number,buyer_po_number,no_cbd,output_product_id','productionOrder.stageEntries'=>fn($q)=>$q->where('stage','sewing')->select('id','production_order_id','good_quantity'),'productionOrder.outputProduct:id,code,name,style_code,unit_id','productionOrder.outputProduct.unit:id,name,symbol','processor:id,name,username','materialProduct:id,code,name,unit_id','materialProduct.unit:id,name,symbol'])
+            ->with(['productionOrder:id,company_id,number,buyer_po_number,no_cbd,output_product_id','productionOrder.stageEntries'=>fn($q)=>$q->where('stage','sewing')->select('id','production_order_id','good_quantity'),'productionOrder.outputProduct:id,code,name,style_code,unit_id','productionOrder.outputProduct.unit:id,name,symbol','processor:id,name','materialProduct:id,code,name,unit_id','materialProduct.unit:id,name,symbol'])
             ->select('production_order_stage_entries.*')->latest('processed_at');
     }
     public function productionOrders(int $companyId):Builder

@@ -26,7 +26,7 @@
 <div class="table-responsive"><table class="table table-bordered align-middle"><thead><tr>@foreach(['code','name','unit','quantity','style','description'] as $key)<th>{{ __($translation.'.'.$key) }}</th>@endforeach<th>{{ __('ui.common.action') }}</th></tr></thead><tbody id="issue-items"></tbody></table></div>
 <p class="small text-muted">{{ __($translation.'.notice') }}</p><button class="btn btn-primary btn-sm" id="save-issue">{{ __('ui.common.save') }}</button>
 </form></div></div>
-<div class="modal fade" id="product-modal" tabindex="-1" aria-labelledby="product-modal-title" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="product-modal-title">{{ __($translation.'.choose_item') }}</h5><button class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div><div class="modal-body"><form id="product-search-form" class="d-flex gap-2 mb-3"><input id="product-search" class="form-control form-control-sm" maxlength="100" placeholder="{{ __($translation.'.product_search') }}" aria-label="{{ __($translation.'.product_search') }}"><button class="btn btn-primary btn-sm">{{ __('ui.common.search') }}</button></form><p class="small text-muted" id="product-status" role="status"></p><div class="table-responsive"><table class="table table-bordered"><thead><tr>@foreach(['code','name','unit'] as $key)<th>{{ __($translation.'.'.$key) }}</th>@endforeach<th>{{ __('ui.common.action') }}</th></tr></thead><tbody id="product-results"></tbody></table></div></div></div></div></div>
+<div class="modal fade" id="product-modal" tabindex="-1" aria-labelledby="product-modal-title" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="product-modal-title">{{ __($translation.'.choose_item') }}</h5><button class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div><div class="modal-body"><div class="table-responsive"><table id="subcontract-products-table" class="table table-bordered w-100"><thead><tr>@foreach(['code','name','unit'] as $key)<th>{{ __($translation.'.'.$key) }}</th>@endforeach<th>{{ __('ui.common.action') }}</th></tr></thead><tbody id="product-results"></tbody></table></div></div></div></div></div>
 @endsection
 @push('scripts')
 <script>
@@ -46,10 +46,24 @@
  for(const line of lines){const product=products[line.product_id];if(product)add(product,line);}
  const contract=document.getElementById('contract');function receiver(){const option=contract.selectedOptions[0];document.getElementById('receiver-id').value=option?.dataset.receiver??'';document.getElementById('receiver-name').value=option?.dataset.name??'';}if(contract){contract.addEventListener('change',receiver);receiver();}
  const subcontractorSearch=document.getElementById('subcontractor-search');if(subcontractorSearch)subcontractorSearch.addEventListener('input',function(){const term=this.value.toLocaleLowerCase();for(const option of document.getElementById('receiver-id').options)option.hidden=option.value!==''&&!option.text.toLocaleLowerCase().includes(term);});
- const modal=new bootstrap.Modal(document.getElementById('product-modal'));let pending;
- async function search(){pending?.abort();pending=new AbortController();const results=document.getElementById('product-results');results.replaceChildren();const status=document.getElementById('product-status');status.textContent=t.loading;
- try{const url=new URL(@json(route($routePrefix.'.products')));url.searchParams.set('search',document.getElementById('product-search').value);const response=await fetch(url,{headers:{Accept:'application/json'},signal:pending.signal});if(!response.ok)throw new Error();const data=await response.json();status.textContent=data.length?t.limit_notice:t.empty;for(const product of data){const row=results.insertRow();textCell(row,product.code);textCell(row,product.name);textCell(row,product.unit);const button=document.createElement('button');button.className='btn btn-primary btn-sm';button.textContent=t.select;button.onclick=()=>{add(product);modal.hide();};row.insertCell().append(button);}}catch(error){if(error.name!=='AbortError')status.textContent=t.load_failed;}}
- document.getElementById('add-item').onclick=()=>{modal.show();search();};document.getElementById('product-search-form').onsubmit=event=>{event.preventDefault();search();};
+ const modal=new bootstrap.Modal(document.getElementById('product-modal'));
+ const productTable=$('#subcontract-products-table').DataTable({
+  processing:true,serverSide:true,scrollX:true,searchDelay:500,lengthMenu:[10,25,50,100],
+  ajax:@json(route($routePrefix.'.products')),
+  columns:[
+   {data:'code',name:'code',render:$.fn.dataTable.render.text()},
+   {data:'name',name:'name',render:$.fn.dataTable.render.text()},
+   {data:'unit_label',orderable:false,searchable:false,defaultContent:'—',render:$.fn.dataTable.render.text()},
+   {data:null,orderable:false,searchable:false,defaultContent:'<button type="button" class="btn btn-primary btn-sm js-select-subcontract-product"></button>'}
+  ],order:[[0,'asc']],
+  createdRow:function(row){$(row).find('.js-select-subcontract-product').text(t.select);}
+ });
+ $('#subcontract-products-table').on('click','.js-select-subcontract-product',function(){
+  const product=productTable.row($(this).closest('tr')).data();
+  add({...product,unit:product.unit_label});modal.hide();
+ });
+ document.getElementById('add-item').onclick=()=>modal.show();
+ $('#product-modal').on('shown.bs.modal',()=>productTable.columns.adjust());
  document.getElementById('issue-form').addEventListener('submit',event=>{if(!body.rows.length){event.preventDefault();alert(t.items_required);}else document.getElementById('save-issue').disabled=true;});
 })();
 </script>

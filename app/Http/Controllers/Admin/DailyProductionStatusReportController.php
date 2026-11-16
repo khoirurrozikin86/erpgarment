@@ -26,9 +26,13 @@ class DailyProductionStatusReportController extends Controller
 
     public function index(Request $request, DailyProductionStatusReportQuery $query, CompanyContext $company)
     {
-        $filters = $this->filters($request);
-        $items = $query->builder($company->id(), $filters)->paginate($filters['per_page'] ?? 10)->withQueryString();
-        return view('super.reports.daily-production-status', compact('filters', 'items'));
+        $filters = $this->filters(new Request($request->except(['search'])));
+        if ($request->ajax()) {
+            return app(\App\Domain\Customs\Queries\BcReportDataTable::class)->response(
+                $request, $filters, 'daily-production-status', fn (array $filters) => $query->builder($company->id(), $filters)
+            );
+        }
+        return view('super.reports.daily-production-status', compact('filters'));
     }
 
     public function export(Request $request, CompanyContext $company)

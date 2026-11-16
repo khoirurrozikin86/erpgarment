@@ -12,20 +12,16 @@
                 <button class="btn btn-primary" type="submit">{{ __('bc_reports.show_data') }}</button>
                 <button class="btn btn-primary" type="submit" formaction="{{ route('super.reports.finished-goods-return.export') }}">{{ __('bc_reports.export_excel') }}</button>
             </div>
-            <div class="d-flex flex-wrap gap-3 justify-content-between align-items-center">
-                <label class="d-flex gap-2 align-items-center"><select name="per_page" class="form-select w-auto" onchange="this.form.requestSubmit()">@foreach([10,25,50,100] as $size)<option @selected(($filters['per_page'] ?? 10) == $size)>{{ $size }}</option>@endforeach</select> {{ __('bc_reports.records') }}</label>
-                <div class="d-flex align-items-center gap-2"><label for="search">{{ __('bc_reports.search_2') }}</label><input id="search" name="search" class="form-control" value="{{ $filters['search'] ?? '' }}" placeholder="{{ __('bc_reports.item_code_or_name') }}"><button class="btn btn-outline-primary" type="submit">{{ __('bc_reports.search') }}</button></div>
-            </div>
+            <input type="hidden" name="search" id="report-export-search" value="">
         </form>
-        <div class="table-responsive"><table class="table table-bordered table-striped align-middle finished-goods-return-table">
+        <div class="table-responsive"><table id="bc-report-table" class="table table-bordered table-striped align-middle finished-goods-return-table">
             <thead><tr><th>{{ __('bc_reports.no') }}</th><th>{{ __('bc_reports.reject_no') }}</th><th>{{ __('bc_reports.date') }}</th><th>{{ __('bc_reports.item_code') }}</th><th>{{ __('bc_reports.item_name') }}</th><th>{{ __('bc_reports.unit') }}</th><th>{{ __('bc_reports.quantity') }}</th></tr></thead>
-            <tbody>@forelse($items as $item)
-                <tr><td>{{ $items->firstItem() + $loop->index }}</td><td>—</td><td>{{ $item->created_at?->format('Y-m-d') }}</td><td>{{ $item->product?->code ?? '—' }}</td><td class="item-name">{{ $item->product?->name ?? '—' }}</td><td>{{ $item->product?->unit?->symbol ?: $item->product?->unit?->name }}</td><td class="text-end">{{ number_format($item->quantity, 4, ',', '.') }}</td></tr>
-            @empty<tr><td colspan="7" class="text-center py-4">{{ __('bc_reports.no_matching_records_found_5') }}</td></tr>@endforelse</tbody>
+            <tbody></tbody>
         </table></div>
-        <div class="d-flex flex-wrap justify-content-between align-items-center mt-3"><span>{{ __('bc_reports.pagination', ['first' => $items->firstItem() ?? 0, 'last' => $items->lastItem() ?? 0, 'total' => $items->total()]) }}</span><div>{{ $items->links() }}</div></div>
         <p class="small text-muted mt-3 mb-0">{{ __('bc_reports.source_customer_return_movements_for_finished_goods_in_the_shared_stock_led') }}</p>
     </div>
 </div>
 <style>.finished-goods-return-table{font-size:12px}.finished-goods-return-table th{background:#f8f8f8;vertical-align:middle;text-align:center;min-width:105px;white-space:normal}.finished-goods-return-table td{white-space:nowrap;padding:12px}.finished-goods-return-table .item-name{min-width:360px;white-space:normal}</style>
 @endsection
+
+@include('super.reports.partials.datatable', ['reportKey' => 'finished-goods-return'])

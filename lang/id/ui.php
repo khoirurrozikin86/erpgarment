@@ -300,6 +300,9 @@ return [
         'document_numbering' => 'Penomoran dokumen',
     ],
     'common' => [
+        'view_detail' => 'Lihat Detail',
+        'save_changes' => 'Simpan Perubahan',
+        'confirm_delete' => 'Yakin ingin menghapus data ini?',
         'select' => 'Pilih',
         'cash_in' => 'Kas Masuk',
         'login' => 'Masuk',

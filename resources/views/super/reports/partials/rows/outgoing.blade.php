@@ -1,0 +1,3 @@
+@foreach($items as $item)
+                <tr><td>{{ $items->firstItem() + $loop->index }}</td><td>—</td><td>—</td><td>—</td><td>{{ $item->number }}</td><td>{{ \Carbon\Carbon::parse($item->document_date)->format('d-m-Y') }}</td><td>{{ $item->recipient ?? '—' }}</td><td>—</td><td>@if($item->product_id)<a class="js-trace-product" href="{{ route('super.reports.outgoing.trace', $item->product_id) }}" data-code="{{ $item->item_code }}" data-name="{{ $item->item_name }}" data-unit="{{ $item->unit }}">{{ $item->item_code }}</a>@else {{ $item->item_code ?? '—' }} @endif</td><td class="item-name">{{ $item->item_name }}</td><td>{{ $item->unit }}</td><td class="text-end">{{ number_format($item->quantity, 4, ',', '.') }}</td><td>—</td><td>—</td></tr>
+            @endforeach

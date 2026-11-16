@@ -32,8 +32,12 @@ class SubcontractContractMonitoringController extends Controller
     }
     public function index(Request $request, CompanyContext $company, SubcontractTableQuery $query)
     {
-        $filters=$this->filters($request);
-        $contracts=$this->contracts($query,$company,$filters)->paginate($filters['per_page']??10)->withQueryString();
-        return view('super.subcontract.contract-monitoring',compact('filters','contracts'));
+        $filters=$this->filters(new Request($request->except(['search'])));
+        if ($request->ajax()) return app(\App\Support\ServerSideTable::class)->response(
+            $request, $filters, fn (array $filters) => $this->contracts($query, $company, $filters),
+            \App\Domain\Subcontract\Queries\SubcontractDataTable::columns('contract-monitoring'),
+            'super.subcontract.partials.rows.contract-monitoring', [], 'contracts'
+        );
+        return view('super.subcontract.contract-monitoring',compact('filters'));
     }
 }

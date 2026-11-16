@@ -27,9 +27,13 @@ class CapitalGoodsMutationReportController extends Controller
 
     public function index(Request $request, CapitalGoodsMutationReportQuery $query)
     {
-        $filters = $this->filters($request);
-        $items = $query->builder($filters)->paginate($filters['per_page'] ?? 10)->withQueryString();
-        return view('super.reports.capital-goods-mutation', compact('filters', 'items'));
+        $filters = $this->filters(new Request($request->except(['search'])));
+        if ($request->ajax()) {
+            return app(\App\Domain\Customs\Queries\BcReportDataTable::class)->response(
+                $request, $filters, 'capital-goods-mutation', fn (array $filters) => $query->builder($filters)
+            );
+        }
+        return view('super.reports.capital-goods-mutation', compact('filters'));
     }
 
     public function export(Request $request)

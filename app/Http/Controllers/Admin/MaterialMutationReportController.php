@@ -25,9 +25,13 @@ class MaterialMutationReportController extends Controller
 
     public function index(Request $request, MaterialMutationReportQuery $query)
     {
-        $filters = $this->filters($request);
-        $items = $query->builder($filters)->paginate($filters['per_page'] ?? 10)->withQueryString();
-        return view('super.reports.material-mutation', compact('filters', 'items'));
+        $filters = $this->filters(new Request($request->except(['search'])));
+        if ($request->ajax()) {
+            return app(\App\Domain\Customs\Queries\BcReportDataTable::class)->response(
+                $request, $filters, 'material-mutation', fn (array $filters) => $query->builder($filters)
+            );
+        }
+        return view('super.reports.material-mutation', compact('filters'));
     }
 
     public function export(Request $request)

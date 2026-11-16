@@ -301,6 +301,9 @@ return [
         'document_numbering' => 'Document Numbering',
     ],
     'common' => [
+        'view_detail' => 'View Details',
+        'save_changes' => 'Save Changes',
+        'confirm_delete' => 'Are you sure you want to delete this record?',
         'select' => 'Select',
         'cash_in' => 'Cash In',
         'login' => 'Log in',

@@ -14,7 +14,7 @@ class FinishedGoodsTableQuery
         return ProductionOrderStageEntry::query()->where('stage', 'finishing')
             ->whereDate('processed_at', '>=', $from ?: '1000-01-01')->whereDate('processed_at', '<=', $to ?: '9999-12-31')
             ->whereHas('productionOrder', fn (Builder $q) => $q->where('company_id', $companyId))
-            ->with(['productionOrder:id,company_id,number,buyer_po_number,no_cbd,output_product_id', 'productionOrder.outputProduct:id,code,name,style_code,unit_id', 'productionOrder.outputProduct.unit:id,name,symbol', 'processor:id,name,username'])
+            ->with(['productionOrder:id,company_id,number,buyer_po_number,no_cbd,output_product_id', 'productionOrder.outputProduct:id,code,name,style_code,unit_id', 'productionOrder.outputProduct.unit:id,name,symbol', 'processor:id,name'])
             ->select('production_order_stage_entries.*')->latest('processed_at');
     }
 

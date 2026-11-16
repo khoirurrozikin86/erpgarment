@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Pagination\Paginator;
 use App\Domain\Companies\Services\CompanyContext;
 
 class AppServiceProvider extends ServiceProvider
@@ -22,6 +23,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Paginator::defaultView('pagination.admin');
+        Paginator::defaultSimpleView('pagination.admin');
     }
 }

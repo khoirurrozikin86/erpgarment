@@ -13,7 +13,11 @@ class Bc25Controller extends Controller {
  private function filters(Request $r):array {
   $f=$r->validate(['from_date'=>['nullable','date_format:Y-m-d'],'to_date'=>['nullable','date_format:Y-m-d'],'search'=>['nullable','string','max:100'],'per_page'=>['nullable','integer','in:10,25,50,100']]);$f['from_date']??=now()->startOfMonth()->toDateString();$f['to_date']??=now()->toDateString();if($f['from_date']>$f['to_date'])throw ValidationException::withMessages(['to_date'=>__('bc25.invalid_range')]);return $f;
  }
- public function index(Request $r,CompanyContext $c,Bc25Query $q){$filters=$this->filters($r);$items=$q->builder($c->id(),$filters)->paginate($filters['per_page']??10)->withQueryString();return view('super.bc25.index',compact('filters','items'));}
+ public function index(Request $r,CompanyContext $c,Bc25Query $q){
+  $filters=$this->filters(new Request($r->except(['search'])));
+  if($r->ajax())return app(\App\Domain\Customs\Queries\BcInDataTable::class)->response($q->builder($c->id(),$filters), 'bc25', 'bc-out');
+  return view('super.bc25.index',compact('filters'));
+ }
  public function export(Request $r,CompanyContext $c){return Excel::download(new Bc25Export($c->id(),$this->filters($r)),'bc-2.5.xlsx');}
  public function create(){return $this->form(null);}
  public function edit(CustomsDocument $document,CompanyContext $c){$this->scope($document,$c);return $this->form($document);}

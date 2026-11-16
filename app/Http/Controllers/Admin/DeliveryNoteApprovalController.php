@@ -34,7 +34,7 @@ class DeliveryNoteApprovalController extends Controller
             ->addColumn('approved', fn (GoodsSentNote $note) => $note->approved_at
                 ? '<span class="badge bg-success">YES</span>'
                 : '<span class="badge bg-danger">NO</span>')
-            ->addColumn('approved_by_name', fn (GoodsSentNote $note) => $note->approver?->username ?: $note->approver?->name ?: '—')
+            ->addColumn('approved_by_name', fn (GoodsSentNote $note) => $note->approver?->name ?: '—')
             ->addColumn('approved_date', fn (GoodsSentNote $note) => $note->approved_at?->format('Y-m-d H:i:s') ?: '—')
             ->addColumn('actions', function (GoodsSentNote $note) {
                 $buttons = '';

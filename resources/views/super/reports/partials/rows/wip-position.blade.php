@@ -1,0 +1,3 @@
+@foreach($items as $item)
+                <tr><td>{{ $items->firstItem() + $loop->index }}</td><td>{{ $item->code }}/{{ $item->position }}</td><td class="item-name">{{ $item->name }}</td><td>{{ $item->symbol ?: $item->unit_name }}</td><td class="text-end">{{ rtrim(rtrim(number_format($item->quantity, 4, ',', '.'), '0'), ',') }}</td><td>{{ (float) $item->quantity < 0 ? __('bc_reports.review_production_transaction_order_or_corrections') : '—' }}</td></tr>
+            @endforeach

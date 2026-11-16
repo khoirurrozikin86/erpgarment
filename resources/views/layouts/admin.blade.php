@@ -376,10 +376,11 @@
         }
     </style>
 
+    <link rel="stylesheet" href="{{ asset('css/admin-responsive.css') }}?v={{ filemtime(public_path('css/admin-responsive.css')) }}">
 </head>
 
 
-<body>
+<body class="admin-layout">
     <div class="main-wrapper">
         {{-- Sidebar --}}
         @include('admin.partials.sidebar')

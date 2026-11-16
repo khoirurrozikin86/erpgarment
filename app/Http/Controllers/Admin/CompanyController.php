@@ -26,7 +26,10 @@ class CompanyController extends Controller
                     return '<span class="text-muted">No Logo</span>';
                 }
 
-                return '<img src="' . e(Storage::disk('public')->url($company->logo)) . '"
+                // Public logos follow the current site's origin, not a stale APP_URL.
+                $logoUrl = request()->getBaseUrl() . '/storage/' . ltrim($company->logo, '/');
+
+                return '<img src="' . e($logoUrl) . '"
                     alt="' . e($company->name) . '"
                     style="width:50px;height:50px;object-fit:contain;border-radius:6px;">';
             })
