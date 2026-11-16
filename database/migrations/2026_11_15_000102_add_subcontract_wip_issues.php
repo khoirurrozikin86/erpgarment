@@ -11,7 +11,7 @@ return new class extends Migration {
             $t->string('issue_kind',10)->default('raw');
             $t->index(['company_id','issue_kind','issue_date'],'sub_issue_kind_date_idx');
         });
-        foreach(DB::table('companies')->get(['id']) as $company)DB::table('document_numberings')->insertOrIgnore(['company_id'=>$company->id,'document_type'=>'subcontract_wip_issue','prefix'=>'TIMW','format'=>'{PREFIX}/{NUMBER}/SBSJK/{MM}/{YY}','next_number'=>1,'number_length'=>1,'reset_period'=>'monthly','is_active'=>1,'created_at'=>now(),'updated_at'=>now()]);
+        foreach(DB::table('companies')->get(['id']) as $company)DB::table('document_numberings')->insertOrIgnore(['company_id'=>$company->id,'document_type'=>'subcontract_wip_issue','prefix'=>'SDI','format'=>'{PREFIX}/{NUMBER}/SBSJK/{MM}/{YY}','next_number'=>1,'number_length'=>1,'reset_period'=>'monthly','is_active'=>1,'created_at'=>now(),'updated_at'=>now()]);
         foreach(['view','create','update','delete','confirm'] as $action){
             $fields=['name'=>'subcontract-wip-issues.'.$action,'guard_name'=>'web','created_at'=>now(),'updated_at'=>now()];
             if(Schema::hasColumn('permissions','group_name'))$fields['group_name']='subcontract-wip-issues';

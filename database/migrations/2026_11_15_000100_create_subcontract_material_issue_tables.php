@@ -32,7 +32,7 @@ return new class extends Migration {
             $t->index(['product_id', 'document_id'], 'sub_mat_issue_product_idx');
         });
         foreach (DB::table('companies')->get(['id']) as $company) {
-            DB::table('document_numberings')->insertOrIgnore(['company_id'=>$company->id,'document_type'=>'subcontract_material_issue','prefix'=>'TIMW','format'=>'{PREFIX}/{NUMBER}/SBBK/{MM}/{YY}','next_number'=>1,'number_length'=>1,'reset_period'=>'monthly','is_active'=>1,'created_at'=>now(),'updated_at'=>now()]);
+            DB::table('document_numberings')->insertOrIgnore(['company_id'=>$company->id,'document_type'=>'subcontract_material_issue','prefix'=>'SDI','format'=>'{PREFIX}/{NUMBER}/SBBK/{MM}/{YY}','next_number'=>1,'number_length'=>1,'reset_period'=>'monthly','is_active'=>1,'created_at'=>now(),'updated_at'=>now()]);
         }
         foreach (['view','create','update','delete'] as $action) {
             $name='subcontract-material-issues.'.$action;

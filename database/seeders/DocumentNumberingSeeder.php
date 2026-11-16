@@ -82,11 +82,11 @@ class DocumentNumberingSeeder extends Seeder
             ['document_type' => 'goods_sent_note', 'prefix' => 'GSN'],
             ['document_type' => 'equipment_receipt', 'prefix' => 'MCHI'],
             ['document_type' => 'equipment_issue', 'prefix' => 'MCHO'],
-            ['document_type' => 'subcontract_contract', 'prefix' => 'TIMW', 'format' => '{PREFIX}/{NUMBER}/KTRKS/{MM}/{YY}', 'number_length' => 1],
-            ['document_type' => 'subcontract_receipt', 'prefix' => 'TIMW', 'format' => '{PREFIX}/{NUMBER}/SBBM/{MM}/{YY}', 'number_length' => 1],
-            ['document_type' => 'subcontract_wip_issue', 'prefix' => 'TIMW', 'format' => '{PREFIX}/{NUMBER}/SBSJK/{MM}/{YY}', 'number_length' => 1],
-            ['document_type' => 'subcontract_material_issue', 'prefix' => 'TIMW', 'format' => '{PREFIX}/{NUMBER}/SBBK/{MM}/{YY}', 'number_length' => 1],
-            ['document_type' => 'subcontract_semi_finished', 'prefix' => 'TIMW', 'format' => '{PREFIX}/{NUMBER}/HBSJD/{MM}/{YY}', 'number_length' => 1],
+            ['document_type' => 'subcontract_contract', 'prefix' => 'SDI', 'format' => '{PREFIX}/{NUMBER}/KTRKS/{MM}/{YY}', 'number_length' => 1],
+            ['document_type' => 'subcontract_receipt', 'prefix' => 'SDI', 'format' => '{PREFIX}/{NUMBER}/SBBM/{MM}/{YY}', 'number_length' => 1],
+            ['document_type' => 'subcontract_wip_issue', 'prefix' => 'SDI', 'format' => '{PREFIX}/{NUMBER}/SBSJK/{MM}/{YY}', 'number_length' => 1],
+            ['document_type' => 'subcontract_material_issue', 'prefix' => 'SDI', 'format' => '{PREFIX}/{NUMBER}/SBBK/{MM}/{YY}', 'number_length' => 1],
+            ['document_type' => 'subcontract_semi_finished', 'prefix' => 'SDI', 'format' => '{PREFIX}/{NUMBER}/HBSJD/{MM}/{YY}', 'number_length' => 1],
         ];
 
         Company::query()->each(function (Company $company) use ($documentNumberings) {
@@ -109,5 +109,7 @@ class DocumentNumberingSeeder extends Seeder
                 );
             }
         });
+
+        $this->call(SdiDocumentNumberingSeeder::class);
     }
 }

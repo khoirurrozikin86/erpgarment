@@ -105,9 +105,9 @@ class CreateCompanyAction
                 ['document_type' => 'packing', 'prefix' => 'PKG'],
                 ['document_type' => 'finished_goods', 'prefix' => 'FIN'],
                 ['document_type' => 'goods_sent_note', 'prefix' => 'GSN'],
-                ['document_type' => 'subcontract_receipt', 'prefix' => 'TIMW', 'format' => '{PREFIX}/{NUMBER}/SBBM/{MM}/{YY}'],
-                ['document_type' => 'subcontract_wip_issue', 'prefix' => 'TIMW', 'format' => '{PREFIX}/{NUMBER}/SBSJK/{MM}/{YY}'],
-                ['document_type' => 'subcontract_material_issue', 'prefix' => 'TIMW', 'format' => '{PREFIX}/{NUMBER}/SBBK/{MM}/{YY}'],
+                ['document_type' => 'subcontract_receipt', 'prefix' => 'SDI', 'format' => '{PREFIX}/{NUMBER}/SBBM/{MM}/{YY}'],
+                ['document_type' => 'subcontract_wip_issue', 'prefix' => 'SDI', 'format' => '{PREFIX}/{NUMBER}/SBSJK/{MM}/{YY}'],
+                ['document_type' => 'subcontract_material_issue', 'prefix' => 'SDI', 'format' => '{PREFIX}/{NUMBER}/SBBK/{MM}/{YY}'],
             ];
 
             foreach ($documentNumberings as $numbering) {

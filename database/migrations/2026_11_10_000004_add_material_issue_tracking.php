@@ -13,7 +13,7 @@ return new class extends Migration
         });
 
         Schema::table('stock_movements', function (Blueprint $table) {
-            $table->foreignId('material_request_item_id')->nullable()->after('pos_sale_item_id')
+            $table->foreignId('material_request_item_id')->nullable()->after('goods_receipt_item_id')
                 ->constrained('material_request_items')->restrictOnDelete();
         });
     }

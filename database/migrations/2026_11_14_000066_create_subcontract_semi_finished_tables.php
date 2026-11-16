@@ -37,7 +37,7 @@ return new class extends Migration {
         DB::table('companies')->select('id')->orderBy('id')->each(function ($company) {
             DB::table('document_numberings')->insertOrIgnore([
                 'company_id' => $company->id, 'document_type' => 'subcontract_semi_finished',
-                'prefix' => 'TIMW', 'format' => '{PREFIX}/{NUMBER}/HBSJD/{MM}/{YY}',
+                'prefix' => 'SDI', 'format' => '{PREFIX}/{NUMBER}/HBSJD/{MM}/{YY}',
                 'next_number' => 1, 'number_length' => 1, 'reset_period' => 'monthly',
                 'is_active' => 1, 'created_at' => now(), 'updated_at' => now(),
             ]);

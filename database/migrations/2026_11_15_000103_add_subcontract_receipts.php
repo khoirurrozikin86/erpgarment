@@ -8,7 +8,7 @@ return new class extends Migration {
     public function up(): void
     {
         Schema::table('subcontract_material_issue_documents',function(Blueprint $t){$t->string('invoice_number',100)->nullable();$t->date('invoice_date')->nullable();});
-        foreach(DB::table('companies')->get(['id']) as $company)DB::table('document_numberings')->insertOrIgnore(['company_id'=>$company->id,'document_type'=>'subcontract_receipt','prefix'=>'TIMW','format'=>'{PREFIX}/{NUMBER}/SBBM/{MM}/{YY}','next_number'=>1,'number_length'=>1,'reset_period'=>'monthly','is_active'=>1,'created_at'=>now(),'updated_at'=>now()]);
+        foreach(DB::table('companies')->get(['id']) as $company)DB::table('document_numberings')->insertOrIgnore(['company_id'=>$company->id,'document_type'=>'subcontract_receipt','prefix'=>'SDI','format'=>'{PREFIX}/{NUMBER}/SBBM/{MM}/{YY}','next_number'=>1,'number_length'=>1,'reset_period'=>'monthly','is_active'=>1,'created_at'=>now(),'updated_at'=>now()]);
         foreach(['view','create','update','delete','confirm'] as $action){
             $fields=['name'=>'subcontract-receipts.'.$action,'guard_name'=>'web','created_at'=>now(),'updated_at'=>now()];
             if(Schema::hasColumn('permissions','group_name'))$fields['group_name']='subcontract-receipts';
