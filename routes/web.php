@@ -4,7 +4,6 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\Super\{RoleController, PermissionController, UserManageController};
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\LocaleController;
 
 
@@ -28,8 +27,8 @@ Route::middleware(['auth', 'verified'])
     ->prefix('super')
     ->name('super.')
     ->group(function () {
-        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-        // route lainmu…
+        // Keep the old URL while using the dashboard and permission defined in super.php.
+        Route::redirect('/dashboard', '/super')->name('dashboard.redirect');
     });
 
 
