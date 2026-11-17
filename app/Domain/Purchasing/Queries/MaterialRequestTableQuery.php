@@ -17,10 +17,10 @@ class MaterialRequestTableQuery
                 'requester:id,name',
                 'reviewer:id,name',
                 'productionOrder:id,buyer_po_number,output_product_id,planned_quantity',
-                'productionOrder.outputProduct:id,code,name,style_code',
-                'outputProduct:id,code,name,style_code',
+                'productionOrder.outputProduct:id,code,name,style_code,color,size',
+                'outputProduct:id,code,name,style_code,color,size',
                 'items:id,material_request_id,product_id,quantity',
-                'items.product:id,code,name,unit_id',
+                'items.product:id,code,name,unit_id,color,size',
                 'items.product.unit:id,name,symbol',
             ])
             ->select([

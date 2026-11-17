@@ -17,13 +17,13 @@
     <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3"><div><h6 class="mb-0">Consumption · {{ $product->style_code }} · {{ $product->code }}</h6><small class="text-muted">{{ $product->name }}</small></div><span class="badge rounded-pill text-bg-light">{{ $bom->items->count() }} material</span></div>
     <div class="card-body"><div class="table-responsive">
         <table class="table table-hover align-middle w-100 bom-detail-table mb-0">
-            <thead class="table-light"><tr><th>No</th><th>Aksi</th><th>Item Code</th><th>Name Material/Support</th><th>Unit</th><th>Consumption/PCS</th><th>Span</th><th>Scrap (%)</th><th>User</th></tr></thead>
+            <thead class="table-light"><tr><th>No</th><th>Aksi</th><th>Item Code</th><th>Name Material/Support</th><th>Unit</th><th>{{ __('variants.applies_color') }}</th><th>{{ __('variants.applies_size') }}</th><th>Consumption/PCS</th><th>Span</th><th>Scrap (%)</th><th>User</th></tr></thead>
             <tbody>
             @foreach($bom->items as $item)
                 <tr><td></td><td class="text-nowrap">
                     @can('boms.update')<a class="btn btn-sm btn-outline-primary bom-action" href="{{ route('super.boms.edit', $bom) }}" title="Edit rincian">Edit</a>@endcan
                     @can('boms.delete')<form method="POST" action="{{ route('super.boms.items.destroy', [$bom, $item]) }}" class="d-inline" onsubmit="return confirm('Hapus rincian material ini?')">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger bom-action" type="submit">Hapus</button></form>@endcan
-                </td><td>{{ $item->product?->code }}</td><td>{{ $item->product?->name }}</td><td>{{ $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—' }}</td><td>{{ number_format((float) $item->quantity, 4, ',', '.') }}</td><td>{{ number_format((float) $item->span, 4, ',', '.') }}</td><td>{{ number_format((float) $item->wastage_percent, 3, ',', '.') }}</td><td>{{ $bom->creator?->name ?: '—' }}</td></tr>
+                </td><td>{{ $item->product?->code }}</td><td>{{ $item->product?->variant_display_name }}</td><td>{{ $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—' }}</td><td>{{ $item->applies_to_color ?: __('variants.all') }}</td><td>{{ $item->applies_to_size ?: __('variants.all') }}</td><td>{{ number_format((float) $item->quantity, 4, ',', '.') }}</td><td>{{ number_format((float) $item->span, 4, ',', '.') }}</td><td>{{ number_format((float) $item->wastage_percent, 3, ',', '.') }}</td><td>{{ $bom->creator?->name ?: '—' }}</td></tr>
             @endforeach
             </tbody>
         </table>

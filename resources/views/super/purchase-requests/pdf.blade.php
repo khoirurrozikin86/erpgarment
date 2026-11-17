@@ -56,7 +56,7 @@
                 <tr>
                     <td class="center">{{ $loop->iteration }}</td>
                     <td>{{ $item->product?->code ?? '—' }}</td>
-                    <td>{{ $item->product?->name ?? 'Barang dihapus' }}</td>
+                    <td>{{ $item->product?->variant_display_name ?? 'Barang dihapus' }}</td>
                     <td class="right">{{ number_format((float) $item->quantity, 4, ',', '.') }}</td>
                     <td>{{ $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—' }}</td>
                     <td class="right">Rp {{ number_format((float) $item->unit_price, 2, ',', '.') }}</td>

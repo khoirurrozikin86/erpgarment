@@ -15,7 +15,7 @@
             <input type="hidden" name="search" id="report-export-search" value="">
         </form>
         <div class="table-responsive"><table id="bc-report-table" class="table table-bordered table-striped align-middle production-plan-table">
-            <thead><tr><th rowspan="2">{{ __('bc_reports.no') }}</th><th colspan="2">{{ __('bc_reports.production_plan_document') }}</th><th rowspan="2">{{ __('bc_reports.item_code') }}</th><th rowspan="2">{{ __('bc_reports.item_name') }}</th><th rowspan="2">{{ __('bc_reports.order_quantity') }}</th><th rowspan="2">{{ __('bc_reports.rejected_quantity') }}</th><th rowspan="2">{{ __('bc_reports.produced_quantity') }}</th><th rowspan="2">{{ __('bc_reports.export_quantity') }}</th></tr><tr><th>{{ __('bc_reports.no') }}</th><th>{{ __('bc_reports.date') }}</th></tr></thead>
+            <thead><tr><th rowspan="2">{{ __('bc_reports.no') }}</th><th colspan="2">{{ __('bc_reports.production_plan_document') }}</th><th rowspan="2">{{ __('bc_reports.item_code') }}</th><th rowspan="2">{{ __('bc_reports.item_name') }}</th><th rowspan="2">{{ __('ui.workflow.color') }}</th><th rowspan="2">{{ __('ui.workflow.size') }}</th><th rowspan="2">{{ __('bc_reports.order_quantity') }}</th><th rowspan="2">{{ __('bc_reports.rejected_quantity') }}</th><th rowspan="2">{{ __('bc_reports.produced_quantity') }}</th><th rowspan="2">{{ __('bc_reports.export_quantity') }}</th></tr><tr><th>{{ __('bc_reports.no') }}</th><th>{{ __('bc_reports.date') }}</th></tr></thead>
             <tbody></tbody>
         </table></div>
         <p class="small text-muted mt-3 mb-0">{{ __('bc_reports.the_period_uses_the_po_date_on_mos_for_the_active_company_reject_is_the_tot') }}</p>

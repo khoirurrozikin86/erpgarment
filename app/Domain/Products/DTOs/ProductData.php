@@ -21,11 +21,13 @@ class ProductData
         public bool $trackStock,
         public bool $isActive,
         public bool $isAvailable,
+        public ?int $parentProductId = null,
     ) {}
 
     public static function fromArray(array $data): self
     {
         return new self(
+            parentProductId: !empty($data['parent_product_id']) ? (int) $data['parent_product_id'] : null,
             code: $data['code'],
             name: $data['name'],
             categoryId: isset($data['category_id']) ? (int) $data['category_id'] : null,
@@ -48,6 +50,7 @@ class ProductData
     public function toArray(): array
     {
         return [
+            'parent_product_id' => $this->parentProductId,
             'code' => $this->code,
             'name' => $this->name,
             'category_id' => $this->categoryId,

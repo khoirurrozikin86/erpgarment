@@ -98,11 +98,7 @@ class SimulationSeeder extends Seeder
             ['MACHINE', 'Mesin jahit', 'MACHINE', 'UNIT', 'other', 5000000],
             ['EQUIPMENT', 'Peralatan potong', 'EQUIPMENT', 'UNIT', 'other', 500000],
         ] as [$key, $name, $category, $unit, $type, $price]) {
-            // Refuse to consume stock from an earlier, incomplete/manual SIM dataset.
-            if (Product::where('code', 'SIM-'.$key)->exists()) {
-                throw new RuntimeException('Kode SIM-'.$key.' sudah dipakai tanpa marker simulasi. Gunakan database simulasi bersih; data tidak diubah.');
-            }
-            $this->products[$key] = Product::create(['code' => 'SIM-'.$key, 'name' => 'SIM-'.$name,
+            $this->products[$key] = Product::firstOrCreate(['code' => 'SIM-'.$key], ['name' => 'SIM-'.$name,
                 'category_id' => Category::where('code', $category)->value('id'), 'unit_id' => Unit::where('code', $unit)->value('id'),
                 'product_type' => 'stock', 'garment_item_type' => $type, 'style_code' => 'SIM-POLO',
                 'purchase_price' => $price, 'track_stock' => true, 'is_active' => true]);

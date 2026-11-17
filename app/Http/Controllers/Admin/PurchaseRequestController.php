@@ -65,7 +65,7 @@ class PurchaseRequestController extends Controller
                 if ($request->items->isEmpty()) return '—';
                 $items = $request->items->map(function (PurchaseRequestItem $item) {
                     $code = e($item->product?->code ?? '—');
-                    $name = e($item->product?->name ?? __('ui.workflow.deleted_item'));
+                    $name = e($item->product?->variant_display_name ?? __('ui.workflow.deleted_item'));
                     $quantity = rtrim(rtrim(number_format((float) $item->quantity, 4, ',', '.'), '0'), ',');
                     $unit = $item->product?->unit?->symbol ?: $item->product?->unit?->name;
                     return '<span class="badge rounded-pill bg-light text-secondary border fw-normal" title="' . $name . '">' . $code . ' × ' . $quantity . ($unit ? ' ' . e($unit) : '') . '</span>';
@@ -148,7 +148,7 @@ class PurchaseRequestController extends Controller
                     'material_request_item_id' => $item->id,
                     'product_id' => $item->product_id,
                     'code' => $item->product?->code ?? '—',
-                    'name' => $item->product?->name ?? 'Barang dihapus',
+                    'name' => $item->product?->variant_display_name ?? 'Barang dihapus',
                     'quantity' => $item->quantity,
                     'available_quantity' => number_format($available, 4, '.', ''),
                     'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
@@ -193,7 +193,7 @@ class PurchaseRequestController extends Controller
             'review_note' => $purchaseRequest->review_note ?: '—',
             'items' => $purchaseRequest->items->map(fn ($item) => [
                 'code' => $item->product?->code ?? '—',
-                'product' => $item->product?->name ?? 'Barang dihapus',
+                'product' => $item->product?->variant_display_name ?? 'Barang dihapus',
                 'quantity' => number_format((float) $item->quantity, 4, ',', '.'),
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
                 'unit_price' => (float) $item->unit_price,

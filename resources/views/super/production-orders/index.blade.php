@@ -111,6 +111,7 @@
                             <th>{{ __('ui.workflow.item_name') }}</th>
                             <th>{{ __('ui.common.unit') }}</th>
                             <th>{{ __('ui.nav.styles') }}</th>
+                            <th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th>
                             <th>{{ __('ui.workflow.order_quantity') }}</th>
                             <th>{{ __('ui.workflow.price_per_unit') }}</th>
                             <th>{{ __('ui.workflow.total_price') }}</th>
@@ -156,10 +157,11 @@
                                 <td>{{ $order->currency }}</td>
                                 <td>{{ $order->destination ?: '—' }}</td>
                                 <td>{{ $order->outputProduct?->code ?: '—' }}</td>
-                                <td>{{ $order->outputProduct?->name ?: '—' }}</td>
+                                <td>@if($order->image_url)<img src="{{ $order->image_url }}" alt="{{ $order->outputProduct->code }}" loading="lazy" style="width:48px;height:48px;object-fit:contain" class="me-2 rounded">@endif{{ $order->outputProduct?->name ?: '—' }}</td>
                                 <td>{{ $order->outputProduct?->unit?->symbol ?: $order->outputProduct?->unit?->name ?: '—' }}
                                 </td>
                                 <td>{{ $order->outputProduct?->style_code ?: '—' }}</td>
+                                <td>{{ $order->outputProduct?->color ?: '—' }}</td><td>{{ $order->outputProduct?->size ?: '—' }}</td>
                                 <td class="text-end">{{ number_format((float) $order->planned_quantity, 4, ',', '.') }}
                                 </td>
                                 <td class="text-end">{{ number_format((float) $order->price_per_unit, 4, ',', '.') }}</td>
@@ -176,9 +178,8 @@
     @canany(['production-orders.create', 'production-orders.update'])
         <div class="modal fade" id="materialOrderModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                <div class="modal-content">
-                    <form id="materialOrderForm">
-                        @csrf <input type="hidden" id="materialOrderId"><input type="hidden" name="output_product_id"
+                    <form id="materialOrderForm" class="modal-content" enctype="multipart/form-data">
+                        @csrf <input type="hidden" id="mo_image_only" name="image_only" value="0"><input type="hidden" id="materialOrderId"><input type="hidden" name="output_product_id"
                             id="output_product_id">
                         <div class="modal-header bg-primary text-white">
                             <h5 class="modal-title" id="materialOrderModalTitle">
@@ -187,6 +188,7 @@
                                 aria-label="{{ __('ui.common.close') }}"></button>
                         </div>
                         <div class="modal-body">
+                            <div id="mo_image_only_notice" class="alert alert-info d-none">{{ __('variants.image_only_notice') }}</div>
                             <section class="material-order-section mb-3">
                                 <h6 class="material-order-section-title">{{ __('ui.workflow.material_order') }} —
                                     {{ __('ui.workflow.order_information') }}</h6>
@@ -247,12 +249,32 @@
                                     <div class="col-lg-6"><label class="form-label"
                                             for="item_name_display">{{ __('ui.workflow.item_name') }}</label><input
                                             class="form-control bg-light" id="item_name_display" readonly></div>
+                                    <div class="col-12">
+                                        <label class="form-label" for="mo_image">{{ __('variants.image') }}</label>
+                                        <input type="file" class="form-control mb-2" id="mo_image" name="image" accept="image/jpeg,image/png,image/webp">
+                                        <div class="form-text mb-2">{{ __('variants.upload_hint') }}</div>
+                                        <img id="mo_item_image" class="img-thumbnail d-none" alt="{{ __('variants.image') }}" style="width:160px;height:160px;max-width:100%;object-fit:contain">
+                                        <div id="mo_item_image_empty" class="text-muted small">{{ __('variants.image_hint') }}</div>
+                                    </div>
                                     <div class="col-md-3"><label class="form-label"
                                             for="item_unit_display">{{ __('ui.common.unit') }}</label><input
                                             class="form-control bg-light" id="item_unit_display" readonly></div>
                                     <div class="col-md-3"><label class="form-label"
                                             for="item_style_display">{{ __('ui.nav.styles') }}</label><input
                                             class="form-control bg-light" id="item_style_display" readonly></div>
+                                    <div class="col-md-3"><label class="form-label" for="item_color_display">{{ __('ui.workflow.color') }}</label><input class="form-control" id="item_color_display" name="order_color" maxlength="80"></div>
+                                    <div class="col-md-3"><label class="form-label" for="item_size_display">{{ __('ui.workflow.size') }}</label><input class="form-control" id="item_size_display" name="order_size" maxlength="40"></div>
+                                    <div class="col-12" id="mo_matrix_toggle">
+                                        <label class="form-check-label"><input class="form-check-input me-2" type="checkbox" id="mo_use_matrix" checked> {{ __('variants.matrix') }}</label>
+                                    </div>
+                                    <div class="col-12" id="mo_size_matrix">
+                                        <p class="text-muted small">{{ __('variants.matrix_hint') }}</p>
+                                        <div class="table-responsive"><table class="table table-sm align-middle">
+                                            <thead><tr><th>{{ __('ui.workflow.size') }}</th><th>{{ __('ui.workflow.order_quantity') }}</th><th></th></tr></thead>
+                                            <tbody id="mo_size_rows"></tbody>
+                                        </table></div>
+                                        <button type="button" class="btn btn-outline-primary btn-sm" id="mo_add_size">{{ __('variants.add_size') }}</button>
+                                    </div>
                                     <div class="col-md-3"><label class="form-label"
                                             for="planned_quantity">{{ __('ui.workflow.order_quantity') }} <span
                                                 class="text-danger">*</span></label><input class="form-control text-end"
@@ -277,7 +299,6 @@
                                 class="btn btn-primary btn-sm" id="saveMaterialOrder"><i data-feather="save"
                                     class="icon-sm me-1"></i>{{ __('ui.common.save') }}</button></div>
                     </form>
-                </div>
             </div>
         </div>
 
@@ -298,6 +319,7 @@
                                         <th>{{ __('ui.workflow.item_name') }}</th>
                                         <th>{{ __('ui.common.unit') }}</th>
                                         <th>{{ __('ui.nav.styles') }}</th>
+                            <th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th>
                                         <th>{{ __('ui.common.action') }}</th>
                                     </tr>
                                 </thead>
@@ -305,14 +327,15 @@
                                     @foreach ($products as $product)
                                         <tr>
                                             <td>{{ $product->code }}</td>
-                                            <td>{{ $product->name }}</td>
+                                            <td>@if($product->mo_image_url)<img src="{{ $product->mo_image_url }}" alt="{{ $product->code }}" loading="lazy" style="width:48px;height:48px;object-fit:contain" class="me-2 rounded">@endif{{ $product->name }}</td>
                                             <td>{{ $product->unit?->symbol ?: $product->unit?->name }}</td>
                                             <td>{{ $product->style_code }}</td>
+                                            <td>{{ $product->color ?: '—' }}</td><td>{{ $product->size ?: '—' }}</td>
                                             <td><button type="button" class="btn btn-primary btn-sm choose-finished-good"
                                                     data-id="{{ $product->id }}" data-code="{{ $product->code }}"
                                                     data-name="{{ $product->name }}"
                                                     data-unit="{{ $product->unit?->symbol ?: $product->unit?->name }}"
-                                                    data-style="{{ $product->style_code }}">{{ __('ui.common.select') }}</button>
+                                                    data-image="{{ $product->mo_image_url ?? '' }}" data-color="{{ $product->color }}" data-size="{{ $product->size }}" data-style="{{ $product->style_code }}">{{ __('ui.common.select') }}</button>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -390,16 +413,72 @@
                 pickerElement = document.getElementById('finishedGoodPickerModal');
             const modal = modalElement ? bootstrap.Modal.getOrCreateInstance(modalElement) : null;
             const picker = pickerElement ? bootstrap.Modal.getOrCreateInstance(pickerElement) : null;
+            const setItemImage = (url, code = '') => {
+                const image = $('#mo_item_image');
+                image.off('error').on('error', function () {
+                    $(this).addClass('d-none').removeAttr('src');
+                    $('#mo_item_image_empty').removeClass('d-none');
+                });
+                if (url) image.attr({src: url, alt: code}).removeClass('d-none');
+                else image.addClass('d-none').removeAttr('src');
+                $('#mo_item_image_empty').toggleClass('d-none', Boolean(url));
+            };
+            let uploadedImagePreview = null;
+            let savedImageUrl = null;
+            $('#mo_image').on('change', function () {
+                if (uploadedImagePreview) URL.revokeObjectURL(uploadedImagePreview);
+                uploadedImagePreview = this.files[0] ? URL.createObjectURL(this.files[0]) : null;
+                setItemImage(uploadedImagePreview || savedImageUrl, $('#item_code_display').val());
+            });
+            let sizeRowIndex = 0;
+            function addSizeRow() {
+                const index = sizeRowIndex++;
+                $('#mo_size_rows').append(`<tr><td><input class="form-control" name="variant_rows[${index}][size]" maxlength="40" required></td><td><input class="form-control mo-size-quantity" type="number" name="variant_rows[${index}][quantity]" min="0.0001" step="0.0001" required></td><td><button type="button" class="btn btn-outline-danger btn-sm mo-remove-size" aria-label="{{ __('ui.common.delete') }}">×</button></td></tr>`);
+            }
+            function syncMatrix() {
+                const active = $('#mo_use_matrix').prop('checked');
+                $('#mo_size_matrix').toggleClass('d-none', !active).find('input').prop('disabled', !active);
+                $('#item_size_display').prop('disabled', active).closest('.col-md-3').toggleClass('d-none', active);
+                $('#item_color_display').prop('required', active);
+                $('#planned_quantity').prop('readonly', active).toggleClass('bg-light', active);
+                recalculate();
+            }
+            $('#mo_add_size').on('click', addSizeRow);
+            $('#mo_use_matrix').on('change', syncMatrix);
+            $('#mo_size_rows').on('input', 'input', () => recalculate()).on('click', '.mo-remove-size', function () {
+                $(this).closest('tr').remove();
+                if (!$('#mo_size_rows tr').length) addSizeRow();
+                recalculate();
+            });
             const resetLine = () => {
-                $('#output_product_id,#item_code_display,#item_name_display,#item_unit_display,#item_style_display')
+                $('#materialOrderForm .modal-body :input').prop('disabled', false);
+                $('#mo_image_only').val('0');
+                $('#mo_image_only_notice').addClass('d-none');
+                $('#mo_matrix_toggle').removeClass('d-none');
+                $('#mo_use_matrix').prop('checked', true);
+                $('#mo_size_rows').empty();
+                sizeRowIndex = 0;
+                addSizeRow();
+                if (uploadedImagePreview) URL.revokeObjectURL(uploadedImagePreview);
+                uploadedImagePreview = null;
+                savedImageUrl = null;
+                $('#mo_image').val('');
+                setItemImage(null);
+                $('#output_product_id,#item_code_display,#item_name_display,#item_unit_display,#item_style_display,#item_color_display,#item_size_display')
                     .val('');
                 $('#planned_quantity').val('0');
                 $('#price_per_unit').val('0');
                 $('#total_price_display').val('0');
                 $('#description').val('');
+                syncMatrix();
             };
-            const recalculate = () => $('#total_price_display').val((Number($('#planned_quantity').val() || 0) *
-                Number($('#price_per_unit').val() || 0)).toFixed(4));
+            const recalculate = () => {
+                if ($('#mo_use_matrix').prop('checked')) {
+                    const total = [...document.querySelectorAll('.mo-size-quantity')].reduce((sum, input) => sum + Math.max(0, Number(input.value) || 0), 0);
+                    $('#planned_quantity').val(total.toFixed(4));
+                }
+                $('#total_price_display').val((Number($('#planned_quantity').val() || 0) * Number($('#price_per_unit').val() || 0)).toFixed(4));
+            };
             $('#planned_quantity,#price_per_unit').on('input', recalculate);
             $('#searchFinishedGood').on('click', function() {
                 if (!$.fn.DataTable.isDataTable('#finishedGoodsPickerTable')) $('#finishedGoodsPickerTable')
@@ -420,6 +499,10 @@
                 $('#item_name_display').val(b.data('name'));
                 $('#item_unit_display').val(b.data('unit'));
                 $('#item_style_display').val(b.data('style'));
+                $('#item_color_display').val(b.data('color') || '');
+                $('#item_size_display').val(b.data('size') || '');
+                savedImageUrl = b.attr('data-image');
+                setItemImage(uploadedImagePreview || savedImageUrl, b.data('code'));
                 picker.hide();
             });
             @can('production-orders.create')
@@ -441,6 +524,10 @@
                     const b = $(this);
                     $.get(b.data('url')).done(data => {
                         $('#materialOrderForm')[0].reset();
+                        $('#materialOrderForm .modal-body :input').prop('disabled', false);
+                        $('#mo_use_matrix').prop('checked', false);
+                        $('#mo_matrix_toggle').addClass('d-none');
+                        syncMatrix();
                         $('#materialOrderId').val(data.id);
                         $('#number').val(data.number).prop('readonly', false);
                         $('#buyer_po_number').val(data.buyer_po_number || '');
@@ -455,6 +542,12 @@
                         $('#item_name_display').val(data.product);
                         $('#item_unit_display').val(data.unit);
                         $('#item_style_display').val(data.style);
+                        $('#item_color_display').val(data.color || '');
+                        $('#item_size_display').val(data.size || '');
+                        if (uploadedImagePreview) URL.revokeObjectURL(uploadedImagePreview);
+                        uploadedImagePreview = null;
+                        savedImageUrl = data.image_url;
+                        setItemImage(savedImageUrl, data.product_code);
                         $('#planned_quantity').val(data.planned_quantity);
                         $('#price_per_unit').val(data.price_per_unit);
                         $('#description').val(data.description || '');
@@ -463,6 +556,9 @@
                             'url'));
                         $('#materialOrderModalTitle').text(@json(__('ui.common.edit')) + ' MO ' +
                             data.number);
+                        $('#mo_image_only').val(data.is_locked ? '1' : '0');
+                        $('#mo_image_only_notice').toggleClass('d-none', !data.is_locked);
+                        if (data.is_locked) $('#materialOrderForm .modal-body :input').not('#mo_image').prop('disabled', true);
                         modal.show();
                     }).fail(xhr => showError(xhr));
                 });
@@ -471,10 +567,14 @@
                 event.preventDefault();
                 const form = $(this),
                     button = $('#saveMaterialOrder').prop('disabled', true);
+                const payload = new FormData(form[0]);
+                if (form.attr('data-method') === 'PUT') payload.append('_method', 'PUT');
                 $.ajax({
                     url: form.attr('data-url'),
-                    method: form.attr('data-method'),
-                    data: form.serialize()
+                    method: 'POST',
+                    data: payload,
+                    processData: false,
+                    contentType: false
                 }).done(response => {
                     modal.hide();
                     Swal.fire({

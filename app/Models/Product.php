@@ -13,6 +13,7 @@ class Product extends Model
     use HasFactory;
 
     protected $fillable = [
+        'parent_product_id', 'variant_key',
         'code',
         'name',
         'category_id',
@@ -30,6 +31,28 @@ class Product extends Model
         'is_active',
         'is_available',
     ];
+
+    public function getMoImageUrlAttribute(): ?string
+    {
+        $path = $this->primaryImage?->path ?? $this->parentProduct?->primaryImage?->path;
+        return $path ? '/storage/' . ltrim($path, '/') : null;
+    }
+
+    public function getVariantDisplayNameAttribute(): string
+    {
+        $dimensions = implode(' / ', array_filter([$this->color, $this->size], fn ($value) => $value !== null && $value !== ''));
+        return $this->name . ($dimensions !== '' ? ' [' . $dimensions . ']' : '');
+    }
+
+    public function parentProduct(): \Illuminate\Database\Eloquent\Relations\BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_product_id');
+    }
+
+    public function variants(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(self::class, 'parent_product_id');
+    }
 
     protected function casts(): array
     {

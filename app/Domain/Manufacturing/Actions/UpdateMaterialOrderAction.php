@@ -13,6 +13,21 @@ class UpdateMaterialOrderAction
 {
     public function __construct(private CompanyContext $company, private AuditLogService $auditLog) {}
 
+    public function updateImage(ProductionOrder $order, string $imagePath): ProductionOrder
+    {
+        return DB::transaction(function () use ($order, $imagePath) {
+            $order = ProductionOrder::where('company_id', $this->company->id())->lockForUpdate()->findOrFail($order->id);
+            $old = ['image_path' => $order->image_path];
+            $order->update(['image_path' => $imagePath]);
+            $this->auditLog->log(
+                action: 'UPDATE', module: 'MATERIAL_ORDER',
+                description: __('variants.image_updated_audit', ['number' => $order->number]),
+                model: $order, oldValues: $old, newValues: ['image_path' => $order->image_path],
+            );
+            return $order;
+        });
+    }
+
     public function __invoke(ProductionOrder $order, array $data, int $userId): ProductionOrder
     {
         return DB::transaction(function () use ($order, $data, $userId) {
@@ -36,15 +51,8 @@ class UpdateMaterialOrderAction
             if ($data['number'] !== $order->number && ProductionOrder::query()->where('company_id', $order->company_id)->where('number', $data['number'])->exists()) {
                 throw ValidationException::withMessages(['number' => __('ui.workflow.material_order_number_group_locked')]);
             }
-            $bom = BillOfMaterial::query()->where('company_id', $this->company->id())
-                ->where('product_id', $data['output_product_id'])->where('status', 'active')
-                ->where(fn ($query) => $query->whereNull('effective_from')->orWhereDate('effective_from', '<=', $data['po_date']))
-                ->where(fn ($query) => $query->whereNull('effective_until')->orWhereDate('effective_until', '>=', $data['po_date']))
-                ->with('items')->lockForUpdate()->first();
-
-            if (!$bom || (float) $bom->output_quantity <= 0 || $bom->items->isEmpty()) {
-                throw ValidationException::withMessages(['output_product_id' => __('ui.workflow.active_bom_not_found')]);
-            }
+            $bom = app(\App\Domain\Manufacturing\Services\ResolveProductionBom::class)
+                ->resolve($this->company->id(), (int) $data['output_product_id'], $data['po_date']);
 
             $header = [
                 'buyer_po_number' => $data['buyer_po_number'] ?? null,
@@ -59,11 +67,12 @@ class UpdateMaterialOrderAction
             $order->update([
                 'number' => $data['number'], ...$header,
                 'bill_of_material_id' => $bom->id,
-                'output_product_id' => $bom->product_id, 'bom_version' => $bom->version,
+                'output_product_id' => $data['output_product_id'], 'bom_version' => $bom->version,
                 'planned_quantity' => $data['planned_quantity'],
                 'price_per_unit' => $data['price_per_unit'] ?? 0,
                 'total_price' => round((float) $data['planned_quantity'] * (float) ($data['price_per_unit'] ?? 0), 4),
                 'description' => $data['description'] ?? null,
+                ...(!empty($data['image_path']) ? ['image_path' => $data['image_path']] : []),
                 'planned_start_date' => $data['po_date'], 'planned_end_date' => $data['due_date'],
             ]);
             $order->materials()->delete();

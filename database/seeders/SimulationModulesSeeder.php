@@ -25,6 +25,7 @@ class SimulationModulesSeeder extends Seeder
     private Supplier $supplier;
     private Customer $customer;
     private array $chains = [];
+    private array $roots = [];
 
     public function run(): void
     {
@@ -52,24 +53,45 @@ class SimulationModulesSeeder extends Seeder
                 if (ProductionOrder::where('number', 'like', 'SIM2-MO-%')->exists()) {
                     throw new RuntimeException('SIM2-MO sudah ada tanpa marker V2. Data tidak diubah.');
                 }
+                $this->roots = $this->products;
                 $this->repairOriginalReferences();
-                foreach (['23', '262', '27', '40', '20'] as $i => $type) {
-                    $this->command?->info('Membuat rantai pembelian → produksi → pengiriman '.($i + 1).'/5...');
-                    $this->chains[] = $this->chain($i + 1, $type);
+                $index = 0;
+                foreach (['BLACK', 'NAVY', 'LIGHT GREY'] as $color) {
+                    foreach (['S', 'M', 'L', 'XL', '2XL', '3XL'] as $size) {
+                        $this->prepareVariants($color, $size);
+                        $this->command?->info('Simulasi '.$color.' / '.$size.' ('.($index + 1).'/18)...');
+                        $this->chains[] = $this->chain(++$index, ['23', '262', '27', '40', '20'][($index - 1) % 5]);
+                    }
                 }
                 $this->warehouseAndInventory();
+                $this->products = $this->roots;
                 $this->subcontract();
                 $this->accounting();
                 $this->validateBalances();
                 AuditLog::create(['user_id' => $this->actor, 'action' => 'SEED', 'module' => 'SIMULATION',
                     'description' => $marker, 'new_values' => ['company_id' => $this->company,
                         'orders' => collect($this->chains)->pluck('order.id')->all(), 'date' => now()->toDateString()]]);
-                $this->command?->info('Simulasi V2 selesai: lima rantai transaksi berelasi, retur disetujui, opname, pembayaran, dan laporan.');
+                $this->command?->info('Simulasi V2 selesai: 18 rantai transaksi warna/size berelasi, retur disetujui, opname, pembayaran, dan laporan.');
             });
         } finally {
             $previousCompany ? $context->set($previousCompany) : $context->clear();
             $previousUser ? Auth::setUser($previousUser) : Auth::forgetUser();
         }
+    }
+
+    private function prepareVariants(string $color, string $size): void
+    {
+        $this->products = $this->roots;
+        $resolver = app(\App\Domain\Manufacturing\Services\MaterialOrderVariantService::class);
+        foreach (['FABRIC', 'LABEL', 'POLO'] as $key) {
+            $this->products['SIM-'.$key] = $resolver->resolve($this->roots['SIM-'.$key]->id, $color, $key === 'FABRIC' ? null : $size);
+        }
+        $bom = BillOfMaterial::create(['company_id' => $this->company, 'product_id' => $this->product('POLO')->id,
+            'version' => 'SIM-VARIANT-1', 'name' => 'SIM-BOM '.$color.' / '.$size, 'status' => 'active', 'output_quantity' => 1]);
+        $bom->items()->createMany([
+            ['product_id' => $this->product('FABRIC')->id, 'quantity' => 1, 'wastage_percent' => 0, 'operation' => 'Cutting'],
+            ['product_id' => $this->product('LABEL')->id, 'quantity' => 1, 'wastage_percent' => 0, 'operation' => 'Sewing'],
+        ]);
     }
 
     private function product(string $key): Product
@@ -79,7 +101,7 @@ class SimulationModulesSeeder extends Seeder
 
     private function date(int $days = 0): string
     {
-        return now()->subDays(min($days, now()->day - 1))->toDateString();
+        return now()->subDays(min(max(0, $days), now()->day - 1))->toDateString();
     }
 
     private function repairOriginalReferences(): void
@@ -157,10 +179,11 @@ class SimulationModulesSeeder extends Seeder
                 'product_id' => $order->output_product_id, 'customer_id' => $this->customer->id, 'quantity' => 10, 'cartons' => 1]]], $this->actor);
         app(Production\SaveGoodsSentNoteAction::class)->approve($note, $this->reviewer);
         $receipt = $receipt->fresh('items'); $note = $note->fresh('items');
-        $outgoingType = ['30', '261', '27Out', '41', '25'][$index - 1];
+        $outgoingType = ['30', '261', '27Out', '41', '25'][($index - 1) % 5];
         $this->bc($incomingType, $receipt, $date);
         $this->bc($outgoingType, $note, $date);
-        return compact('order', 'mr', 'pr', 'po', 'receipt', 'raw', 'issue', 'note', 'date');
+        $products = $this->products;
+        return compact('order', 'mr', 'pr', 'po', 'receipt', 'raw', 'issue', 'note', 'date', 'products');
     }
 
     private function bc(string $type, $source, string $date): void
@@ -176,7 +199,7 @@ class SimulationModulesSeeder extends Seeder
             if (in_array($type, ['40', '41'])) $line += ['tax_invoice_number' => 'SIM2-FAKTUR-'.$type, 'tax_invoice_date' => $date];
             return $line;
         })->all();
-        $data = ['submission_number' => 'SIM2-AJU-'.$type, 'document_number' => 'SIM2-DOC-'.$type,
+        $data = ['submission_number' => 'SIM2-AJU-'.$type.'-'.$source->id, 'document_number' => 'SIM2-DOC-'.$type.'-'.$source->id,
             'document_date' => $date, 'bl_awb_number' => 'SIM2-BL-'.$type, 'bl_awb_date' => $date,
             'invoice_number' => 'SIM2-INV-'.$type, 'invoice_date' => $date, 'currency' => 'IDR', 'price_type' => 'FOB', 'items' => $items];
         $data += $incoming ? ['supplier_id' => $this->supplier->id, 'importer_id' => Importer::where('tax_number', 'SIM-IMPORTER')->value('id')]
@@ -187,6 +210,7 @@ class SimulationModulesSeeder extends Seeder
     private function warehouseAndInventory(): void
     {
         foreach ($this->chains as $chain) {
+            $this->products = $chain['products'];
             $return = app(Inventory\CreateProductionReturnAction::class)(['product_id' => $this->product('FABRIC')->id,
                 'raw_material_order_document_id' => $chain['raw']->id, 'quantity' => 1, 'return_date' => $chain['date'],
                 'po_supplier_number' => $chain['po']->number, 'description' => 'SIM2-Bahan sisa dari '.$chain['order']->number], $this->actor);
@@ -194,6 +218,7 @@ class SimulationModulesSeeder extends Seeder
             app(Production\SaveSupportMaterialOrderItemAction::class)->create(['product_id' => $this->product('LABEL')->id,
                 'quantity' => 5, 'order_date' => $chain['date'], 'po_other' => $chain['po']->number, 'style' => 'SIM-POLO'], $this->actor);
         }
+        $this->products = $this->roots;
         // Preserve existing pending return examples and add an approved FG warehouse return.
         $return = app(Inventory\CreateProductionReturnAction::class)(['product_id' => $this->product('POLO')->id,
             'quantity' => 1, 'return_date' => $this->date(), 'description' => 'SIM2-Barang jadi dikembalikan dari produksi untuk pemeriksaan'], $this->actor);
@@ -245,7 +270,7 @@ class SimulationModulesSeeder extends Seeder
 
     private function validateBalances(): void
     {
-        foreach ($this->products as $product) {
+        foreach (Product::where('code', 'like', 'SIM-%')->get() as $product) {
             $stock = ProductStock::where('product_id', $product->id)->value('quantity') ?? 0;
             $lots = \App\Models\InventoryLot::where('product_id', $product->id)->sum('current_quantity');
             if ($stock < 0 || abs((float) $stock - (float) $lots) > 0.0001) {

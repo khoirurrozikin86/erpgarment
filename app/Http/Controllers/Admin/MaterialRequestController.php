@@ -24,21 +24,21 @@ class MaterialRequestController extends Controller
     public function index(CompanyContext $company)
     {
         $products = Product::query()->where('is_active', true)->orderBy('name')
-            ->get(['id', 'code', 'name', 'unit_id'])->load('unit:id,name,symbol')
+            ->get(['id', 'code', 'name', 'unit_id', 'color', 'size'])->load('unit:id,name,symbol')
             ->map(fn (Product $product) => [
                 'id' => $product->id,
                 'code' => $product->code,
-                'name' => $product->name,
-                'label' => $product->code . ' — ' . $product->name,
+                'name' => $product->variant_display_name,
+                'label' => $product->code . ' — ' . $product->variant_display_name,
                 'unit' => $product->unit?->symbol ?: $product->unit?->name,
             ]);
 
         $productionOrders = ProductionOrder::query()->where('company_id', $company->id())
-            ->whereIn('status', ['released', 'in_progress'])->with('outputProduct:id,code,name')
+            ->whereIn('status', ['released', 'in_progress'])->with('outputProduct:id,code,name,color,size')
             ->orderByDesc('created_at')->get(['id', 'number', 'output_product_id', 'planned_quantity', 'bom_version'])
             ->map(fn (ProductionOrder $order) => [
                 'id' => $order->id,
-                'label' => $order->number . ' — ' . $order->outputProduct?->code . ' ' . $order->outputProduct?->name . ' (' . number_format((float) $order->planned_quantity, 4, ',', '.') . ')',
+                'label' => $order->number . ' — ' . $order->outputProduct?->code . ' ' . $order->outputProduct?->variant_display_name . ' (' . number_format((float) $order->planned_quantity, 4, ',', '.') . ')',
             ]);
 
         return view('super.material-requests.index', compact('products', 'productionOrders'));
@@ -77,7 +77,7 @@ class MaterialRequestController extends Controller
                 'product_id' => $first->product_id,
                 'quantity' => round($quantity, 4),
                 'note' => __('ui.workflow.production_order_material_note', ['number' => $order->number, 'operations' => $operations ?: '—']),
-                'label' => $first->product?->code . ' — ' . $first->product?->name,
+                'label' => $first->product?->code . ' — ' . $first->product?->variant_display_name,
                 'unit' => $first->product?->unit?->symbol ?: $first->product?->unit?->name,
             ];
         })->filter(fn ($item) => $item['quantity'] > 0)->values();
@@ -89,7 +89,7 @@ class MaterialRequestController extends Controller
             'bom_version' => $order->bom_version,
             'output_product_id' => $order->output_product_id,
             'production_quantity' => (float) $order->planned_quantity,
-            'output_product' => $order->outputProduct?->name,
+            'output_product' => $order->outputProduct?->variant_display_name,
             'items' => $items,
         ]);
     }
@@ -102,15 +102,9 @@ class MaterialRequestController extends Controller
             'needed_at' => ['nullable', 'date_format:Y-m-d'],
         ]);
         $date = $data['needed_at'] ?? now()->toDateString();
-        $bom = BillOfMaterial::query()->where('company_id', $company->id())
-            ->where('product_id', $data['product_id'])->where('status', 'active')
-            ->where(fn ($query) => $query->whereNull('effective_from')->orWhereDate('effective_from', '<=', $date))
-            ->where(fn ($query) => $query->whereNull('effective_until')->orWhereDate('effective_until', '>=', $date))
-            ->with(['product.unit', 'items.product.unit'])->first();
-
-        if (!$bom || (float) $bom->output_quantity <= 0 || $bom->items->isEmpty()) {
-            return response()->json(['message' => __('ui.workflow.active_bom_not_found')], 422);
-        }
+        $bom = app(\App\Domain\Manufacturing\Services\ResolveProductionBom::class)
+            ->resolve($company->id(), (int) $data['product_id'], $date);
+        $output = Product::with('unit')->findOrFail($data['product_id']);
 
         $ratio = (float) $data['production_quantity'] / (float) $bom->output_quantity;
         $items = $bom->items->groupBy('product_id')->map(function ($bomItems) use ($ratio, $bom) {
@@ -122,7 +116,7 @@ class MaterialRequestController extends Controller
                 'product_id' => $first->product_id,
                 'quantity' => round($quantity, 4),
                 'note' => $operations === '' ? __('ui.workflow.generated_from_bom', ['version' => $bom->version]) : __('ui.workflow.bom_operations_note', ['operations' => $operations]),
-                'label' => $first->product?->code . ' — ' . $first->product?->name,
+                'label' => $first->product?->code . ' — ' . $first->product?->variant_display_name,
                 'unit' => $first->product?->unit?->symbol ?: $first->product?->unit?->name,
             ];
         })->values();
@@ -130,9 +124,9 @@ class MaterialRequestController extends Controller
         return response()->json([
             'bill_of_material_id' => $bom->id,
             'bom_version' => $bom->version,
-            'output_product_id' => $bom->product_id,
-            'output_product' => $bom->product?->name,
-            'output_unit' => $bom->product?->unit?->symbol ?: $bom->product?->unit?->name,
+            'output_product_id' => $output->id,
+            'output_product' => $output->variant_display_name,
+            'output_unit' => $output->unit?->symbol ?: $output->unit?->name,
             'production_quantity' => (float) $data['production_quantity'],
             'items' => $items,
         ]);
@@ -155,7 +149,7 @@ class MaterialRequestController extends Controller
             ->addColumn('product_label', function (MaterialRequest $request) {
                 $product = $request->productionOrder?->outputProduct ?? $request->outputProduct;
 
-                return $product ? trim($product->code . ' — ' . $product->name, ' —') : '—';
+                return $product ? trim($product->code . ' — ' . $product->variant_display_name, ' —') : '—';
             })
             ->addColumn('production_quantity_display', function (MaterialRequest $request) {
                 $quantity = $request->productionOrder?->planned_quantity ?? $request->production_quantity;
@@ -166,7 +160,7 @@ class MaterialRequestController extends Controller
                 if ($request->items->isEmpty()) return '—';
                 $items = $request->items->map(function ($item) {
                     $code = e($item->product?->code ?? '—');
-                    $name = e($item->product?->name ?? __('ui.workflow.deleted_item'));
+                    $name = e($item->product?->variant_display_name ?? __('ui.workflow.deleted_item'));
                     $quantity = rtrim(rtrim(number_format((float) $item->quantity, 4, ',', '.'), '0'), ',');
                     $unit = $item->product?->unit?->symbol ?: $item->product?->unit?->name;
                     return '<span class="badge rounded-pill bg-light text-secondary border fw-normal" title="' . $name . '">' . $code . ' × ' . $quantity . ($unit ? ' ' . e($unit) : '') . '</span>';
@@ -230,13 +224,9 @@ class MaterialRequestController extends Controller
             $data['production_quantity'] = (float) $order->planned_quantity;
         } elseif (!empty($data['bill_of_material_id'])) {
             $date = $data['needed_at'] ?? now()->toDateString();
-            $bom = BillOfMaterial::query()->where('company_id', $company->id())
-                ->whereKey($data['bill_of_material_id'])->where('status', 'active')
-                ->where('product_id', $data['output_product_id'] ?? null)
-                ->where(fn ($query) => $query->whereNull('effective_from')->orWhereDate('effective_from', '<=', $date))
-                ->where(fn ($query) => $query->whereNull('effective_until')->orWhereDate('effective_until', '>=', $date))
-                ->first();
-            if (!$bom || empty($data['production_quantity'])) {
+            $bom = app(\App\Domain\Manufacturing\Services\ResolveProductionBom::class)
+                ->resolve($company->id(), (int) ($data['output_product_id'] ?? 0), $date);
+            if ((int) $data['bill_of_material_id'] !== $bom->id || empty($data['production_quantity'])) {
                 throw \Illuminate\Validation\ValidationException::withMessages(['bill_of_material_id' => __('ui.workflow.active_bom_not_found')]);
             }
             $data['bom_version'] = $bom->version;
@@ -258,7 +248,7 @@ class MaterialRequestController extends Controller
             'id' => $materialRequest->id,
             'issue_url' => route('super.material-requests.issue', $materialRequest),
             'number' => $materialRequest->number,
-            'output_product' => $materialRequest->outputProduct?->name,
+            'output_product' => $materialRequest->outputProduct?->variant_display_name,
             'production_quantity' => $materialRequest->production_quantity,
             'bom_version' => $materialRequest->bom_version,
             'production_order_id' => $materialRequest->production_order_id,
@@ -274,7 +264,7 @@ class MaterialRequestController extends Controller
             'review_note' => $materialRequest->review_note ?: '—',
             'items' => $materialRequest->items->map(fn ($item) => [
                 'id' => $item->id,
-                'product' => $item->product?->name ?? 'Barang dihapus',
+                'product' => $item->product?->variant_display_name ?? 'Barang dihapus',
                 'code' => $item->product?->code ?? '—',
                 'quantity' => number_format((float) $item->quantity, 4, ',', '.'),
                 'quantity_value' => (float) $item->quantity,

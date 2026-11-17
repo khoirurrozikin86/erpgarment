@@ -18,12 +18,12 @@ class PurchaseOrderTableQuery
                 'purchaseRequest:id,number,material_request_id',
                 'purchaseRequest.materialRequest:id,production_order_id,output_product_id,production_quantity',
                 'purchaseRequest.materialRequest.productionOrder:id,output_product_id,planned_quantity',
-                'purchaseRequest.materialRequest.productionOrder.outputProduct:id,code,name,style_code',
-                'purchaseRequest.materialRequest.outputProduct:id,code,name,style_code',
+                'purchaseRequest.materialRequest.productionOrder.outputProduct:id,code,name,style_code,color,size',
+                'purchaseRequest.materialRequest.outputProduct:id,code,name,style_code,color,size',
                 'supplier:id,name,email',
                 'creator:id,name',
                 'items:id,purchase_order_id,product_id,quantity',
-                'items.product:id,code,name,unit_id',
+                'items.product:id,code,name,unit_id,color,size',
                 'items.product.unit:id,name,symbol',
             ])
             ->select([

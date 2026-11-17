@@ -88,7 +88,7 @@ class PurchaseOrderController extends Controller
                 }
                 $items = $order->items->map(function ($item) {
                     $code = e($item->product?->code ?? '—');
-                    $name = e($item->product?->name ?? __('ui.workflow.deleted_item'));
+                    $name = e($item->product?->variant_display_name ?? __('ui.workflow.deleted_item'));
                     $quantity = rtrim(rtrim(number_format((float) $item->quantity, 4, ',', '.'), '0'), ',');
 
                     return '<span class="badge rounded-pill bg-light text-secondary border fw-normal" title="' . $name . '">' . $code . ' × ' . $quantity . '</span>';
@@ -140,7 +140,7 @@ class PurchaseOrderController extends Controller
             'supplier' => $purchaseRequest->supplier?->name ?? __('ui.workflow.deleted_supplier'),
             'items' => $purchaseRequest->items->map(fn ($item) => [
                 'code' => $item->product?->code ?? '—',
-                'name' => $item->product?->name ?? __('ui.workflow.deleted_item'),
+                'name' => $item->product?->variant_display_name ?? __('ui.workflow.deleted_item'),
                 'quantity' => $item->quantity,
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
                 'unit_price' => $item->unit_price,
@@ -178,7 +178,7 @@ class PurchaseOrderController extends Controller
             'total_amount' => (float) $order->total_amount,
             'items' => $order->items->map(fn ($item) => [
                 'code' => $item->product?->code ?? '—',
-                'product' => $item->product?->name ?? 'Barang dihapus',
+                'product' => $item->product?->variant_display_name ?? 'Barang dihapus',
                 'quantity' => number_format((float) $item->quantity, 4, ',', '.'),
                 'received_quantity' => number_format((float) $item->received_quantity, 4, ',', '.'),
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',

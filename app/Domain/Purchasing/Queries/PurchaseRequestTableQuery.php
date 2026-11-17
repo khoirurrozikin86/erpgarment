@@ -19,14 +19,14 @@ class PurchaseRequestTableQuery
             ->with([
                 'materialRequest:id,number,production_order_id,output_product_id,production_quantity',
                 'materialRequest.productionOrder:id,buyer_po_number,output_product_id,planned_quantity',
-                'materialRequest.productionOrder.outputProduct:id,code,name,style_code',
-                'materialRequest.outputProduct:id,code,name,style_code',
+                'materialRequest.productionOrder.outputProduct:id,code,name,style_code,color,size',
+                'materialRequest.outputProduct:id,code,name,style_code,color,size',
                 'supplier:id,name',
                 'requester:id,name',
                 'reviewer:id,name',
                 'purchaseOrder:id,purchase_request_id,number,status',
                 'items:id,purchase_request_id,product_id,quantity',
-                'items.product:id,code,name,unit_id',
+                'items.product:id,code,name,unit_id,color,size',
                 'items.product.unit:id,name,symbol',
             ])
             ->select([

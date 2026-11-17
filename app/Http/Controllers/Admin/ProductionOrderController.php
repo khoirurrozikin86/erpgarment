@@ -17,6 +17,7 @@ use App\Models\Customer;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Maatwebsite\Excel\Facades\Excel;
@@ -26,11 +27,11 @@ class ProductionOrderController extends Controller
     public function index(CompanyContext $company)
     {
         $orders = ProductionOrder::query()->where('company_id', $company->id())
-            ->with(['outputProduct.unit', 'buyer'])
+            ->with(['outputProduct.unit', 'outputProduct.primaryImage', 'outputProduct.parentProduct.primaryImage', 'buyer'])
             ->orderByDesc('created_at')->get();
         $products = Product::query()->where('is_active', true)->whereNotNull('style_code')
             ->whereHas('category', fn ($query) => $query->where('code', 'FG')->orWhereRaw('LOWER(name) = ?', ['finished goods']))
-            ->with('unit:id,name,symbol')->orderBy('name')->get(['id', 'code', 'name', 'style_code', 'unit_id']);
+            ->with(['unit:id,name,symbol', 'primaryImage', 'parentProduct.primaryImage'])->orderBy('name')->get(['id', 'code', 'name', 'style_code', 'unit_id', 'color', 'size', 'parent_product_id']);
         $customers = Customer::query()->where('is_active', true)->orderBy('name')->get(['id', 'name']);
         $defaultCurrency = $company->get()->currency ?: 'USD';
 
@@ -68,12 +69,39 @@ class ProductionOrderController extends Controller
             'due_date' => ['required', 'date_format:Y-m-d'],
             'customer_id' => ['required', 'integer', Rule::exists('customers', 'id')->where('is_active', true)],
             'output_product_id' => ['required', 'integer', Rule::exists('products', 'id')->where('is_active', true)->where('product_type', 'stock')],
-            'planned_quantity' => ['required', 'numeric', 'gt:0', 'max:999999999999.9999'],
+            'planned_quantity' => ['required_without:variant_rows', 'numeric', 'gt:0', 'max:999999999999.9999'],
             'price_per_unit' => ['nullable', 'numeric', 'min:0', 'max:999999999999.9999'],
             'description' => ['nullable', 'string', 'max:5000'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'order_color' => ['required_with:variant_rows', 'nullable', 'string', 'max:80'],
+            'order_size' => ['nullable', 'string', 'max:40'],
+            'variant_rows' => ['sometimes', 'array', 'min:1', 'max:100'],
+            'variant_rows.*.size' => ['required', 'string', 'max:40'],
+            'variant_rows.*.quantity' => ['required', 'numeric', 'gt:0', 'max:999999999999.9999'],
         ]);
         $this->assertFinishedGood((int) $data['output_product_id']);
-        $order = $create($data, (int) $request->user()->id);
+        $order = $this->withMoImage($request, function (?string $imagePath) use ($data, $create, $request) {
+            if ($imagePath) $data['image_path'] = $imagePath;
+            $variants = app(\App\Domain\Manufacturing\Services\MaterialOrderVariantService::class);
+            if (!empty($data['variant_rows'])) {
+                $keys = collect($data['variant_rows'])->map(fn ($row) => mb_strtolower(trim($row['size'])));
+                if ($keys->duplicates()->isNotEmpty()) {
+                    throw ValidationException::withMessages(['variant_rows' => __('variants.duplicate_size')]);
+                }
+                $first = null;
+                foreach ($data['variant_rows'] as $row) {
+                    $product = $variants->resolve((int) $data['output_product_id'], $data['order_color'], $row['size']);
+                    $line = $create(array_replace($data, ['output_product_id' => $product->id, 'planned_quantity' => $row['quantity']]), (int) $request->user()->id);
+                    $first ??= $line;
+                }
+                return $first;
+            }
+            if (!empty($data['order_color']) || !empty($data['order_size'])) {
+                $product = $variants->resolve((int) $data['output_product_id'], $data['order_color'] ?? '', $data['order_size'] ?? null);
+                $data['output_product_id'] = $product->id;
+            }
+            return $create($data, (int) $request->user()->id);
+        });
 
         return response()->json(['message' => __('ui.workflow.material_order_created'), 'id' => $order->id], 201);
     }
@@ -81,6 +109,11 @@ class ProductionOrderController extends Controller
     public function update(Request $request, ProductionOrder $productionOrder, CompanyContext $company, UpdateMaterialOrderAction $update): JsonResponse
     {
         $this->findForCompany($productionOrder, $company->id());
+        if ($request->boolean('image_only')) {
+            $request->validate(['image' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120']]);
+            $updated = $this->withMoImage($request, fn (string $imagePath) => $update->updateImage($productionOrder, $imagePath));
+            return response()->json(['message' => __('ui.workflow.material_order_updated'), 'id' => $updated->id]);
+        }
         $data = $request->validate([
             'number' => ['required', 'string', 'max:100'],
             'buyer_po_number' => ['nullable', 'string', 'max:100'],
@@ -94,9 +127,20 @@ class ProductionOrderController extends Controller
             'planned_quantity' => ['required', 'numeric', 'gt:0', 'max:999999999999.9999'],
             'price_per_unit' => ['nullable', 'numeric', 'min:0', 'max:999999999999.9999'],
             'description' => ['nullable', 'string', 'max:5000'],
+            'image' => ['nullable', 'image', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
+            'order_color' => ['nullable', 'string', 'max:80'],
+            'order_size' => ['nullable', 'string', 'max:40'],
         ]);
         $this->assertFinishedGood((int) $data['output_product_id']);
-        $updated = $update($productionOrder, $data, (int) $request->user()->id);
+        $updated = $this->withMoImage($request, function (?string $imagePath) use ($productionOrder, $data, $request, $update) {
+            if ($imagePath) $data['image_path'] = $imagePath;
+            if (!empty($data['order_color']) || !empty($data['order_size'])) {
+                $product = app(\App\Domain\Manufacturing\Services\MaterialOrderVariantService::class)
+                    ->resolve((int) $data['output_product_id'], $data['order_color'] ?? '', $data['order_size'] ?? null);
+                $data['output_product_id'] = $product->id;
+            }
+            return $update($productionOrder, $data, (int) $request->user()->id);
+        });
 
         return response()->json(['message' => __('ui.workflow.material_order_updated'), 'id' => $updated->id]);
     }
@@ -117,6 +161,21 @@ class ProductionOrderController extends Controller
         return response()->json(['message' => __('ui.workflow.material_order_deleted')]);
     }
 
+    private function withMoImage(Request $request, callable $callback): ProductionOrder
+    {
+        $path = null;
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('material-orders', 'public');
+            if (!$path) throw ValidationException::withMessages(['image' => __('variants.upload_failed')]);
+        }
+        try {
+            return DB::transaction(fn () => $callback($path));
+        } catch (\Throwable $exception) {
+            if ($path) Storage::disk('public')->delete($path);
+            throw $exception;
+        }
+    }
+
     private function assertFinishedGood(int $productId): void
     {
         $product = Product::query()->whereKey($productId)->where('is_active', true)
@@ -126,7 +185,7 @@ class ProductionOrderController extends Controller
 
     public function show(ProductionOrder $productionOrder, CompanyContext $company): JsonResponse
     {
-        $order = $this->findForCompany($productionOrder, $company->id())->load(['outputProduct.unit', 'buyer', 'materials.product.unit', 'creator', 'releaser']);
+        $order = $this->findForCompany($productionOrder, $company->id())->load(['outputProduct.unit', 'outputProduct.primaryImage', 'outputProduct.parentProduct.primaryImage', 'buyer', 'materials.product.unit', 'creator', 'releaser']);
 
         return response()->json([
             'id' => $order->id,
@@ -144,10 +203,13 @@ class ProductionOrderController extends Controller
             'description' => $order->description,
             'stage_url' => route('super.material-orders.stages.store', $order),
             'number' => $order->number,
-            'product' => $order->outputProduct?->name ?? '—',
+            'product' => $order->outputProduct?->variant_display_name ?? '—',
             'product_code' => $order->outputProduct?->code ?? '—',
             'style' => $order->outputProduct?->style_code ?? '—',
-            'planned_quantity' => number_format((float) $order->planned_quantity, 4, ',', '.'),
+            'image_url' => $order->image_url,
+            'is_locked' => $order->materialRequests()->exists() || $order->stageEntries()->exists(),
+            'color' => $order->outputProduct?->color,
+            'size' => $order->outputProduct?->size,
             'unit' => $order->outputProduct?->unit?->symbol ?: $order->outputProduct?->unit?->name ?: '—',
             'bom_version' => $order->bom_version,
             'planned_start_date' => $order->planned_start_date?->format('d/m/Y') ?? '—',
@@ -156,7 +218,7 @@ class ProductionOrderController extends Controller
             'status' => $order->status,
             'materials' => $order->materials->map(fn ($item) => [
                 'code' => $item->product?->code ?? '—',
-                'product' => $item->product?->name ?? '—',
+                'product' => $item->product?->variant_display_name ?? '—',
                 'operation' => $item->operation ?: '—',
                 'required_quantity' => number_format((float) $item->required_quantity, 4, ',', '.'),
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',

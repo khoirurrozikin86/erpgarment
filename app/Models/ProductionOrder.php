@@ -9,10 +9,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class ProductionOrder extends Model
 {
     protected $fillable = [
+        'image_path',
         'company_id', 'number', 'buyer_po_number', 'no_cbd', 'currency', 'destination', 'po_date', 'due_date', 'customer_id', 'bill_of_material_id', 'output_product_id', 'bom_version',
         'planned_quantity', 'price_per_unit', 'total_price', 'description', 'planned_start_date', 'planned_end_date', 'status', 'notes',
         'created_by', 'released_by', 'released_at',
     ];
+
+    public function getImageUrlAttribute(): ?string
+    {
+        return $this->image_path ? '/storage/' . ltrim($this->image_path, '/') : $this->outputProduct?->mo_image_url;
+    }
 
     protected function casts(): array
     {

@@ -25,7 +25,7 @@ class PurchaseOrdersExport implements FromQuery, WithHeadings, WithMapping, Shou
     {
         return [
             'No. PO', 'No. PR', 'Supplier', 'Tanggal PO', 'Estimasi Tiba', 'Style',
-            'Qty Produksi', 'Kode Item Diminta', 'Nama Item Diminta', 'Qty Item Diminta', 'Satuan', 'Total', 'Status',
+            'Qty Produksi', 'Kode Item Diminta', 'Nama Item Diminta', 'Color', 'Size', 'Qty Item Diminta', 'Satuan', 'Total', 'Status',
         ];
     }
 
@@ -47,13 +47,15 @@ class PurchaseOrdersExport implements FromQuery, WithHeadings, WithMapping, Shou
         ];
 
         if ($order->items->isEmpty()) {
-            return [[...$orderColumns, null, null, null, null, (float) $order->total_amount, $order->status]];
+            return [[...$orderColumns, null, null, null, null, null, null, (float) $order->total_amount, $order->status]];
         }
 
         return $order->items->map(fn ($item) => [
             ...$orderColumns,
             $item->product?->code,
             $item->product?->name,
+            $item->product?->color,
+            $item->product?->size,
             (float) $item->quantity,
             $item->product?->unit?->symbol ?: $item->product?->unit?->name,
             (float) $order->total_amount,

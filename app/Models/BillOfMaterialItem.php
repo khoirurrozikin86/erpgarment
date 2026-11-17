@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class BillOfMaterialItem extends Model
 {
-    protected $fillable = ['bill_of_material_id', 'product_id', 'quantity', 'span', 'wastage_percent', 'operation', 'notes'];
+    protected $fillable = ['bill_of_material_id', 'product_id', 'applies_to_color', 'applies_to_size', 'quantity', 'span', 'wastage_percent', 'operation', 'notes'];
 
     protected function casts(): array
     {

@@ -53,6 +53,7 @@ class ProductUpdateRequest extends FormRequest
 
             'garment_item_type' => ['sometimes', 'required', Rule::in(['general', 'fabric', 'accessory', 'work_in_process', 'finished_good', 'packaging'])],
             'style_code' => ['nullable', 'string', 'max:80', 'exists:styles,code'],
+            'parent_product_id' => ['nullable', 'integer', 'exists:products,id'],
             'color' => ['nullable', 'string', 'max:80'],
             'size' => ['nullable', 'string', 'max:40'],
 

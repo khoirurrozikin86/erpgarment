@@ -43,7 +43,10 @@ class ProductController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'symbol']);
 
+        $parentProducts = Product::whereNull('parent_product_id')->where('is_active', true)->orderBy('code')->get(['id', 'code', 'name']);
+
         return view('super.products.index', compact(
+            'parentProducts',
             'categories',
             'units'
         ));
@@ -151,6 +154,7 @@ class ProductController extends Controller
                             'product_type' => $product->product_type,
                             'garment_item_type' => $product->garment_item_type,
                             'style_code' => $product->style_code,
+                            'parent_product_id' => $product->parent_product_id,
                             'color' => $product->color,
                             'size' => $product->size,
                             'purchase_price' => $product->purchase_price,

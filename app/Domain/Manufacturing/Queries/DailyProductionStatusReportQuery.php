@@ -14,16 +14,16 @@ class DailyProductionStatusReportQuery
         $until = $day->addDay();
         $query = ProductionOrder::query()->where('company_id', $companyId)
             ->where('po_date', '>=', $filters['from_date'])->where('po_date', '<=', $filters['to_date'])
-            ->with(['buyer:id,name', 'outputProduct:id,code,name,style_code'])
+            ->with(['buyer:id,name', 'outputProduct:id,code,name,style_code,color,size'])
             ->select(['id', 'company_id', 'number', 'buyer_po_number', 'customer_id', 'output_product_id', 'planned_quantity'])
             ->when($filters['search'] ?? null, function (Builder $q, string $search) {
                 $q->where(function (Builder $q) use ($search) {
                     $q->where('number', 'like', "%{$search}%")->orWhere('buyer_po_number', 'like', "%{$search}%")
                         ->orWhereHas('buyer', fn (Builder $q) => $q->where('name', 'like', "%{$search}%"))
-                        ->orWhereHas('outputProduct', fn (Builder $q) => $q->where('code', 'like', "%{$search}%")->orWhere('name', 'like', "%{$search}%")->orWhere('style_code', 'like', "%{$search}%"));
+                        ->orWhereHas('outputProduct', fn (Builder $q) => $q->where('code', 'like', "%{$search}%")->orWhere('name', 'like', "%{$search}%")->orWhere('color', 'like', "%{$search}%")->orWhere('size', 'like', "%{$search}%")->orWhere('style_code', 'like', "%{$search}%"));
                 });
             });
-        foreach (['cutting', 'sewing', 'finishing'] as $stage) {
+        foreach (['cutting', 'sewing', 'packing', 'finishing'] as $stage) {
             $query->withSum(['stageEntries as '.$stage.'_today' => fn (Builder $q) => $q->where('stage', $stage)->where('processed_at', '>=', $day)->where('processed_at', '<', $until)], 'good_quantity')
                 ->withSum(['stageEntries as '.$stage.'_total' => fn (Builder $q) => $q->where('stage', $stage)->where('processed_at', '<', $until)], 'good_quantity');
         }
@@ -48,6 +48,7 @@ class DailyProductionStatusReportQuery
         return [
             (float) ($row->cutting_today ?? 0), $cut, round($cut - (float) $row->planned_quantity, 4),
             (float) ($row->sewing_today ?? 0), $sew, round($sew - $cut, 4),
+            (float) ($row->packing_today ?? 0), (float) ($row->packing_total ?? 0),
             (float) ($row->finishing_today ?? 0), $finish, round($finish - $sew, 4),
             (float) ($row->delivery_today ?? 0), $delivery,
         ];

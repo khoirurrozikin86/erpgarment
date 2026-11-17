@@ -13,11 +13,13 @@
         'wastage_percent' => $row->wastage_percent,
         'operation' => $row->operation,
         'notes' => $row->notes,
+        'applies_to_color' => $row->applies_to_color,
+        'applies_to_size' => $row->applies_to_size,
     ])->all());
     $itemOptions = $products->reject(fn ($item) => $item->id === $finishedGood?->id)->map(fn ($item) => [
         'id' => $item->id,
         'code' => $item->code,
-        'name' => $item->name,
+        'name' => $item->variant_display_name,
         'unit' => $item->unit?->symbol ?: $item->unit?->name,
     ])->values();
 @endphp
@@ -31,14 +33,16 @@
     <input type="hidden" name="product_id" value="{{ old('product_id', $bom->product_id) }}">
     <div class="card border-0 shadow-sm bom-card">
         <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3"><div><h6 class="mb-0">Material / Support</h6><small class="text-muted">Pilih item, lalu isi konsumsi per produk</small></div><button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#bomMaterialModal">Pilih Material</button></div>
-        <div class="card-body table-responsive">
-            <table class="table table-bordered align-middle"><thead><tr><th>Item Code</th><th>Name Material/Support</th><th>Unit</th><th>Consumption per PCS</th><th>Span</th><th>Scrap (%)</th><th></th></tr></thead>
+        <div class="card-body table-responsive"><p class="text-muted small">{{ __('variants.selector_help') }}</p>
+            <table class="table table-bordered align-middle"><thead><tr><th>Item Code</th><th>Name Material/Support</th><th>Unit</th><th>{{ __('variants.applies_color') }}</th><th>{{ __('variants.applies_size') }}</th><th>Consumption per PCS</th><th>Span</th><th>Scrap (%)</th><th></th></tr></thead>
             <tbody id="bomMaterialRows">
             @foreach($oldComponents as $i => $row)
                 @php($material = $products->firstWhere('id', $row['product_id'] ?? null))
                 @if($material)
                 <tr data-product-id="{{ $material->id }}">
-                    <td>{{ $material->code }}<input type="hidden" name="items[{{ $i }}][product_id]" value="{{ $material->id }}"></td><td>{{ $material->name }}<input type="hidden" name="items[{{ $i }}][operation]" value="{{ $row['operation'] ?? '' }}"><input type="hidden" name="items[{{ $i }}][notes]" value="{{ $row['notes'] ?? '' }}"></td><td>{{ $material->unit?->symbol ?: $material->unit?->name ?: '—' }}</td>
+                    <td>{{ $material->code }}<input type="hidden" name="items[{{ $i }}][product_id]" value="{{ $material->id }}"></td><td>{{ $material->variant_display_name }}<input type="hidden" name="items[{{ $i }}][operation]" value="{{ $row['operation'] ?? '' }}"><input type="hidden" name="items[{{ $i }}][notes]" value="{{ $row['notes'] ?? '' }}"></td><td>{{ $material->unit?->symbol ?: $material->unit?->name ?: '—' }}</td>
+                    <td><input class="form-control" name="items[{{ $i }}][applies_to_color]" maxlength="80" value="{{ $row['applies_to_color'] ?? '' }}" placeholder="{{ __('variants.all') }}"></td>
+                    <td><input class="form-control" name="items[{{ $i }}][applies_to_size]" maxlength="40" value="{{ $row['applies_to_size'] ?? '' }}" placeholder="{{ __('variants.all') }}"></td>
                     <td><input class="form-control" type="number" min="0.0001" step="0.0001" name="items[{{ $i }}][quantity]" value="{{ $row['quantity'] ?? '' }}" required></td><td><input class="form-control" type="number" min="0" step="0.0001" name="items[{{ $i }}][span]" value="{{ $row['span'] ?? 0 }}"></td><td><input class="form-control" type="number" min="0" max="100" step="0.001" name="items[{{ $i }}][wastage_percent]" value="{{ $row['wastage_percent'] ?? 0 }}"></td><td><button class="btn btn-outline-danger remove-bom-material" type="button">×</button></td>
                 </tr>
                 @endif
@@ -79,7 +83,6 @@
     let nextIndex = {{ count($oldComponents) }};
     let materialTable = null;
     const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
-    const selectedIds = () => new Set([...rows.querySelectorAll('tr[data-product-id]')].map(row => String(row.dataset.productId)));
 
     function initializeMaterialTable() {
         if (materialTable) return;
@@ -93,13 +96,7 @@
                 { data: 'unit', defaultContent: '—' },
                 { data: null, orderable: false, searchable: false, render: (data, type, item) => `<button type="button" class="btn btn-sm btn-primary choose-bom-material" data-id="${item.id}">Pilih</button>` },
             ],
-            rowCallback: (row, item) => {
-                const button = row.querySelector('.choose-bom-material');
-                if (button && selectedIds().has(String(item.id))) {
-                    button.disabled = true;
-                    button.textContent = 'Terpilih';
-                }
-            },
+
         });
     }
 
@@ -108,12 +105,14 @@
         const button = event.target.closest('.choose-bom-material');
         if (!button) return;
         const item = items.find(candidate => String(candidate.id) === button.dataset.id);
-        if (!item || selectedIds().has(String(item.id))) return;
+        if (!item) return;
         const index = nextIndex++;
         rows.insertAdjacentHTML('beforeend', `<tr data-product-id="${item.id}">
             <td>${escapeHtml(item.code)}<input type="hidden" name="items[${index}][product_id]" value="${item.id}"></td>
             <td>${escapeHtml(item.name)}<input type="hidden" name="items[${index}][operation]" value=""><input type="hidden" name="items[${index}][notes]" value=""></td>
             <td>${escapeHtml(item.unit || '—')}</td>
+            <td><input class="form-control" name="items[${index}][applies_to_color]" maxlength="80" placeholder="{{ __('variants.all') }}"></td>
+            <td><input class="form-control" name="items[${index}][applies_to_size]" maxlength="40" placeholder="{{ __('variants.all') }}"></td>
             <td><input class="form-control" type="number" min="0.0001" step="0.0001" name="items[${index}][quantity]" required></td>
             <td><input class="form-control" type="number" min="0" step="0.0001" name="items[${index}][span]" value="0"></td>
             <td><input class="form-control" type="number" min="0" max="100" step="0.001" name="items[${index}][wastage_percent]" value="0"></td>

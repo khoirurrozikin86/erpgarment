@@ -144,13 +144,15 @@ class BillOfMaterialController extends Controller
             'items.*.span' => ['nullable', 'numeric', 'min:0', 'max:999999999999.9999'],
             'items.*.wastage_percent' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'items.*.operation' => ['nullable', 'string', 'max:40'],
+            'items.*.applies_to_color' => ['nullable', 'string', 'max:80'],
+            'items.*.applies_to_size' => ['nullable', 'string', 'max:40'],
             'items.*.notes' => ['nullable', 'string', 'max:1000'],
         ]);
     }
 
     private function ensureUniqueComponents(array $data): void
     {
-        $keys = collect($data['items'])->map(fn ($item) => $item['product_id'] . '|' . mb_strtolower(trim($item['operation'] ?? '')));
+        $keys = collect($data['items'])->map(fn ($item) => $item['product_id'] . '|' . mb_strtolower(trim($item['operation'] ?? '')) . '|' . mb_strtolower(trim($item['applies_to_color'] ?? '')) . '|' . mb_strtolower(trim($item['applies_to_size'] ?? '')));
         if ($keys->duplicates()->isNotEmpty()) {
             throw ValidationException::withMessages(['items' => __('ui.workflow.bom_duplicate_component_error')]);
         }
@@ -176,7 +178,7 @@ class BillOfMaterialController extends Controller
     private function products()
     {
         return Product::query()->where('is_active', true)->where('product_type', 'stock')
-            ->with('unit:id,name,symbol')->orderBy('name')->get(['id', 'code', 'name', 'unit_id', 'garment_item_type']);
+            ->with('unit:id,name,symbol')->orderBy('name')->get(['id', 'code', 'name', 'unit_id', 'garment_item_type', 'color', 'size']);
     }
 
     private function finishedGoods(int $companyId)

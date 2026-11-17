@@ -1,3 +1,23 @@
+# Simulasi lengkap warna dan size
+
+Untuk **menghapus seluruh transaksi** dan membuat ulang simulasi (semua perusahaan), jalankan secara eksplisit:
+
+```bash
+php artisan db:seed --class=RebuildSimulationSeeder --force
+```
+
+Jalankan ketika aplikasi tidak sedang dipakai untuk input transaksi. Akun, hak akses, perusahaan, barang, gambar barang, supplier, customer, style, COA, rekening, dan pengaturan tetap disimpan. BOM termasuk transaksi yang dibangun ulang. Nomor urut dokumen tidak direset agar tidak menggunakan kembali nomor historis.
+
+Backup transaksi dibuat sebelum penghapusan di `storage/app/private/simulation-backups/*.json.gz` (JSON per baris: nama tabel dan kumpulan baris). File ini bukan backup seluruh database/master. Jika pembuatan simulasi gagal, perubahan database dalam proses rebuild dibatalkan. Seeder rebuild tidak dipanggil oleh DatabaseSeeder maupun deployment.
+
+Simulasi varian: BLACK, NAVY, LIGHT GREY × S, M, L, XL, 2XL, 3XL. Masing-masing memiliki 25 PCS order, kain sesuai warna, label sesuai warna/size, BOM, MR → PR → PO → GRN disetujui → pengeluaran bahan → konfirmasi produksi → cutting → sewing → packing → hasil produksi → GSN disetujui. Produksi parsial menyisakan WIP di tiap tahap. Dokumen BC masuk/keluar mengacu ke detail GRN/GSN yang sebenarnya. Stok mengikuti SKU varian, bukan gabungan warna/size.
+
+Skenario umum tetap mencakup subkon draft/konfirmasi, scrap/reject, mesin/peralatan, retur, opname, pembayaran, jurnal, serta antrean approval. Barang umum/mesin/scrap tidak diberi size pakaian yang tidak relevan. Akun/master lama tidak dihapus atau ditimpa. Untuk menambah simulasi pada database yang sudah memiliki marker lengkap tanpa mengulang data, gunakan `SimulationSeeder`; rebuild di atas adalah perintah pengosongan yang disengaja.
+
+---
+
+## Catatan skenario dasar yang dipertahankan
+
 # Data simulasi aplikasi
 
 Seeder utama: `Database\Seeders\SimulationSeeder`, yang menjalankan dataset dasar V1, tambahan `SimulationModulesSeeder` (V2), dan `SimulationCompletionSeeder` (V3). Jalankan secara eksplisit; tidak dipanggil oleh `DatabaseSeeder`.

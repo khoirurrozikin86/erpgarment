@@ -16,7 +16,7 @@ class CreateProductAction
     public function __invoke(ProductData $data): Product
     {
         return DB::transaction(function () use ($data) {
-            $product = Product::create($data->toArray());
+            $product = Product::create(app(\App\Domain\Products\Services\ValidateProductVariant::class)->attributes($data));
 
             $this->auditLog->log(
                 action: 'CREATE',

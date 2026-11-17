@@ -198,6 +198,14 @@
                                 <div class="form-text">Pilih style dari master Style.</div>
                             </div>
                             <div class="col-md-6 mb-3">
+                                <label class="form-label" for="parent_product_id">{{ __('variants.parent') }}</label>
+                                <select class="form-select" id="parent_product_id" name="parent_product_id">
+                                    <option value="">{{ __('variants.standalone') }}</option>
+                                    @foreach($parentProducts as $parent)<option value="{{ $parent->id }}">{{ $parent->code }} — {{ $parent->name }}</option>@endforeach
+                                </select>
+                                <div class="form-text">{{ __('variants.parent_help') }}</div>
+                            </div>
+                            <div class="col-md-6 mb-3">
                                 <label class="form-label" for="color">{{ __('ui.workflow.color') }}</label>
                                 <input type="text" class="form-control" id="color" name="color"
                                     maxlength="80">
@@ -559,7 +567,7 @@
 
                 $('#product_type').val('stock');
                 $('#garment_item_type').val('general');
-                $('#style_code, #color, #size').val('');
+                $('#style_code, #color, #size, #parent_product_id').val('');
 
 
                 $('#purchase_price').val('0');
@@ -750,6 +758,7 @@
                 $('#product_type').val(payload.product_type);
                 $('#garment_item_type').val(payload.garment_item_type || 'general');
                 $('#style_code').val(payload.style_code || '');
+                $('#parent_product_id').val(payload.parent_product_id || '');
                 $('#color').val(payload.color || '');
                 $('#size').val(payload.size || '');
 

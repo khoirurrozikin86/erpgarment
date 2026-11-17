@@ -44,15 +44,8 @@ class CreateProductionOrderAction
             }
 
             $startDate = $data['po_date'] ?? now()->toDateString();
-            $bom = BillOfMaterial::query()->where('company_id', $this->company->id())
-                ->where('product_id', $data['output_product_id'])->where('status', 'active')
-                ->where(fn ($query) => $query->whereNull('effective_from')->orWhereDate('effective_from', '<=', $startDate))
-                ->where(fn ($query) => $query->whereNull('effective_until')->orWhereDate('effective_until', '>=', $startDate))
-                ->with('items')->lockForUpdate()->first();
-
-            if (!$bom || (float) $bom->output_quantity <= 0 || $bom->items->isEmpty()) {
-                throw ValidationException::withMessages(['output_product_id' => __('ui.workflow.active_bom_not_found')]);
-            }
+            $bom = app(\App\Domain\Manufacturing\Services\ResolveProductionBom::class)
+                ->resolve($this->company->id(), (int) $data['output_product_id'], $data['po_date']);
 
             $order = ProductionOrder::create([
                 'company_id' => $this->company->id(),
@@ -61,8 +54,9 @@ class CreateProductionOrderAction
                 'price_per_unit' => $data['price_per_unit'] ?? 0,
                 'total_price' => round((float) $data['planned_quantity'] * (float) ($data['price_per_unit'] ?? 0), 4),
                 'description' => $data['description'] ?? null,
+                'image_path' => $data['image_path'] ?? null,
                 'bill_of_material_id' => $bom->id,
-                'output_product_id' => $bom->product_id,
+                'output_product_id' => $data['output_product_id'],
                 'bom_version' => $bom->version,
                 'planned_quantity' => $data['planned_quantity'],
                 'planned_start_date' => $data['po_date'],

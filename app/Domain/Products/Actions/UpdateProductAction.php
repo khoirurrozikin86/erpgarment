@@ -20,7 +20,7 @@ class UpdateProductAction
         return DB::transaction(function () use ($product, $data) {
             $oldValues = $product->toArray();
 
-            $product->update($data->toArray());
+            $product->update(app(\App\Domain\Products\Services\ValidateProductVariant::class)->attributes($data, $product));
 
             $product->refresh();
 

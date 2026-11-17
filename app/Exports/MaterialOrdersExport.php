@@ -31,7 +31,7 @@ class MaterialOrdersExport implements FromQuery, WithHeadings, WithMapping, Shou
     {
         return [
             'No. MO', 'Tanggal PO', 'Tanggal Tempo', 'PO Buyer', 'Buyer', 'No. CBD', 'Currency',
-            'Destination', 'Item Code', 'Item Name', 'Unit', 'Style', 'Qty', 'Price Per Unit', 'Total Price', 'Description',
+            'Destination', 'Item Code', 'Item Name', 'Color', 'Size', 'Unit', 'Style', 'Qty', 'Price Per Unit', 'Total Price', 'Description',
         ];
     }
 
@@ -50,6 +50,8 @@ class MaterialOrdersExport implements FromQuery, WithHeadings, WithMapping, Shou
             $order->destination,
             $product?->code,
             $product?->name,
+            $product?->color,
+            $product?->size,
             $product?->unit?->symbol ?: $product?->unit?->name,
             $product?->style_code,
             (float) $order->planned_quantity,

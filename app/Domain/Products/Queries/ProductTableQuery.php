@@ -16,6 +16,7 @@ class ProductTableQuery
             ])
             ->select([
                 'id',
+                'parent_product_id',
                 'code',
                 'name',
                 'category_id',
