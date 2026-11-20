@@ -18,16 +18,18 @@ class MaterialRequestTableQuery
                 'reviewer:id,name',
                 'productionOrder:id,buyer_po_number,output_product_id,planned_quantity',
                 'productionOrder.outputProduct:id,code,name,style_code,color,size',
+                'productionOrderHeader.details.outputProduct:id,code,name,style_code,color,size',
                 'outputProduct:id,code,name,style_code,color,size',
                 'items:id,material_request_id,product_id,quantity',
                 'items.product:id,code,name,unit_id,color,size',
                 'items.product.unit:id,name,symbol',
             ])
             ->select([
-                'id', 'number', 'requested_by', 'production_order_id', 'output_product_id', 'production_quantity', 'department', 'needed_at', 'reason', 'status',
+                'id', 'number', 'requested_by', 'production_order_id', 'production_order_header_id', 'source_details', 'output_product_id', 'production_quantity', 'department', 'needed_at', 'reason', 'status',
                 'purchase_status', 'reviewed_by', 'reviewed_at', 'review_note', 'created_at', 'updated_at',
             ])
             ->withCount('items')
+            ->withDeletionBlockers()
             ->withSum('items as items_total_quantity', 'quantity')
             ->withSum('items as items_issued_quantity', 'issued_quantity')
             ->orderByDesc('created_at');
@@ -38,7 +40,7 @@ class MaterialRequestTableQuery
     public function details(MaterialRequest $request): MaterialRequest
     {
         return MaterialRequest::query()
-            ->with(['requester', 'reviewer', 'items.product.unit'])
+            ->with(['requester', 'reviewer', 'billOfMaterial', 'items.product.unit'])
             ->findOrFail($request->id);
     }
 }

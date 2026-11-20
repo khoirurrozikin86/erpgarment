@@ -3,7 +3,6 @@
 namespace App\Domain\Inventory\Queries;
 
 use App\Domain\Purchasing\Queries\Concerns\AppliesDateRange;
-use App\Models\Product;
 use App\Models\StockOpname;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -21,19 +20,14 @@ class StockOpnameTableQuery
         return $this->applyDateRange($query, 'counted_at', $fromDate, $toDate);
     }
 
-    public function products(): Builder
-    {
-        return Product::query()
-            ->where('track_stock', true)
-            ->with('unit:id,name,symbol')
-            ->select(['id', 'code', 'name', 'unit_id', 'track_stock'])
-            ->orderBy('name');
-    }
-
     public function details(StockOpname $stockOpname): StockOpname
     {
         return StockOpname::query()
-            ->with(['starter:id,name', 'counter:id,name', 'poster:id,name', 'items.product:id,code,name,unit_id', 'items.product.unit:id,name,symbol'])
+            ->with([
+                'starter:id,name', 'counter:id,name', 'poster:id,name',
+                'items.product:id,code,name,unit_id,parent_product_id,color,size',
+                'items.product.unit:id,name,symbol', 'items.product.parentProduct:id,code',
+            ])
             ->findOrFail($stockOpname->id);
     }
 }

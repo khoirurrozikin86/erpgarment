@@ -5,5 +5,43 @@
 <h2>{{ __('ui.gsn.print_title') }}</h2><p><strong>{{ __('ui.gsn.number') }}:</strong> {{ $note->number }}</p>
 <div class="meta"><div class="box"><strong>{{ __('ui.gsn.customer') }}</strong><br>{{ $note->items->first()?->customer?->name ?: $note->items->first()?->productionOrder?->buyer?->name ?: '—' }}<br>{{ $note->items->first()?->customer?->address ?: $note->items->first()?->productionOrder?->buyer?->address }}</div><div><p>{{ $company->city ?: '—' }}, {{ $note->sent_date?->translatedFormat('d F Y') }}</p><p><strong>{{ __('ui.gsn.date') }}:</strong> {{ $note->sent_date?->translatedFormat('d F Y') }}</p><p><strong>{{ __('ui.gsn.contract_number') }}:</strong> {{ $note->contract_number ?: '—' }}</p></div>
 <div class="full"><strong>{{ __('ui.gsn.vehicle_number') }}:</strong> {{ $note->vehicle_number ?: '—' }} &nbsp; <strong>{{ __('ui.gsn.driver_name') }}:</strong> {{ $note->driver_name ?: '—' }} &nbsp; <strong>{{ __('ui.gsn.driver_phone') }}:</strong> {{ $note->driver_phone ?: '—' }}<br><strong>{{ __('ui.gsn.container_number') }}:</strong> {{ $note->container_number ?: '—' }} &nbsp; <strong>{{ __('ui.gsn.seal_number') }}:</strong> {{ $note->seal_number ?: '—' }}</div></div>
-<table><thead><tr><th>{{ __('ui.gsn.description_goods') }}</th><th>{{ __('ui.gsn.quantity') }}</th><th>{{ __('ui.gsn.remark') }}</th></tr></thead><tbody>@foreach($note->items as $item)<tr><td>{{ $item->productionOrder?->buyer_po_number }}<br>{{ $item->productionOrder?->outputProduct?->name }}<br>{{ __('ui.gsn.mo') }}: {{ $item->productionOrder?->number }}</td><td style="text-align:center">{{ number_format((float)$item->quantity,2) }} {{ $item->productionOrder?->outputProduct?->unit?->symbol ?: $item->productionOrder?->outputProduct?->unit?->name }}<br>{{ number_format((float)$item->cartons,0) }} {{ __('ui.gsn.cartons') }}</td><td>{{ __('ui.gsn.route_value') }}: {{ $note->delivery_route ?: '—' }}<br>{{ __('ui.gsn.vehicle_number') }}: {{ $note->vehicle_number ?: '—' }}<br>{{ __('ui.gsn.seal_number') }}: {{ $note->seal_number ?: '—' }}</td></tr>@endforeach</tbody></table>
+<table>
+    <thead>
+        <tr>
+            <th>{{ __('ui.gsn.description_goods') }}</th>
+            <th>{{ __('ui.gsn.color') }}</th>
+            <th>{{ __('ui.gsn.size') }}</th>
+            <th>{{ __('ui.gsn.quantity') }}</th>
+            <th>{{ __('ui.gsn.remark') }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach($note->items as $item)
+            @php
+                $product = $item->product;
+                $order = $item->productionOrder;
+            @endphp
+            <tr>
+                <td style="overflow-wrap:anywhere">
+                    {{ $order?->buyer_po_number }}<br>
+                    {{ $product?->name }}<br>
+                    {{ __('ui.gsn.mo') }}: {{ $order?->number }}<br>
+                    {{ __('ui.gsn.parent_code') }}: {{ $product?->parentProduct?->code ?? $product?->code ?? '—' }}<br>
+                    {{ __('ui.gsn.sku_code') }}: {{ $product?->parent_product_id ? $product->code : '—' }}
+                </td>
+                <td style="text-align:center">{{ ($order?->order_color ?? $product?->color) ?: '—' }}</td>
+                <td style="text-align:center">{{ ($order?->order_size ?? $product?->size) ?: '—' }}</td>
+                <td style="text-align:center">
+                    {{ number_format((float)$item->quantity,2) }} {{ $product?->unit?->symbol ?: $product?->unit?->name }}<br>
+                    {{ number_format((float)$item->cartons,0) }} {{ __('ui.gsn.cartons') }}
+                </td>
+                <td>
+                    {{ __('ui.gsn.route_value') }}: {{ $note->delivery_route ?: '—' }}<br>
+                    {{ __('ui.gsn.vehicle_number') }}: {{ $note->vehicle_number ?: '—' }}<br>
+                    {{ __('ui.gsn.seal_number') }}: {{ $note->seal_number ?: '—' }}
+                </td>
+            </tr>
+        @endforeach
+    </tbody>
+</table>
 <div class="sign"><div>{{ __('ui.gsn.received_by') }}<br><br><br>(__________________)</div><div>{{ __('ui.gsn.prepared_by') }}<br>{{ $company->name }}<br><br><br>(__________________)</div></div><button class="no-print" onclick="window.print()">{{ __('ui.common.print') }}</button></body></html>

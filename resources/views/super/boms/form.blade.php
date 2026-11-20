@@ -2,6 +2,7 @@
 @section('title', $bom->exists ? __('ui.workflow.bom_edit') : __('ui.workflow.bom_create'))
 @section('breadcrumb')
 <nav class="page-breadcrumb"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="{{ route('super.boms.index') }}">{{ __('ui.workflow.bom_title') }}</a></li><li class="breadcrumb-item active">{{ $bom->exists ? __('ui.workflow.bom_edit') : __('ui.workflow.bom_create') }}</li></ol></nav>
+<div class="modal fade" id="bomStyleModal" tabindex="-1"><div class="modal-dialog modal-lg modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5>{{ __('variants.choose_style') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="table-responsive"><table class="table w-100" id="bomStyleTable"><thead><tr><th>Style</th><th>{{ __('ui.common.name') }}</th><th></th></tr></thead><tbody>@foreach($styles as $style)<tr><td>{{ $style->code }}</td><td>{{ $style->name }}</td><td><button type="button" class="btn btn-sm btn-primary choose-bom-style" data-id="{{ $style->code }}" data-label="{{ $style->code }} — {{ $style->name }}">{{ __('ui.common.select') }}</button></td></tr>@endforeach</tbody></table></div></div></div></div></div>
 @endsection
 @section('content')
 @php
@@ -20,30 +21,54 @@
         'id' => $item->id,
         'code' => $item->code,
         'name' => $item->variant_display_name,
+        'category' => $item->category?->name,
         'unit' => $item->unit?->symbol ?: $item->unit?->name,
     ])->values();
 @endphp
 <div class="d-flex justify-content-between align-items-center mb-3">
-    <div><h4 class="page-title mb-1">Input BOM Material</h4><p class="text-muted mb-0">{{ $finishedGood?->style_code }} · {{ $finishedGood?->code }} — {{ $finishedGood?->name }}</p></div>
+    <div><h4 class="page-title mb-1">{{ $bom->exists ? __('ui.workflow.bom_edit') : __('ui.workflow.bom_create') }}</h4><p class="text-muted mb-0">{{ __('variants.bom_manual_help') }}</p></div>
     <a href="{{ route('super.boms.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('ui.workflow.bom_cancel') }}</a>
 </div>
 @if($errors->any())<div class="alert alert-danger"><ul class="mb-0">@foreach($errors->all() as $error)<li>{{ $error }}</li>@endforeach</ul></div>@endif
-<form method="POST" action="{{ $bom->exists ? route('super.boms.update', $bom) : route('super.boms.store') }}">
+<form id="bomForm" method="POST" action="{{ $bom->exists ? route('super.boms.update', $bom) : route('super.boms.store') }}">
     @csrf @if($bom->exists)@method('PUT')@endif
-    <input type="hidden" name="product_id" value="{{ old('product_id', $bom->product_id) }}">
+    @php($selectedStyle = $styles->firstWhere('code', old('style_code', $bom->style_code)) ?? $styles->firstWhere('code', $bom->product?->style_code))
+    <div class="row g-2 mb-3">
+        <div class="col-md-4"><label class="form-label">{{ __('variants.bom_number') }}</label><input class="form-control form-control-sm" readonly value="{{ $bom->number ?: __('variants.bom_auto_number') }}"></div>
+        <div class="col-md-5"><label class="form-label">Style</label><div class="input-group input-group-sm">
+            <input type="hidden" name="style_code" id="bomStyleId" value="{{ $selectedStyle?->code }}">
+            <input id="bomStyleLabel" class="form-control" readonly value="{{ $selectedStyle ? $selectedStyle->code.' — '.$selectedStyle->name : '' }}" placeholder="{{ __('ui.common.select') }}">
+            <button class="btn btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#bomStyleModal">{{ __('ui.common.search') }}</button>
+        </div></div>
+        <div class="col-md-3"><label class="form-label" for="bomType">{{ __('variants.bom_type') }}</label><select class="form-select form-select-sm" id="bomType" name="bom_type" required>
+            <option value="">{{ __('ui.common.select') }}</option>
+            @foreach(['fabric', 'accessory', 'general'] as $type)
+                <option value="{{ $type }}" @selected(old('bom_type', $bom->bom_type) === $type)>{{ __('variants.bom_type_'.$type) }}</option>
+            @endforeach
+        </select></div>
+    </div>
+    <div class="card border-0 shadow-sm mb-3">
+        <div class="card-header bg-white d-flex flex-wrap justify-content-between gap-2"><strong>{{ __('variants.consumption_matrix') }}</strong><div class="d-flex gap-2"><button type="button" id="bomAddSize" class="btn btn-outline-secondary btn-sm">{{ __('variants.add_size') }}</button><button type="button" id="bomAddMatrix" class="btn btn-outline-primary btn-sm">{{ __('ui.common.add_item') }}</button></div></div>
+        <div class="card-body"><p class="text-muted small">{{ __('variants.consumption_matrix_hint') }}</p>
+            <div class="table-responsive"><table class="table table-sm table-bordered align-middle"><thead><tr>
+                <th style="min-width:250px">{{ __('ui.common.item') }}</th><th style="min-width:130px">{{ __('variants.process') }}</th><th style="min-width:140px">{{ __('ui.workflow.color') }}</th><th>{{ __('ui.common.unit') }}</th><th>{{ __('variants.allowance') }} %</th>
+                @foreach(['', 'XS','S','M','L','XL','XXL','3XL','4XL','5XL'] as $size)<th class="bom-size-header" style="min-width:85px">{{ $size ?: __('variants.all_sizes') }}</th>@endforeach
+                <th></th></tr></thead><tbody id="bomMatrixRows"></tbody></table></div>
+        </div>
+    </div>
     <div class="card border-0 shadow-sm bom-card">
         <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3"><div><h6 class="mb-0">Material / Support</h6><small class="text-muted">Pilih item, lalu isi konsumsi per produk</small></div><button class="btn btn-sm btn-outline-primary" type="button" data-bs-toggle="modal" data-bs-target="#bomMaterialModal">Pilih Material</button></div>
         <div class="card-body table-responsive"><p class="text-muted small">{{ __('variants.selector_help') }}</p>
-            <table class="table table-bordered align-middle"><thead><tr><th>Item Code</th><th>Name Material/Support</th><th>Unit</th><th>{{ __('variants.applies_color') }}</th><th>{{ __('variants.applies_size') }}</th><th>Consumption per PCS</th><th>Span</th><th>Scrap (%)</th><th></th></tr></thead>
+            <table class="table table-bordered align-middle"><thead><tr><th>Item Code</th><th>Name Material/Support</th><th>Unit</th><th>{{ __('variants.applies_color') }}</th><th>{{ __('variants.applies_size') }}</th><th>{{ __('variants.process') }}</th><th>Consumption per PCS</th><th>Span</th><th>Scrap (%)</th><th></th></tr></thead>
             <tbody id="bomMaterialRows">
             @foreach($oldComponents as $i => $row)
-                @php($material = $products->firstWhere('id', $row['product_id'] ?? null))
+                @php($material = $products->firstWhere('id', $row['product_id'] ?? null) ?? $components->firstWhere('product_id', $row['product_id'] ?? null)?->product)
                 @if($material)
                 <tr data-product-id="{{ $material->id }}">
-                    <td>{{ $material->code }}<input type="hidden" name="items[{{ $i }}][product_id]" value="{{ $material->id }}"></td><td>{{ $material->variant_display_name }}<input type="hidden" name="items[{{ $i }}][operation]" value="{{ $row['operation'] ?? '' }}"><input type="hidden" name="items[{{ $i }}][notes]" value="{{ $row['notes'] ?? '' }}"></td><td>{{ $material->unit?->symbol ?: $material->unit?->name ?: '—' }}</td>
+                    <td>{{ $material->code }}<input type="hidden" name="items[{{ $i }}][product_id]" value="{{ $material->id }}"></td><td>{{ $material->variant_display_name }}<input type="hidden" name="items[{{ $i }}][notes]" value="{{ $row['notes'] ?? '' }}"></td><td>{{ $material->unit?->symbol ?: $material->unit?->name ?: '—' }}</td>
                     <td><input class="form-control" name="items[{{ $i }}][applies_to_color]" maxlength="80" value="{{ $row['applies_to_color'] ?? '' }}" placeholder="{{ __('variants.all') }}"></td>
                     <td><input class="form-control" name="items[{{ $i }}][applies_to_size]" maxlength="40" value="{{ $row['applies_to_size'] ?? '' }}" placeholder="{{ __('variants.all') }}"></td>
-                    <td><input class="form-control" type="number" min="0.0001" step="0.0001" name="items[{{ $i }}][quantity]" value="{{ $row['quantity'] ?? '' }}" required></td><td><input class="form-control" type="number" min="0" step="0.0001" name="items[{{ $i }}][span]" value="{{ $row['span'] ?? 0 }}"></td><td><input class="form-control" type="number" min="0" max="100" step="0.001" name="items[{{ $i }}][wastage_percent]" value="{{ $row['wastage_percent'] ?? 0 }}"></td><td><button class="btn btn-outline-danger remove-bom-material" type="button">×</button></td>
+                    <td><input class="form-control form-control-sm" name="items[{{ $i }}][operation]" maxlength="40" value="{{ $row['operation'] ?? '' }}"></td><td><input class="form-control" type="number" min="0.0001" step="0.0001" name="items[{{ $i }}][quantity]" value="{{ $row['quantity'] ?? '' }}" required></td><td><input class="form-control" type="number" min="0" step="0.0001" name="items[{{ $i }}][span]" value="{{ $row['span'] ?? 0 }}"></td><td><input class="form-control" type="number" min="0" max="100" step="0.001" name="items[{{ $i }}][wastage_percent]" value="{{ $row['wastage_percent'] ?? 0 }}"></td><td><button class="btn btn-outline-danger remove-bom-material" type="button">×</button></td>
                 </tr>
                 @endif
             @endforeach
@@ -58,7 +83,18 @@
     <div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content">
         <div class="modal-header"><div><h5 class="modal-title mb-1" id="bomMaterialModalTitle">Pilih Item Material / Support</h5><small class="text-muted">Cari dan pilih item dari daftar</small></div><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div>
         <div class="modal-body">
-            <div class="table-responsive"><table class="table table-hover align-middle w-100" id="bomMaterialOptionsTable"><thead><tr><th>Item Code</th><th>Nama Item</th><th>Unit</th><th>Aksi</th></tr></thead><tbody></tbody></table></div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle w-100" id="bomMaterialOptionsTable">
+                    <thead><tr>
+                        <th>Item Code</th>
+                        <th>Nama Item</th>
+                        <th>{{ __('ui.common.category') }}</th>
+                        <th>{{ __('ui.common.unit') }}</th>
+                        <th>{{ __('ui.common.action') }}</th>
+                    </tr></thead>
+                    <tbody></tbody>
+                </table>
+            </div>
         </div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button></div>
     </div></div>
 </div>
@@ -82,6 +118,7 @@
     const empty = document.getElementById('bom-empty-state');
     let nextIndex = {{ count($oldComponents) }};
     let materialTable = null;
+    let matrixTarget = null;
     const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[char]));
 
     function initializeMaterialTable() {
@@ -91,34 +128,124 @@
             pageLength: 10,
             lengthMenu: [5, 10, 50, 100],
             columns: [
-                { data: 'code' },
-                { data: 'name' },
-                { data: 'unit', defaultContent: '—' },
-                { data: null, orderable: false, searchable: false, render: (data, type, item) => `<button type="button" class="btn btn-sm btn-primary choose-bom-material" data-id="${item.id}">Pilih</button>` },
+                { data: 'code', render: $.fn.dataTable.render.text() },
+                { data: 'name', render: $.fn.dataTable.render.text() },
+                { data: 'category', defaultContent: '—', render: $.fn.dataTable.render.text() },
+                { data: 'unit', defaultContent: '—', render: $.fn.dataTable.render.text() },
+                { data: null, orderable: false, searchable: false, render: (data, type, item) => `<button type="button" class="btn btn-sm btn-primary choose-bom-material" data-id="${item.id}">${escapeHtml(@json(__('ui.common.select')))}</button>` },
             ],
 
         });
     }
 
-    document.getElementById('bomMaterialModal').addEventListener('shown.bs.modal', initializeMaterialTable);
+    const materialModal = document.getElementById('bomMaterialModal');
+    materialModal.addEventListener('show.bs.modal', event => {
+        if (event.relatedTarget) matrixTarget = null;
+    });
+    materialModal.addEventListener('shown.bs.modal', () => {
+        initializeMaterialTable();
+        materialTable.columns.adjust();
+        $(materialModal).find('.dataTables_filter input').trigger('focus');
+    });
+    materialModal.addEventListener('hidden.bs.modal', () => { matrixTarget = null; });
+    function setMatrixItem(row, item) {
+        row.find('.bom-matrix-product').val(item?.id || '');
+        row.find('.bom-matrix-item-label').text(item ? item.code + ' — ' + item.name : @json(__('ui.common.select')));
+        row.find('.bom-matrix-unit').text(item?.unit || '—');
+    }
+    $('#bomMatrixRows').on('click', '.bom-matrix-item-picker', function () {
+        matrixTarget = $(this).closest('tr');
+        bootstrap.Modal.getOrCreateInstance(materialModal).show();
+    });
     document.getElementById('bomMaterialOptionsTable').addEventListener('click', event => {
         const button = event.target.closest('.choose-bom-material');
         if (!button) return;
         const item = items.find(candidate => String(candidate.id) === button.dataset.id);
         if (!item) return;
+        if (matrixTarget && document.body.contains(matrixTarget[0])) {
+            setMatrixItem(matrixTarget, item);
+            bootstrap.Modal.getOrCreateInstance(materialModal).hide();
+            return;
+        }
         const index = nextIndex++;
         rows.insertAdjacentHTML('beforeend', `<tr data-product-id="${item.id}">
             <td>${escapeHtml(item.code)}<input type="hidden" name="items[${index}][product_id]" value="${item.id}"></td>
-            <td>${escapeHtml(item.name)}<input type="hidden" name="items[${index}][operation]" value=""><input type="hidden" name="items[${index}][notes]" value=""></td>
+            <td>${escapeHtml(item.name)}<input type="hidden" name="items[${index}][notes]" value=""></td>
             <td>${escapeHtml(item.unit || '—')}</td>
             <td><input class="form-control" name="items[${index}][applies_to_color]" maxlength="80" placeholder="{{ __('variants.all') }}"></td>
             <td><input class="form-control" name="items[${index}][applies_to_size]" maxlength="40" placeholder="{{ __('variants.all') }}"></td>
-            <td><input class="form-control" type="number" min="0.0001" step="0.0001" name="items[${index}][quantity]" required></td>
+            <td><input class="form-control form-control-sm" name="items[${index}][operation]" maxlength="40"></td><td><input class="form-control" type="number" min="0.0001" step="0.0001" name="items[${index}][quantity]" required></td>
             <td><input class="form-control" type="number" min="0" step="0.0001" name="items[${index}][span]" value="0"></td>
             <td><input class="form-control" type="number" min="0" max="100" step="0.001" name="items[${index}][wastage_percent]" value="0"></td>
             <td><button class="btn btn-outline-danger remove-bom-material" type="button">×</button></td></tr>`);
         empty.classList.add('d-none');
         materialTable?.draw(false);
+        bootstrap.Modal.getOrCreateInstance(materialModal).hide();
+    });
+    const matrixSizes = ['', 'XS','S','M','L','XL','XXL','3XL','4XL','5XL'];
+    $('#bomAddMatrix').on('click', function () {
+        const row = $('<tr>');
+        const selectedId = $('<input type="hidden" class="bom-matrix-product">');
+        const picker = $('<button type="button" class="form-control form-control-sm text-start bom-matrix-item-picker" style="min-height:32px;white-space:normal">');
+        picker.append($('<span class="bom-matrix-item-label">').text(@json(__('ui.common.select'))));
+        row.append($('<td>').append(selectedId, picker));
+        row.append($('<td>').append($('<input class="form-control form-control-sm bom-matrix-operation" maxlength="40">')));
+        row.append($('<td>').append($('<input class="form-control form-control-sm bom-matrix-color" maxlength="80">')));
+        row.append($('<td class="bom-matrix-unit">').text('—'));
+        row.append($('<td>').append($('<input class="form-control form-control-sm bom-matrix-waste" type="number" min="0" max="100" step="0.001" value="0">')));
+        matrixSizes.forEach(size => row.append($('<td>').append($('<input class="form-control form-control-sm bom-matrix-cons" type="number" min="0" step="0.0001">').attr('data-size', size))));
+        row.append($('<td class="text-nowrap">').append($('<button type="button" class="btn btn-sm btn-outline-primary me-1">').text(@json(__('variants.add_color'))).on('click', () => {
+            $('#bomAddMatrix').trigger('click');
+            const added = $('#bomMatrixRows tr').last();
+            setMatrixItem(added, items.find(item => String(item.id) === String(selectedId.val())));
+            added.find('.bom-matrix-operation').val(row.find('.bom-matrix-operation').val());
+        })).append($('<button type="button" class="btn btn-sm btn-outline-danger">×</button>').on('click', () => row.remove())));
+        $('#bomMatrixRows').append(row);
+    });
+    $('#bomAddSize').on('click', function () {
+        const size = prompt(@json(__('variants.size_code_prompt')))?.trim();
+        if (!size || matrixSizes.some(s => s.toLowerCase() === size.toLowerCase()) || size.length > 40) return;
+        matrixSizes.push(size);
+        const table = $('#bomMatrixRows').closest('table');
+        table.find('thead tr th').last().before($('<th style="min-width:85px">').text(size));
+        $('#bomMatrixRows tr').each(function () {
+            $(this).children('td').last().before($('<td>').append($('<input class="form-control form-control-sm bom-matrix-cons" type="number" min="0" step="0.0001">').attr('data-size', size)));
+        });
+    });
+    $('#bomForm').on('submit', function(event) {
+        if (!$('#bomStyleId').val()) { event.preventDefault(); alert(@json(__('variants.choose_style'))); }
+    });
+    let styleTable;
+    $('#bomStyleModal').on('shown.bs.modal', function () {
+        if (!styleTable) styleTable = $('#bomStyleTable').DataTable({pageLength: 10});
+        styleTable.columns.adjust();
+    });
+    $(document).on('click', '.choose-bom-style', function () {
+        $('#bomStyleId').val(this.dataset.id); $('#bomStyleLabel').val(this.dataset.label);
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('bomStyleModal')).hide();
+    });
+    $('#bomMatrixRows').on('change', '.bom-matrix-product', function () {
+        $(this).closest('tr').find('.bom-matrix-unit').text(items.find(i => String(i.id) === String(this.value))?.unit || '—');
+    });
+    $('#bomForm').on('submit', function (event) {
+        $(this).find('.bom-matrix-generated').remove();
+        let invalid = false;
+        $('#bomMatrixRows tr').each(function () {
+            const row = $(this), product = row.find('.bom-matrix-product').val();
+            if (!product) { invalid = true; row.find('.bom-matrix-item-picker').addClass('is-invalid'); }
+            else row.find('.bom-matrix-item-picker').removeClass('is-invalid');
+            let count = 0;
+            row.find('.bom-matrix-cons').each(function () {
+                if (!this.value || Number(this.value) === 0) return;
+                count++;
+                const index = nextIndex++;
+                const data = {product_id: product, quantity: this.value, operation: row.find('.bom-matrix-operation').val(), applies_to_color: row.find('.bom-matrix-color').val(),
+                    applies_to_size: this.dataset.size, wastage_percent: row.find('.bom-matrix-waste').val() || 0, span: 0};
+                Object.entries(data).forEach(([key,value]) => $('#bomForm').append($('<input type="hidden" class="bom-matrix-generated">').attr('name', `items[${index}][${key}]`).val(value)));
+            });
+            if (!count) invalid = true;
+        });
+        if (invalid) { event.preventDefault(); alert(@json(__('variants.matrix_consumption_required'))); }
     });
     rows.addEventListener('click', event => {
         const button = event.target.closest('.remove-bom-material');

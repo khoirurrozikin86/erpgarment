@@ -12,7 +12,7 @@ class SewingTableQuery
         return ProductionOrderStageEntry::query()->where('stage', 'sewing')
             ->whereDate('processed_at', '>=', $from ?: '1000-01-01')->whereDate('processed_at', '<=', $to ?: '9999-12-31')
             ->whereHas('productionOrder', fn (Builder $q) => $q->where('company_id', $companyId))
-            ->with(['productionOrder:id,company_id,number,buyer_po_number,output_product_id,planned_quantity', 'productionOrder.stageEntries' => fn ($q) => $q->where('stage', 'cutting')->select('id','production_order_id','good_quantity'), 'productionOrder.outputProduct:id,code,name,style_code,unit_id,color,size', 'productionOrder.outputProduct.unit:id,name,symbol', 'processor:id,name', 'materialProduct:id,code,name,unit_id', 'materialProduct.unit:id,name,symbol'])
+            ->with(['productionOrder:id,company_id,number,buyer_po_number,output_product_id,planned_quantity,style_code', 'productionOrder.stageEntries' => fn ($q) => $q->where('stage', 'cutting')->select('id','production_order_id','good_quantity'), 'productionOrder.outputProduct:id,code,name,style_code,unit_id,color,size,parent_product_id', 'productionOrder.outputProduct.parentProduct:id,code','productionOrder.outputProduct.unit:id,name,symbol', 'processor:id,name', 'materialProduct:id,code,name,unit_id', 'materialProduct.unit:id,name,symbol'])
             ->select('production_order_stage_entries.*')->latest('processed_at');
     }
 
@@ -24,8 +24,8 @@ class SewingTableQuery
             ->joinSub($cut, 'cut_stage', fn ($join) => $join->on('cut_stage.production_order_id', '=', 'production_orders.id'))
             ->leftJoinSub($sew, 'sew_stage', fn ($join) => $join->on('sew_stage.production_order_id', '=', 'production_orders.id'))
             ->whereRaw('COALESCE(cut_stage.cut_qty,0) > COALESCE(sew_stage.sew_qty,0)')
-            ->with(['outputProduct:id,code,name,style_code,unit_id,color,size', 'outputProduct.unit:id,name,symbol', 'materials.product:id,code,name,unit_id'])
-            ->select(['production_orders.id', 'production_orders.company_id', 'production_orders.number', 'production_orders.buyer_po_number', 'production_orders.output_product_id', 'production_orders.planned_quantity', 'production_orders.status'])
+            ->with(['outputProduct:id,code,name,style_code,unit_id,color,size,parent_product_id', 'outputProduct.parentProduct:id,code', 'outputProduct.unit:id,name,symbol', 'materials' => fn ($materials) => $materials->forSewing(), 'materials.product:id,code,name,unit_id', 'materials.product.unit:id,name,symbol'])
+            ->select(['production_orders.id', 'production_orders.company_id', 'production_orders.number', 'production_orders.buyer_po_number', 'production_orders.output_product_id', 'production_orders.style_code', 'production_orders.planned_quantity', 'production_orders.status'])
             ->selectRaw('COALESCE(cut_stage.cut_qty,0) - COALESCE(sew_stage.sew_qty,0) as available_cutting_quantity')
             ->latest('production_orders.created_at');
     }

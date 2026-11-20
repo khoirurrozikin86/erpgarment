@@ -38,10 +38,13 @@
             </div>
         </div></div>
 
-        <div class="card mb-3"><div class="card-header"><h6 class="mb-0">{{ __('ui.workflow.received_items') }}</h6></div><div class="card-body">
+        <div class="card mb-3"><div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <h6 class="mb-0">{{ __('ui.workflow.received_items') }}</h6>
+            <button type="button" id="fillReceiptQuantities" class="btn btn-outline-primary btn-sm" disabled>{{ __('ui.workflow.fill_receipt_quantities') }}</button>
+        </div><div class="card-body">
             <div class="table-responsive"><table class="table table-bordered align-middle">
-                <thead><tr><th>{{ __('ui.workflow.item_code') }} / {{ __('ui.common.item') }}</th><th>{{ __('ui.workflow.style') }}</th><th class="text-end">{{ __('ui.workflow.ordered') }}</th><th class="text-end">{{ __('ui.workflow.received_previously') }}</th><th class="text-end">{{ __('ui.common.remaining') }}</th><th class="text-end">{{ __('ui.common.unit_price') }}</th><th style="min-width:330px">{{ __('ui.workflow.receive_now') }} / {{ __('ui.workflow.lot_roll') }}</th><th class="text-end">{{ __('ui.common.total') }}</th></tr></thead>
-                <tbody id="receiptItems"><tr><td colspan="8" class="text-center text-muted py-4">{{ __('ui.workflow.choose_po_load_items') }}</td></tr></tbody>
+                <thead><tr><th>{{ __('ui.workflow.item_code') }} / {{ __('ui.common.item') }}</th><th>{{ __('ui.workflow.style') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th class="text-end">{{ __('ui.workflow.ordered') }}</th><th class="text-end">{{ __('ui.workflow.received_previously') }}</th><th class="text-end">{{ __('ui.common.remaining') }}</th><th class="text-end">{{ __('ui.common.unit_price') }}</th><th style="min-width:330px">{{ __('ui.workflow.receive_now') }} / {{ __('ui.workflow.lot_roll') }}</th><th class="text-end">{{ __('ui.common.total') }}</th></tr></thead>
+                <tbody id="receiptItems"><tr><td colspan="10" class="text-center text-muted py-4">{{ __('ui.workflow.choose_po_load_items') }}</td></tr></tbody>
             </table></div>
             <div class="mb-3"><label class="form-label" for="notes">{{ __('ui.common.notes') }}</label><textarea name="notes" id="notes" class="form-control" rows="2" maxlength="5000" placeholder="{{ __('ui.workflow.receipt_notes_placeholder') }}"></textarea></div>
         </div></div>
@@ -66,7 +69,7 @@
             let receiptLineIndex = 0;
             function receiptLine(itemId, quantity, trackStock) {
                 const index = receiptLineIndex++;
-                return `<div class="row g-1 align-items-center mb-1 receipt-lot-row"><input type="hidden" name="items[${index}][purchase_order_item_id]" value="${itemId}"><div class="${trackStock ? 'col-6' : 'd-none'}"><input type="text" class="form-control form-control-sm" name="items[${index}][lot_number]" maxlength="100" placeholder="{{ __('ui.workflow.lot_number') }}"></div><div class="${trackStock ? 'col-5' : 'col-10'}"><input type="number" class="form-control form-control-sm text-end receipt-quantity" name="items[${index}][quantity]" min="0" max="${quantity}" step="0.0001" value="0" placeholder="{{ __('ui.workflow.receive_now') }}"></div><div class="col-1">${trackStock ? '<button type="button" class="btn btn-sm btn-outline-danger remove-lot-row" aria-label="{{ __('ui.common.delete') }}">×</button>' : ''}</div></div>`;
+                return `<div class="row g-1 align-items-center mb-1 receipt-lot-row"><input type="hidden" name="items[${index}][purchase_order_item_id]" value="${itemId}"><div class="${trackStock ? 'col-6' : 'd-none'}"><input type="text" class="form-control form-control-sm" name="items[${index}][lot_number]" maxlength="100" value="${trackStock ? '0' : ''}" placeholder="{{ __('ui.workflow.lot_number') }}"></div><div class="${trackStock ? 'col-5' : 'col-10'}"><input type="number" class="form-control form-control-sm text-end receipt-quantity" name="items[${index}][quantity]" min="0" max="${quantity}" step="0.0001" value="0" placeholder="{{ __('ui.workflow.receive_now') }}"></div><div class="col-1">${trackStock ? '<button type="button" class="btn btn-sm btn-outline-danger remove-lot-row" aria-label="{{ __('ui.common.delete') }}">×</button>' : ''}</div></div>`;
             }
             const table = $('#eligiblePurchaseOrdersTable').DataTable({
                 processing: true, serverSide: true, responsive: true,
@@ -99,6 +102,8 @@
                         <tr>
                             <td><span class="text-nowrap fw-semibold">${safe(item.code)}</span><div class="small text-muted text-truncate" style="max-width:340px" title="${safe(item.name)}">${safe(item.name)}</div>${item.track_stock ? '' : '<div class="small text-muted">{{ __('ui.common.non_stock_item') }}</div>'}</td>
                             <td>${safe(order.style_code || '—')}</td>
+                            <td>${safe(item.color || '—')}</td>
+                            <td>${safe(item.size || '—')}</td>
                             <td class="text-end">${item.ordered} ${safe(item.unit)}</td>
                             <td class="text-end">${item.received} ${safe(item.unit)}</td>
                             <td class="text-end">${item.remaining} ${safe(item.unit)}</td>
@@ -106,8 +111,8 @@
                             <td><div class="receipt-lot-entries" data-item-id="${item.id}" data-remaining="${item.remaining}">${receiptLine(item.id, item.remaining, item.track_stock)}</div>${item.track_stock ? `<button type="button" class="btn btn-link btn-sm p-0 add-receipt-lot" data-item-id="${item.id}" data-remaining="${item.remaining}">{{ __('ui.workflow.add_lot_roll') }}</button>` : ''}<div class="small text-muted mt-1">{{ __('ui.workflow.maximum_receive') }} ${item.remaining}</div></td>
                             <td class="text-end receipt-item-total" data-unit-price="${item.unit_price}">0,00</td>
                         </tr>`).join('');
-                    $('#receiptItems').html(rows || '<tr><td colspan="8" class="text-center text-muted">{{ __('ui.workflow.no_remaining_receipts') }}</td></tr>');
-                    $('#submitReceipt').prop('disabled', !rows);
+                    $('#receiptItems').html(rows || '<tr><td colspan="10" class="text-center text-muted">{{ __('ui.workflow.no_remaining_receipts') }}</td></tr>');
+                    $('#submitReceipt, #fillReceiptQuantities').prop('disabled', !rows);
                     poModal.hide();
                 }).fail(() => Swal.fire({ icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: '{{ __('ui.workflow.detail_po_load_failed') }}' }));
             });
@@ -117,8 +122,19 @@
                 button.siblings('.receipt-lot-entries').append(receiptLine(button.data('item-id'), button.data('remaining'), true));
             });
             $(document).on('click', '.remove-lot-row', function() {
+                const row = $(this).closest('tr');
                 if ($(this).closest('.receipt-lot-entries').find('.receipt-lot-row').length > 1) $(this).closest('.receipt-lot-row').remove();
-                recalculateItemTotal($(this).closest('tr'));
+                recalculateItemTotal(row);
+            });
+            $('#fillReceiptQuantities').on('click', function () {
+                $('#receiptItems .receipt-lot-entries').each(function () {
+                    const entries = $(this);
+                    const [first, ...otherLots] = entries.find('.receipt-quantity').get();
+                    const otherQuantity = otherLots.reduce((sum, input) => sum + Number(input.value || 0), 0);
+                    const remaining = Number(entries.data('remaining'));
+                    first.value = Math.max(0, remaining - otherQuantity).toFixed(4);
+                    recalculateItemTotal(entries.closest('tr'));
+                });
             });
             function recalculateItemTotal(row) {
                 const quantity = row.find('.receipt-quantity').toArray().reduce((total, input) => total + Number(input.value || 0), 0);

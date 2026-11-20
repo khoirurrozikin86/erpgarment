@@ -46,7 +46,6 @@ class ProductsImport implements ToCollection, WithHeadingRow, WithValidation, Sk
                     'unit_id' => $unit?->id,
                     'product_type' => 'stock',
                     'garment_item_type' => 'general',
-                    'style_code' => $this->nullableString($data['kode_style'] ?? null),
                     'color' => $this->nullableString($data['warna'] ?? null),
                     'size' => $this->nullableString($data['ukuran'] ?? null),
                     'is_active' => true,
@@ -66,7 +65,6 @@ class ProductsImport implements ToCollection, WithHeadingRow, WithValidation, Sk
             '*.warna' => ['nullable', 'string', 'max:80'],
             '*.ukuran' => ['nullable', 'string', 'max:40'],
             '*.available' => ['nullable', 'in:Available,Unavailable,Masih Ada,Tidak Ada,Masih ada,Tidak ada,available,unavailable,1,0,true,false,yes,no,ya,tidak'],
-            '*.kode_style' => ['nullable', 'string', 'max:80', 'exists:styles,code'],
         ];
     }
 

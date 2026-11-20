@@ -28,7 +28,7 @@ return [
  "returns_note" => "Pengembalian supplier dan alur kembali ke gudang.",
  "period_documents" => "Jumlah dokumen dalam periode",
  "latest" => "Rencana Produksi Terbaru",
- "order_number" => "No MO / Planning",
+ "order_number" => "No. Production Order / Planning",
  "buyer" => "Buyer",
  "product" => "Barang",
  "planned" => "Jumlah Order",

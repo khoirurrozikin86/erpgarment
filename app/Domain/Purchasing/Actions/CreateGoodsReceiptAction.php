@@ -67,15 +67,15 @@ class CreateGoodsReceiptAction
                 $poItem = $orderItems->get((int) $item['purchase_order_item_id']);
                 $product = Product::query()->findOrFail($poItem->product_id);
                 $quantity = round((float) $item['quantity'], 4);
-                $lotNumber = trim((string) ($item['lot_number'] ?? '')) ?: null;
-                if ($product->track_stock && !$lotNumber) {
+                $lotNumber = trim((string) ($item['lot_number'] ?? ''));
+                if ($product->track_stock && $lotNumber === '') {
                     throw ValidationException::withMessages(['items' => __('ui.workflow.lot_number_required')]);
                 }
 
                 $receipt->items()->create([
                     'purchase_order_item_id' => $poItem->id,
                     'product_id' => $product->id,
-                    'lot_number' => $lotNumber,
+                    'lot_number' => $lotNumber === '' ? null : $lotNumber,
                     'quantity' => $quantity,
                     'unit_price' => $poItem->unit_price,
                     'line_total' => round($quantity * (float) $poItem->unit_price, 2),

@@ -4,6 +4,7 @@ namespace App\Domain\Purchasing\Actions;
 
 use App\Domain\Accounting\Services\AutomaticJournalService;
 use App\Domain\Audit\Services\AuditLogService;
+use App\Domain\Products\Services\ProductVariantService;
 use App\Models\GoodsReceipt;
 use App\Models\InventoryLot;
 use App\Models\Product;
@@ -22,13 +23,16 @@ class ApproveGoodsReceiptAction
     public function __invoke(GoodsReceipt $goodsReceipt, int $userId): GoodsReceipt
     {
         return DB::transaction(function () use ($goodsReceipt, $userId) {
-            $receipt = GoodsReceipt::query()->with('items')->lockForUpdate()->findOrFail($goodsReceipt->id);
+            $receipt = GoodsReceipt::query()->with('items.purchaseOrderItem.purchaseRequestItem.materialRequestItem')->lockForUpdate()->findOrFail($goodsReceipt->id);
             if ($receipt->status !== 'pending') {
                 throw ValidationException::withMessages(['receipt' => __('ui.workflow.receipt_not_pending')]);
             }
 
             foreach ($receipt->items as $item) {
-                $product = Product::query()->lockForUpdate()->findOrFail($item->product_id);
+                $requested = $item->purchaseOrderItem?->purchaseRequestItem?->materialRequestItem;
+                $orderedProduct = Product::findOrFail($item->product_id);
+                $variant = app(ProductVariantService::class)->forStockMovement($orderedProduct, $requested?->color, $requested?->size);
+                $product = Product::lockForUpdate()->findOrFail($variant->id);
                 $quantity = round((float) $item->quantity, 4);
 
                 if (!$product->track_stock) {
@@ -61,7 +65,7 @@ class ApproveGoodsReceiptAction
                     'current_quantity' => round((float) $lot->current_quantity + $quantity, 4),
                 ]);
 
-                $item->update(['inventory_lot_id' => $lot->id]);
+                $item->update(['product_id' => $product->id, 'inventory_lot_id' => $lot->id]);
                 $stock = ProductStock::query()->firstOrCreate(['product_id' => $product->id], ['quantity' => 0]);
                 $stock = ProductStock::query()->lockForUpdate()->findOrFail($stock->id);
                 $before = round((float) $stock->quantity, 4);

@@ -5,12 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Domain\Companies\Services\CompanyContext;
 use App\Domain\Companies\Services\CompanyPdfBrandingService;
 use App\Domain\Inventory\Queries\MaterialIssueTableQuery;
+use App\Domain\Inventory\Services\MaterialIssueStockSku;
 use App\Domain\Inventory\Services\MaterialIssueService;
 use App\Exports\MaterialIssuesExport;
 use App\Http\Controllers\Controller;
 use App\Models\{MaterialIssueDocument, MaterialIssueItem, RawMaterialOrderDocument, RawMaterialOrderItem};
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\{JsonResponse, Request};
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
@@ -30,10 +32,9 @@ class MaterialIssueController extends Controller
             ->addColumn('mis_number', fn (RawMaterialOrderDocument $document) => $this->latestMis($document)?->number ?: '—')
             ->addColumn('mis_date', fn (RawMaterialOrderDocument $document) => $this->latestMis($document)?->issue_date?->format('Y-m-d') ?: '—')
             ->addColumn('actions', function (RawMaterialOrderDocument $document) {
-                if (!request()->user()?->can('material-issues.create')) return '—';
                 $complete = $document->items->isNotEmpty() && $document->items->every(fn ($item) => (float) $item->issued_quantity >= (float) $item->quantity);
                 $class = $complete ? 'btn-danger' : 'btn-primary';
-                return '<button type="button" class="btn btn-sm '.$class.' btn-open-material-issue" data-url="'.e(route('super.material-issues.requests.show', $document)).'"><i data-feather="'.($complete ? 'check' : 'send').'" class="icon-sm me-1"></i>'.e(__('ui.workflow.view_details')).'</button>';
+                return '<a class="btn btn-sm '.$class.'" href="'.e(route('super.material-issues.requests.show', $document)).'"><i data-feather="'.($complete ? 'check' : 'send').'" class="icon-sm me-1"></i>'.e(__('ui.workflow.view_details')).'</a>';
             })
             ->rawColumns(['actions'])->toJson();
     }
@@ -47,76 +48,116 @@ class MaterialIssueController extends Controller
     public function historyDt(Request $request, CompanyContext $company, MaterialIssueTableQuery $query): JsonResponse
     {
         $filters = $this->dateFilters($request);
-        return DataTables::eloquent($query->history($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
-            ->addColumn('number', fn (MaterialIssueItem $item) => $item->document?->number)
-            ->addColumn('issue_date', fn (MaterialIssueItem $item) => $item->document?->issue_date?->format('Y-m-d'))
-            ->addColumn('request_number', fn (MaterialIssueItem $item) => $item->rawMaterialOrderItem?->number ?: $item->document?->request?->number ?: '—')
-            ->addColumn('mo_number', fn (MaterialIssueItem $item) => $item->rawMaterialOrderItem?->sourceMaterial?->productionOrder?->number ?: $item->document?->rawMaterialOrder?->production_order_number ?: $item->document?->request?->productionOrder?->number ?: '—')
-            ->addColumn('code', fn (MaterialIssueItem $item) => $item->product?->code)
-            ->addColumn('name', fn (MaterialIssueItem $item) => $item->product?->name)
-            ->addColumn('unit', fn (MaterialIssueItem $item) => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—')
-            ->addColumn('actions', function (MaterialIssueItem $item) {
+        return DataTables::eloquent($query->historyDocuments($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
+            ->addColumn('issue_date', fn (MaterialIssueDocument $document) => $document->issue_date?->format('Y-m-d'))
+            ->addColumn('request_number', fn (MaterialIssueDocument $document) => $document->rawMaterialOrder?->number ?: $document->request?->number ?: '—')
+            ->addColumn('mo_number', function (MaterialIssueDocument $document) {
+                $mo = $document->items
+                    ->map(fn ($item) => $item->rawMaterialOrderItem?->sourceMaterial?->productionOrder?->number)
+                    ->filter()->unique()->values()->implode(', ');
+                return $mo ?: $document->rawMaterialOrder?->production_order_number ?: $document->request?->productionOrder?->number ?: '—';
+            })
+            ->addColumn('actions', function (MaterialIssueDocument $document) {
                 $buttons = '<div class="d-inline-flex align-items-center justify-content-end gap-2 text-nowrap">'
-                    . '<button type="button" class="btn btn-link btn-sm p-0 text-secondary btn-view-material-issue" data-url="'.e(route('super.material-issues.documents.show', $item->material_issue_document_id)).'" title="'.e(__('ui.workflow.view_details')).'" aria-label="'.e(__('ui.workflow.view_details')).'"><i data-feather="eye" class="icon-sm"></i></button>'
-                    . '<a class="btn btn-link btn-sm p-0 text-primary" href="'.e(route('super.material-issues.documents.pdf', $item->material_issue_document_id)).'" target="_blank" rel="noopener" title="'.e(__('ui.workflow.view_pdf')).'" aria-label="'.e(__('ui.workflow.view_pdf')).'"><i data-feather="file-text" class="icon-sm"></i></a>'
-                    . '<a class="btn btn-link btn-sm p-0 text-secondary" href="'.e(route('super.material-issues.documents.pdf.download', $item->material_issue_document_id)).'" title="'.e(__('ui.workflow.download_pdf')).'" aria-label="'.e(__('ui.workflow.download_pdf')).'"><i data-feather="download" class="icon-sm"></i></a>';
-                if ($item->raw_material_order_item_id && request()->user()?->can('material-issues.update')) {
-                    $buttons .= '<button type="button" class="btn btn-link btn-sm p-0 text-primary btn-edit-material-issue" data-url="'.e(route('super.material-issues.items.update', $item)).'" data-number="'.e($item->document?->number).'" data-date="'.e($item->document?->issue_date?->format('Y-m-d')).'" data-quantity="'.e($item->quantity).'" title="'.e(__('ui.common.edit')).'" aria-label="'.e(__('ui.common.edit')).'"><i data-feather="edit-2" class="icon-sm"></i></button>';
-                }
-                if ($item->raw_material_order_item_id && request()->user()?->can('material-issues.delete')) {
-                    $buttons .= '<button type="button" class="btn btn-link btn-sm p-0 text-danger btn-delete-material-issue" data-url="'.e(route('super.material-issues.items.destroy', $item)).'" data-number="'.e($item->document?->number).'" title="'.e(__('ui.common.delete')).'" aria-label="'.e(__('ui.common.delete')).'"><i data-feather="trash-2" class="icon-sm"></i></button>';
-                }
+                    . '<a class="btn btn-link btn-sm p-0 text-secondary" href="'.e(route('super.material-issues.documents.show', $document)).'" title="'.e(__('ui.workflow.view_details')).'" aria-label="'.e(__('ui.workflow.view_details')).'"><i data-feather="eye" class="icon-sm"></i></a>'
+                    . '<a class="btn btn-link btn-sm p-0 text-primary" href="'.e(route('super.material-issues.documents.pdf', $document)).'" target="_blank" rel="noopener" title="'.e(__('ui.workflow.view_pdf')).'" aria-label="'.e(__('ui.workflow.view_pdf')).'"><i data-feather="file-text" class="icon-sm"></i></a>'
+                    . '<a class="btn btn-link btn-sm p-0 text-secondary" href="'.e(route('super.material-issues.documents.pdf.download', $document)).'" title="'.e(__('ui.workflow.download_pdf')).'" aria-label="'.e(__('ui.workflow.download_pdf')).'"><i data-feather="download" class="icon-sm"></i></a>';
                 return $buttons.'</div>';
             })
             ->rawColumns(['actions'])->toJson();
     }
 
-    public function requestDetails(RawMaterialOrderDocument $rawMaterialOrderDocument, CompanyContext $company): JsonResponse
+    public function requestDetails(Request $request, RawMaterialOrderDocument $rawMaterialOrderDocument, CompanyContext $company, MaterialIssueStockSku $skuResolver): JsonResponse|View
     {
         $document = RawMaterialOrderDocument::query()->where('company_id', $company->id())
-            ->with(['items.document', 'items.sourceMaterial.productionOrder', 'items.product.unit'])
+            ->with(['items.sourceMaterial.productionOrder', 'items.product.unit', 'items.product.variants', 'items.product.parentProduct.variants'])
             ->findOrFail($rawMaterialOrderDocument->id);
         $items = $document->items->sortBy('id');
-        return response()->json([
+        $details = [
             'id' => $document->id,
             'request_number' => $document->number,
             'order_number' => $document->number,
             'request_date' => $document->order_date?->format('Y-m-d'),
             'mo_number' => $items->map(fn ($line) => $line->sourceMaterial?->productionOrder?->number)->filter()->unique()->values()->implode(', ') ?: $document->production_order_number,
             'style' => $items->pluck('style_code')->filter()->unique()->values()->implode(', '),
-            'items' => $items->map(fn (RawMaterialOrderItem $line) => [
-                'id' => $line->id, 'request_number' => $line->number, 'product_id' => $line->product_id,
-                'code' => $line->product?->code ?? '—', 'name' => $line->product?->name ?? '—',
-                'unit' => $line->product?->unit?->symbol ?: $line->product?->unit?->name ?: '—',
-                'style' => $line->style_code ?: '—',
-                'mo_number' => $line->sourceMaterial?->productionOrder?->number ?: $line->document?->production_order_number,
-                'requested' => (float) $line->quantity, 'sent_before' => (float) $line->issued_quantity,
-                'remaining' => max(0, (float) $line->quantity - (float) $line->issued_quantity),
-            ]),
-        ]);
+            'items' => $items->map(function (RawMaterialOrderItem $line) use ($document, $skuResolver) {
+                $product = $line->product;
+                $sku = $skuResolver->resolve($line, $product, $line->sourceMaterial);
+
+                return [
+                    'id' => $line->id, 'request_number' => $document->number, 'product_id' => $line->product_id,
+                    'code' => $product?->code ?? '—', 'name' => $product?->name ?? '—',
+                    'parent_code' => $product?->parentProduct?->code ?? $product?->code ?? '—',
+                    'sku_code' => $sku?->code,
+                    'unit' => $line->product?->unit?->symbol ?: $line->product?->unit?->name ?: '—',
+                    'style' => $line->style_code ?: '—',
+                    'color' => $line->color ?: $line->sourceMaterial?->color ?: $line->product?->color ?: '—',
+                    'size' => $line->size ?: $line->sourceMaterial?->size ?: $line->product?->size ?: '—',
+                    'mo_number' => $line->sourceMaterial?->productionOrder?->number ?: $document->production_order_number,
+                    'requested' => (float) $line->quantity, 'sent_before' => (float) $line->issued_quantity,
+                    'remaining' => max(0, round((float) $line->quantity - (float) $line->issued_quantity, 4)),
+                ];
+            })->values(),
+        ];
+
+        if ($request->expectsJson()) {
+            return response()->json($details);
+        }
+
+        $details['skipped_codes'] = $details['items']->whereNull('sku_code')->where('remaining', '>', 0)
+            ->pluck('parent_code')->unique()->implode(', ');
+        $details['items'] = $this->groupItems($details['items']->whereNotNull('sku_code'), ['requested', 'sent_before', 'remaining']);
+        return view('super.material-issues.request', ['details' => $details]);
     }
 
-    public function documentDetails(int $document, CompanyContext $company): JsonResponse
+    public function documentDetails(Request $request, int $document, CompanyContext $company): JsonResponse|View
     {
         $doc = MaterialIssueDocument::query()->where('company_id', $company->id())
-            ->with(['request.productionOrder', 'rawMaterialOrder', 'items.product.unit', 'items.rawMaterialOrderItem.sourceMaterial.productionOrder'])
+            ->with(['request.productionOrder', 'rawMaterialOrder', 'items.product.unit', 'items.product.parentProduct:id,code', 'items.rawMaterialOrderItem.sourceMaterial.productionOrder', 'items.requestItem:id,color,size'])
             ->findOrFail($document);
-        return response()->json([
+        $details = [
             'number' => $doc->number, 'issue_date' => $doc->issue_date?->format('Y-m-d'),
-            'request_number' => $doc->items->first()?->rawMaterialOrderItem?->number ?: $doc->request?->number ?: '—',
+            'request_number' => $doc->rawMaterialOrder?->number ?: $doc->request?->number ?: '—',
             'mo_number' => $doc->items->first()?->rawMaterialOrderItem?->sourceMaterial?->productionOrder?->number ?: $doc->rawMaterialOrder?->production_order_number ?: $doc->request?->productionOrder?->number,
             'items' => $doc->items->map(fn ($item) => [
                 'code' => $item->product?->code, 'name' => $item->product?->name,
+                'parent_code' => $item->product?->parentProduct?->code ?? $item->product?->code,
+                'sku_code' => $item->product?->code,
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name,
+                'color' => $item->issued_color ?? '—',
+                'size' => $item->issued_size ?? '—',
                 'quantity' => (float) $item->quantity,
             ]),
-        ]);
+        ];
+
+        if ($request->expectsJson()) {
+            return response()->json($details);
+        }
+
+        $details['items'] = $this->groupItems($details['items'], ['quantity']);
+        return view('super.material-issues.document', ['details' => $details, 'documentId' => $doc->id]);
+    }
+
+    private function groupItems(Collection $items, array $quantityFields): Collection
+    {
+        return $items->groupBy(fn (array $line) => json_encode(array_map(
+            fn ($value) => mb_strtolower(trim($value ?? '')),
+            [$line['sku_code'] ?? $line['code'], $line['color'], $line['size'], $line['unit']],
+        )))->map(function (Collection $lines) use ($quantityFields) {
+            $group = $lines->first();
+            foreach ($quantityFields as $field) {
+                $group[$field] = round($lines->sum($field), 4);
+            }
+            $group['sources'] = $lines->values();
+
+            return $group;
+        })->sortBy([['parent_code', 'asc'], ['color', 'asc'], ['size', 'asc'], ['sku_code', 'asc']])->values();
     }
 
     public function pdf(int $document, CompanyContext $company, CompanyPdfBrandingService $branding)
     {
         $issue = MaterialIssueDocument::query()->where('company_id', $company->id())
-            ->with(['company', 'creator', 'rawMaterialOrder', 'items.product.unit', 'items.rawMaterialOrderItem.sourceMaterial.productionOrder'])
+            ->with(['company', 'creator', 'rawMaterialOrder', 'items.product.unit', 'items.product.parentProduct:id,code', 'items.rawMaterialOrderItem.sourceMaterial.productionOrder', 'items.requestItem:id,color,size'])
             ->findOrFail($document);
         return Pdf::loadView('super.material-issues.pdf', [...$branding->data(), 'issue' => $issue])
             ->setPaper('a4')->stream($this->pdfFilename($issue->number));
@@ -125,7 +166,7 @@ class MaterialIssueController extends Controller
     public function downloadPdf(int $document, CompanyContext $company, CompanyPdfBrandingService $branding)
     {
         $issue = MaterialIssueDocument::query()->where('company_id', $company->id())
-            ->with(['company', 'creator', 'rawMaterialOrder', 'items.product.unit', 'items.rawMaterialOrderItem.sourceMaterial.productionOrder'])
+            ->with(['company', 'creator', 'rawMaterialOrder', 'items.product.unit', 'items.product.parentProduct:id,code', 'items.rawMaterialOrderItem.sourceMaterial.productionOrder', 'items.requestItem:id,color,size'])
             ->findOrFail($document);
         return Pdf::loadView('super.material-issues.pdf', [...$branding->data(), 'issue' => $issue])
             ->setPaper('a4')->download($this->pdfFilename($issue->number));

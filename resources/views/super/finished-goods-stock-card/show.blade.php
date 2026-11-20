@@ -16,6 +16,7 @@
             <a href="{{ route('super.finished-goods-stock-card.index') }}" class="btn btn-sm btn-light"><i data-feather="check-square" class="icon-sm me-1"></i>{{ __('ui.common.back') }}</a>
         </div>
         <div class="card-body">
+            <p class="small text-muted">{{ __('ui.workflow.color') }}: {{ $product->color ?: '—' }} · {{ __('ui.workflow.size') }}: {{ $product->size ?: '—' }} · {{ __('ui.common.unit') }}: {{ $product->unit?->symbol ?: $product->unit?->name ?: '—' }}</p>
             <div class="d-flex justify-content-end mb-3">
                 <a href="{{ route('super.finished-goods-stock-card.movements.export', $product) }}" class="btn btn-sm btn-outline-success"><i data-feather="download" class="icon-sm me-1"></i>{{ __('ui.common.export_excel') }}</a>
             </div>

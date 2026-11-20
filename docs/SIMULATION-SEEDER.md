@@ -1,3 +1,11 @@
+## Mulai dari transaksi kosong (tanpa simulasi)
+
+```bash
+php artisan db:seed --class=ClearTransactionsSeeder --force
+```
+
+Perintah ini menghapus semua transaksi lintas perusahaan, termasuk MO/detail, MR/PR/PO, penerimaan, produksi, transfer, stok/lot, subkon, BC, penjualan, retur dan jurnal. Akun, master termasuk BOM dan komposisinya, pengaturan, nomor urut dokumen, dan riwayat audit historis dipertahankan. Backup transaksi dibuat sebelum penghapusan. Tidak membuat simulasi baru dan tidak berjalan otomatis saat deployment. Jalankan ketika tidak ada input transaksi lain.
+
 # Simulasi lengkap warna dan size
 
 Untuk **menghapus seluruh transaksi** dan membuat ulang simulasi (semua perusahaan), jalankan secara eksplisit:
@@ -93,3 +101,15 @@ Jumlah di atas berasal dari query aplikasi dengan filter bulan berjalan, bukan d
 ## Awalan perusahaan SDI
 
 Default penomoran subkon kini memakai `SDI`. `DocumentNumberingSeeder` menjalankan `SdiDocumentNumberingSeeder` untuk mengganti prefix TIMW pada pengaturan, nomor dokumen, dan salinan nomor referensi terkait yang sudah ada. Nomor urut, ID/FK, stok dan transaksi tidak direset. Audit lama tetap dipertahankan; perubahan nomor dicatat dalam audit baru. Menjalankan ulang simulasi tetap melewati versi yang sudah tersimpan sehingga tidak menggandakan data.
+
+## Katalog master item mandiri
+
+Jalankan seeder ini untuk menyediakan katalog garment pada database simulasi.
+
+```sh
+php artisan db:seed --class=SimulationItemsSeeder
+```
+
+Katalog memakai awalan `DEMO-` dan mencakup 32 kode dasar serta 15 varian. Item meliputi kain, aksesori, kemasan, WIP, barang jadi, scrap, reject, mesin, peralatan, dan perlengkapan gudang. Contoh varian polo adalah BLACK/S, NAVY/M, dan WHITE/L. Kain memakai varian warna dan label ukuran memakai varian ukuran.
+
+Seeder dapat dijalankan ulang dan menggunakan kembali kode serta varian yang sudah ada. Item dibuat tanpa Model/Style. Seeder mengisi master kategori, satuan, dan item yang diperlukan. Harga contoh, saldo awal, dan transaksi simulasi perlu diisi lewat alur masing-masing. Untuk latihan impor Production Order, gunakan kode Model/Style di Excel, lalu pilih item `DEMO-FG-POLO` dan BOM aktif saat mengedit draf.

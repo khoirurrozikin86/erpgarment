@@ -21,6 +21,6 @@ class ProductsTemplateExport implements FromArray, WithHeadings, ShouldAutoSize,
 
     public function columnFormats(): array
     {
-        return array_fill_keys(range('A', 'H'), '@');
+        return array_fill_keys(range('A', 'G'), '@');
     }
 }

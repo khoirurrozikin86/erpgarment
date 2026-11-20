@@ -17,15 +17,17 @@ class PurchaseRequestTableQuery
     {
         $query = PurchaseRequest::query()
             ->with([
-                'materialRequest:id,number,production_order_id,output_product_id,production_quantity',
+                'materialRequest:id,number,production_order_id,production_order_header_id,source_details,output_product_id,production_quantity',
                 'materialRequest.productionOrder:id,buyer_po_number,output_product_id,planned_quantity',
+                'materialRequest.productionOrderHeader.details.outputProduct:id,code,name,style_code,color,size',
                 'materialRequest.productionOrder.outputProduct:id,code,name,style_code,color,size',
                 'materialRequest.outputProduct:id,code,name,style_code,color,size',
                 'supplier:id,name',
                 'requester:id,name',
                 'reviewer:id,name',
                 'purchaseOrder:id,purchase_request_id,number,status',
-                'items:id,purchase_request_id,product_id,quantity',
+                'items:id,purchase_request_id,material_request_item_id,product_id,quantity',
+                'items.materialRequestItem:id,product_id,color,size',
                 'items.product:id,code,name,unit_id,color,size',
                 'items.product.unit:id,name,symbol',
             ])
@@ -51,7 +53,12 @@ class PurchaseRequestTableQuery
     public function sourceMaterialRequest(int $id): MaterialRequest
     {
         return $this->eligibleMaterialRequests()
-            ->with(['items.product.unit'])
+            ->with([
+                'items.product.unit',
+                'productionOrder.outputProduct',
+                'productionOrderHeader.details.outputProduct',
+                'outputProduct',
+            ])
             ->findOrFail($id);
     }
 

@@ -73,9 +73,7 @@
                                 <th>{{ __('ui.common.code') }}</th>
                                 <th>{{ __('ui.common.item_name') }}</th>
                                 <th>{{ __('ui.common.unit') }}</th>
-                                <th>{{ __('ui.workflow.style_code') }}</th>
-                                <th>{{ __('ui.workflow.color') }}</th>
-                                <th>{{ __('ui.workflow.size') }}</th>
+                                <th>{{ __('variants.global_stock') }}</th>
                                 <th>Available</th>
                                 <th width="70">{{ __('ui.common.actions') }}</th>
                             </tr>
@@ -187,34 +185,10 @@
                                     @endforeach
                                 </select>
                             </div>
-                            <div class="col-md-6 mb-3 position-relative">
-                                <label class="form-label" for="style-search">{{ __('ui.workflow.style_code') }}</label>
-                                <input type="search" class="form-control" id="style-search" autocomplete="off"
-                                    placeholder="Cari kode atau nama style">
-                                <input type="hidden" id="style_code" name="style_code">
-                                <div id="style-search-results"
-                                    class="list-group position-absolute start-0 end-0 shadow-sm"
-                                    style="z-index:1080;max-height:220px;overflow-y:auto;display:none"></div>
-                                <div class="form-text">Pilih style dari master Style.</div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label" for="parent_product_id">{{ __('variants.parent') }}</label>
-                                <select class="form-select" id="parent_product_id" name="parent_product_id">
-                                    <option value="">{{ __('variants.standalone') }}</option>
-                                    @foreach($parentProducts as $parent)<option value="{{ $parent->id }}">{{ $parent->code }} — {{ $parent->name }}</option>@endforeach
-                                </select>
-                                <div class="form-text">{{ __('variants.parent_help') }}</div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label" for="color">{{ __('ui.workflow.color') }}</label>
-                                <input type="text" class="form-control" id="color" name="color"
-                                    maxlength="80">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label" for="size">{{ __('ui.workflow.size') }}</label>
-                                <input type="text" class="form-control" id="size" name="size"
-                                    maxlength="40">
-                            </div>
+                            <input type="hidden" id="parent_product_id" name="parent_product_id">
+                            <input type="hidden" id="color" name="color">
+                            <input type="hidden" id="size" name="size">
+                            <div class="col-12 mb-3"><small class="text-muted">{{ __('variants.item_parent_hint') }}</small></div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label" for="is_available">Available</label>
                                 <select class="form-select" id="is_available" name="is_available" required>
@@ -325,76 +299,44 @@
             const productModal =
                 new bootstrap.Modal(productModalElement);
 
-            const styleOptionsUrl = @json(route('super.products.style-options'));
-            let styleSearchTimer = null;
-
-            function setStylePicker(code) {
-                $('#style_code').val(code || '');
-                $('#style-search').val(code || '');
-                $('#style-search-results').hide().empty();
-                if (!code) return;
-                $.getJSON(styleOptionsUrl, {
-                    q: code
-                }).done(function(response) {
-                    const style = (response.data || []).find(item => item.code === code);
-                    if (style) $('#style-search').val(`${style.code} — ${style.name}`);
-                });
-            }
-
-            $('#style-search').on('keydown', function(event) {
-                if (event.key !== 'Enter') return;
-                event.preventDefault();
-                $('#style-search-results .style-search-option').first().trigger('click');
-            });
-
-            $('#style-search').on('input', function() {
-                const term = $(this).val().trim();
-                $('#style_code').val('');
-                clearTimeout(styleSearchTimer);
-                if (term.length < 1) {
-                    $('#style-search-results').hide().empty();
-                    return;
-                }
-                styleSearchTimer = setTimeout(function() {
-                    $.getJSON(styleOptionsUrl, {
-                        q: term
-                    }).done(function(response) {
-                        const results = $('#style-search-results').empty();
-                        (response.data || []).forEach(function(style) {
-                            $('<button>', {
-                                    type: 'button',
-                                    class: 'list-group-item list-group-item-action style-search-option'
-                                })
-                                .text(`${style.code} — ${style.name}`)
-                                .data('style', style)
-                                .appendTo(results);
-                        });
-                        if (!results.children().length) {
-                            $('<div>', {
-                                class: 'list-group-item text-muted'
-                            }).text('Style tidak ditemukan.').appendTo(results);
-                        }
-                        results.show();
-                    });
-                }, 200);
-            });
-
-            $('#style-search-results').on('click', '.style-search-option', function() {
-                const style = $(this).data('style');
-                $('#style_code').val(style.code);
-                $('#style-search').val(`${style.code} — ${style.name}`);
-                $('#style-search-results').hide().empty();
-            });
-            $(document).on('click', function(event) {
-                if (!$(event.target).closest('#style-search, #style-search-results').length) {
-                    $('#style-search-results').hide();
-                }
-            });
-
-
             // =========================================================
             // DATATABLE
             // =========================================================
+
+            $('#products-table').on('click', '.view-item-variants', function () {
+                const button = $(this).prop('disabled', true);
+                $.getJSON(button.attr('data-url')).done(result => {
+                    const headings = [
+                        @json(__('ui.workflow.color')), @json(__('ui.workflow.size')),
+                        @json(__('ui.common.unit')), @json(__('ui.common.quantity')),
+                        @json(__('ui.common.action'))
+                    ];
+                    const head = $('<tr>').append(headings.map(label => $('<th>').text(label)));
+                    const body = $('<tbody>');
+                    const format = new Intl.NumberFormat(@json(app()->getLocale()), {maximumFractionDigits: 4});
+                    result.items.forEach(item => {
+                        const row = $('<tr>').append(
+                            $('<td>').text(item.color),
+                            $('<td>').text(item.size),
+                            $('<td>').text(item.unit || '—'),
+                            $('<td class="text-end">').text(format.format(item.quantity))
+                        );
+                        const action = $('<td>');
+                        if (item.stock_card_url) {
+                            action.append($('<a>', {href: item.stock_card_url, text: @json(__('ui.common.stock_card'))}));
+                        }
+                        body.append(row.append(action));
+                    });
+                    const table = $('<table class="table table-sm table-bordered align-middle mb-0">')
+                        .append($('<thead class="table-light">').append(head), body);
+                    const content = $('<div class="table-responsive text-start">').append(table);
+                    const total = $('<p class="small text-muted mt-2 mb-0">')
+                        .text(@json(__('variants.global_stock')) + ' ' + format.format(result.total));
+                    content.append(total);
+                    Swal.fire({titleText: result.label, html: content[0], width: 720});
+                }).fail(() => Swal.fire({icon: 'error', text: @json(__('ui.workflow.failure'))}))
+                    .always(() => button.prop('disabled', false));
+            });
 
             const table = $('#products-table').DataTable({
 
@@ -435,19 +377,15 @@
                         defaultContent: '-'
                     },
                     {
-                        data: 'style_code',
-                        name: 'style_code',
-                        defaultContent: '-'
-                    },
-                    {
-                        data: 'color',
-                        name: 'color',
-                        defaultContent: '-'
-                    },
-                    {
-                        data: 'size',
-                        name: 'size',
-                        defaultContent: '-'
+                        data: 'global_stock',
+                        name: 'global_stock', orderable: false, searchable: false,
+                        defaultContent: '-',
+                        render: (stock, type, product) => {
+                            if (type !== 'display') return stock;
+                            return $('<div class="d-flex flex-wrap align-items-center gap-2">')
+                                .append($('<span>').text(stock ?? '—'), product.variants_button || '')
+                                .prop('outerHTML');
+                        }
                     },
                     {
                         data: 'availability',
@@ -567,7 +505,7 @@
 
                 $('#product_type').val('stock');
                 $('#garment_item_type').val('general');
-                $('#style_code, #color, #size, #parent_product_id').val('');
+                $('#color, #size, #parent_product_id').val('');
 
 
                 $('#purchase_price').val('0');
@@ -579,8 +517,6 @@
                 $('#track_stock').val('1');
                 $('#is_active').val('1');
                 $('#is_available').val('1');
-                $('#style-search').val('');
-                $('#style-search-results').hide().empty();
 
                 $('#images').val('');
                 selectedImageFiles = createImageTransfer();
@@ -757,7 +693,6 @@
 
                 $('#product_type').val(payload.product_type);
                 $('#garment_item_type').val(payload.garment_item_type || 'general');
-                $('#style_code').val(payload.style_code || '');
                 $('#parent_product_id').val(payload.parent_product_id || '');
                 $('#color').val(payload.color || '');
                 $('#size').val(payload.size || '');
@@ -772,7 +707,6 @@
 
                 $('#is_active').val(payload.is_active ? '1' : '0');
                 $('#is_available').val(payload.is_available ? '1' : '0');
-                setStylePicker(payload.style_code || '');
 
                 renderExistingImages(payload.images || []);
 

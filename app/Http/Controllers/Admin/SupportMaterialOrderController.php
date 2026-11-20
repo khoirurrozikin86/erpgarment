@@ -7,14 +7,42 @@ use App\Domain\Manufacturing\Queries\SupportMaterialOrderTableQuery;
 use App\Domain\Settings\Services\DocumentNumberService;
 use App\Exports\SupportMaterialOrdersExport;
 use App\Http\Controllers\Controller;
-use App\Models\{Product, SupportMaterialOrderItem};
+use App\Models\{Product, SupportMaterialOrderDocument, SupportMaterialOrderItem};
 use Illuminate\Http\{JsonResponse, Request};
+use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
 class SupportMaterialOrderController extends Controller
 {
     public function index() { return view('super.support-material-orders.index'); }
+    public function create(Request $request, CompanyContext $company, DocumentNumberService $numbers): View
+    {
+        $data = $request->validate(['document_id' => ['nullable', 'integer', 'min:1']]);
+        $document = isset($data['document_id'])
+            ? SupportMaterialOrderDocument::where('company_id', $company->id())
+                ->with('items.product.unit')->findOrFail($data['document_id'])
+            : null;
+
+        return view('super.support-material-orders.form', [
+            'document' => $document,
+            'item' => null,
+            'number' => $document?->number ?? $numbers->preview('support_material_order'),
+        ]);
+    }
+
+    public function edit(SupportMaterialOrderItem $item, CompanyContext $company): View
+    {
+        $document = $item->document()->where('company_id', $company->id())->firstOrFail();
+        $item->load('product.unit');
+
+        return view('super.support-material-orders.form', [
+            'document' => $document,
+            'item' => $item,
+            'number' => $document->number,
+        ]);
+    }
+
     public function numberPreview(DocumentNumberService $numbers): JsonResponse { return response()->json(['number' => $numbers->preview('support_material_order')]); }
 
     private function filters(Request $request): array
@@ -37,7 +65,11 @@ class SupportMaterialOrderController extends Controller
             ->addColumn('code',fn($r)=>$r->product?->code)->addColumn('name',fn($r)=>$r->product?->name)
             ->addColumn('unit',fn($r)=>$r->product?->unit?->symbol?:$r->product?->unit?->name?:'—')
             ->addColumn('actions',function(SupportMaterialOrderItem $r){
-                $a=''; if(auth()->user()->can('support-material-orders.update')) $a.='<li><button type="button" class="dropdown-item btn-edit-support-order" data-id="'.$r->id.'" data-product="'.$r->product_id.'" data-code="'.e($r->product?->code).'" data-name="'.e($r->product?->name).'" data-unit="'.e($r->product?->unit?->symbol?:$r->product?->unit?->name).'" data-date="'.$r->document?->order_date?->format('Y-m-d').'" data-quantity="'.e($r->quantity).'" data-style="'.e($r->style).'" data-po="'.e($r->po_other).'">'.e(__('ui.common.edit')).'</button></li>';
+                $a = '';
+                if (auth()->user()->can('support-material-orders.update')) {
+                    $url = e(route('super.support-material-orders.edit', $r));
+                    $a .= '<li><a class="dropdown-item" href="'.$url.'">'.e(__('ui.common.edit')).'</a></li>';
+                }
                 if(auth()->user()->can('support-material-orders.delete')) $a.='<li><button type="button" class="dropdown-item text-danger btn-delete-support-order" data-id="'.$r->id.'">'.e(__('ui.common.delete')).'</button></li>';
                 return $a?'<div class="dropdown"><button class="btn btn-sm border-0 bg-transparent p-0" data-bs-toggle="dropdown"><i data-feather="more-vertical" class="icon-sm"></i></button><ul class="dropdown-menu dropdown-menu-end">'.$a.'</ul></div>':'';
             })->rawColumns(['actions'])->toJson();

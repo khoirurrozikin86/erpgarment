@@ -10,13 +10,13 @@ class ProductionResultReportExport extends DefaultValueBinder implements FromQue
 {
     public function __construct(private int $companyId, private array $filters) {}
     public function query() { return app(ProductionResultReportQuery::class)->builder($this->companyId, $this->filters); }
-    public function headings(): array { return [__('bc_reports.planning_no'), __('bc_reports.buyer_po'), __('bc_reports.production_no'), __('bc_reports.date'), __('bc_reports.item_code'), __('bc_reports.item_name'), __('ui.workflow.color'), __('ui.workflow.size'), __('bc_reports.unit'), __('bc_reports.received_from_sewing'), __('bc_reports.production_output'), __('bc_reports.warehouse')]; }
+    public function headings(): array { return [__('bc_reports.planning_no'), __('bc_reports.buyer_po'), __('bc_reports.production_no'), __('bc_reports.date'), __('variants.stock_parent_code'), __('variants.stock_sku'), __('bc_reports.item_name'), __('ui.workflow.color'), __('ui.workflow.size'), __('bc_reports.unit'), __('bc_reports.received_from_sewing'), __('bc_reports.production_output'), __('bc_reports.warehouse')]; }
     public function map($row): array
     {
         $product = $row->productionOrder?->outputProduct;
-        return [$row->productionOrder?->number, $row->productionOrder?->buyer_po_number, $row->packing_number, $row->processed_at?->format('d-m-Y'), $product?->code, $product?->name, $product?->color, $product?->size, $product?->unit?->symbol ?: $product?->unit?->name, (float) $row->input_quantity, (float) $row->good_quantity, '—'];
+        return [$row->productionOrder?->number, $row->productionOrder?->buyer_po_number, $row->packing_number, $row->processed_at?->format('d-m-Y'), $product?->parentProduct?->code ?? $product?->code, $product?->parent_product_id ? $product->code : null, $product?->name, $row->productionOrder?->line_color, $row->productionOrder?->line_size, $product?->unit?->symbol ?: $product?->unit?->name, (float) $row->input_quantity, (float) $row->good_quantity, '—'];
     }
-    public function columnFormats(): array { return ['J' => '#,##0.####', 'K' => '#,##0.####']; }
+    public function columnFormats(): array { return ['K' => '#,##0.####', 'L' => '#,##0.####']; }
     public function bindValue(Cell $cell, $value)
     {
         if (is_string($value)) { $cell->setValueExplicit($value, DataType::TYPE_STRING); return true; }

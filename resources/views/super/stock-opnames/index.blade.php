@@ -71,7 +71,7 @@
 
             $(document).on('click', '.btn-view-stock-opname', function() {
                 $.get($(this).data('url')).done(function(opname) {
-                    const rows = opname.items.map(item => `<tr><td>${safe(item.code)} — ${safe(item.name)}</td><td class="text-end">${item.system_quantity} ${safe(item.unit)}</td><td class="text-end">${item.counted_quantity} ${safe(item.unit)}</td><td class="text-end">${item.difference}</td></tr>`).join('');
+                    const rows = opname.items.map(item => `<tr><td><div class="fw-semibold">${safe(item.parent_code)}</div>${item.parent_code === item.code ? '' : `<div class="small text-muted">${safe(item.code)}</div>`}</td><td>${safe(item.name)}</td><td>${safe(item.color)}</td><td>${safe(item.size)}</td><td class="text-end">${item.system_quantity} ${safe(item.unit)}</td><td class="text-end">${item.counted_quantity} ${safe(item.unit)}</td><td class="text-end">${item.difference}</td></tr>`).join('');
                     $('#viewStockOpnameTitle').text(`{{ __('ui.workflow.stocktake_name') }} ${opname.number}`);
                     const statusLabels = { draft: '{{ __('ui.workflow.draft') }}', counting: '{{ __('ui.workflow.counting') }}', posted: '{{ __('ui.workflow.posted') }}' };
                     $('#viewStockOpnameBody').html(`
@@ -81,7 +81,7 @@
                         <dt class="col-sm-3">{{ __('ui.common.counted_by') }}</dt><dd class="col-sm-9">${safe(opname.counter)}</dd>
                         <dt class="col-sm-3">{{ __('ui.common.posted_by') }}</dt><dd class="col-sm-9">${safe(opname.poster)} (${safe(opname.posted_at)})</dd>
                         <dt class="col-sm-3">{{ __('ui.common.notes') }}</dt><dd class="col-sm-9 text-break">${safe(opname.notes)}</dd></dl>
-                        <div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>{{ __('ui.common.item') }}</th><th class="text-end">{{ __('ui.workflow.system_balance') }}</th><th class="text-end">{{ __('ui.workflow.physical_count') }}</th><th class="text-end">{{ __('ui.common.difference') }}</th></tr></thead><tbody>${rows}</tbody></table></div>`);
+                        <div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>{{ __('variants.stock_parent_code') }} / {{ __('variants.stock_sku') }}</th><th>{{ __('ui.common.item') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th class="text-end">{{ __('ui.workflow.system_balance') }}</th><th class="text-end">{{ __('ui.workflow.physical_count') }}</th><th class="text-end">{{ __('ui.common.difference') }}</th></tr></thead><tbody>${rows}</tbody></table></div>`);
                     modal.show();
                 }).fail(() => Swal.fire({ icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: '{{ __('ui.workflow.stocktake_detail_load_failed') }}' }));
             });

@@ -20,17 +20,12 @@ class BillOfMaterialsExport implements FromQuery, WithHeadings, WithMapping, Sho
         return BillOfMaterialItem::query()
             ->with([
                 'billOfMaterial.product.unit',
+                'billOfMaterial',
                 'billOfMaterial.creator',
                 'product.unit',
             ])
             ->whereHas('billOfMaterial', function (Builder $query) {
-                $query->where('company_id', $this->companyId)
-                    ->whereHas('product', function (Builder $product) {
-                        $product->whereNotNull('style_code')
-                            ->whereHas('category', fn (Builder $category) => $category
-                                ->where('code', 'FG')
-                                ->orWhereRaw('LOWER(name) = ?', ['finished goods']));
-                    });
+                $query->where('company_id', $this->companyId);
             })
             ->orderBy('bill_of_material_id')
             ->orderBy('id');
@@ -39,7 +34,7 @@ class BillOfMaterialsExport implements FromQuery, WithHeadings, WithMapping, Sho
     public function headings(): array
     {
         return [
-            'NO', 'STYLE', 'KODE PRODUK', 'NAMA PRODUK', 'SATUAN PRODUK',
+            'NO', 'NO BOM', 'STYLE', 'JENIS BOM', 'PROSES', 'WARNA', 'SIZE', 'KODE PRODUK', 'NAMA PRODUK', 'SATUAN PRODUK',
             'KODE BAHAN', 'NAMA BAHAN', 'SATUAN BAHAN', 'KONSUMSI',
             'SPAN', 'SCRAP', 'USER INPUT',
         ];
@@ -53,7 +48,12 @@ class BillOfMaterialsExport implements FromQuery, WithHeadings, WithMapping, Sho
 
         return [
             ++$this->rowNumber,
-            $product?->style_code,
+            $bom?->number,
+            $bom?->style_code ?: $product?->style_code,
+            $bom ? __('variants.bom_type_'.$bom->bom_type) : null,
+            $item->operation,
+            $item->applies_to_color,
+            $item->applies_to_size,
             $product?->code,
             $product?->name,
             $product?->unit?->symbol ?: $product?->unit?->name,

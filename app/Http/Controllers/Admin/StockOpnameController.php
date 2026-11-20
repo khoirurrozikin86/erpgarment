@@ -2,10 +2,11 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\Inventory\Queries\StockFamilyPage;
 use App\Domain\Inventory\Queries\StockOpnameTableQuery;
 use App\Domain\Inventory\Services\StockOpnameService;
 use App\Http\Controllers\Controller;
-use App\Models\Product;
+use App\Http\Requests\Admin\StockFamilyTableRequest;
 use App\Models\StockOpname;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -62,13 +63,27 @@ class StockOpnameController extends Controller
             ->toJson();
     }
 
-    public function productsDt(StockOpnameTableQuery $query): JsonResponse
+    public function productsDt(StockFamilyTableRequest $request, StockFamilyPage $families): JsonResponse
     {
-        return DataTables::eloquent($query->products())
-            ->addColumn('unit_label', fn (Product $product) => $product->unit?->symbol ?: $product->unit?->name ?: '—')
-            ->addColumn('actions', fn (Product $product) => '<button type="button" class="btn btn-sm btn-outline-primary btn-toggle-opname-product" data-id="' . (int) $product->id . '" data-code="' . e($product->code) . '" data-name="' . e($product->name) . '" data-unit="' . e($product->unit?->symbol ?: $product->unit?->name ?: '') . '"><i data-feather="plus" class="icon-sm me-1"></i>' . e(__('ui.workflow.select')) . '</button>')
-            ->rawColumns(['actions'])
-            ->toJson();
+        $inputs = $request->validated();
+        $page = $families->get($inputs['start'], $inputs['length'], trim($inputs['search']['value'] ?? ''), searchDimensions: true);
+        $rows = $families->productGroups($page['ids']->all())->map(function ($products) {
+            $first = $products->first();
+            $parent = $first->parentProduct ?? $first;
+            return [
+                'code' => $parent->code,
+                'name' => $parent->name,
+                'unit' => $first->unit?->symbol ?: $first->unit?->name,
+                'detail_html' => view('super.stocks.partials.product-skus', compact('parent', 'products'))->render(),
+            ];
+        });
+
+        return response()->json([
+            'draw' => (int) $inputs['draw'],
+            'recordsTotal' => $page['total'],
+            'recordsFiltered' => $page['filtered'],
+            'data' => $rows,
+        ]);
     }
 
     public function store(Request $request, StockOpnameService $service): JsonResponse
@@ -99,8 +114,11 @@ class StockOpnameController extends Controller
             'posted_at' => $stockOpname->posted_at?->format('d/m/Y H:i') ?? '—',
             'notes' => $stockOpname->notes ?: '—',
             'items' => $stockOpname->items->map(fn ($item) => [
+                'parent_code' => $item->product?->parentProduct?->code ?? $item->product?->code ?? '—',
                 'code' => $item->product?->code ?? '—',
                 'name' => $item->product?->name ?? 'Barang dihapus',
+                'color' => $item->product?->color ?? '—',
+                'size' => $item->product?->size ?? '—',
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
                 'system_quantity' => number_format((float) $item->system_quantity, 4, ',', '.'),
                 'counted_quantity' => $item->counted_quantity === null ? 'Belum dihitung' : number_format((float) $item->counted_quantity, 4, ',', '.'),

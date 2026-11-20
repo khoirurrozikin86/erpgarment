@@ -43,8 +43,9 @@ class GoodsReceiptTableQuery
                 'goodsReceipt.purchaseOrder.purchaseRequest.materialRequest.productionOrder:id,number,output_product_id,planned_quantity',
                 'goodsReceipt.purchaseOrder.purchaseRequest.materialRequest.productionOrder.outputProduct:id,style_code',
                 'goodsReceipt.purchaseOrder.purchaseRequest.materialRequest.outputProduct:id,style_code',
+                'purchaseOrderItem.purchaseRequestItem.materialRequestItem:id,color,size',
                 'goodsReceipt.approver:id,name',
-                'product:id,code,name,unit_id,style_code',
+                'product:id,code,name,unit_id,style_code,color,size',
                 'product.unit:id,name,symbol',
             ])
             ->select([
@@ -80,8 +81,9 @@ class GoodsReceiptTableQuery
                 'purchaseRequest.materialRequest.productionOrder.outputProduct:id,style_code',
                 'purchaseRequest.materialRequest:id,production_order_id,output_product_id',
                 'purchaseRequest.materialRequest.productionOrder:id,number,output_product_id,currency',
-                'items.product:id,code,name,unit_id,track_stock',
+                'items.product:id,code,name,unit_id,track_stock,color,size',
                 'items.product.unit:id,name,symbol',
+                'items.purchaseRequestItem.materialRequestItem:id,color,size',
             ])
             ->withCount('items')
             ->orderByDesc('issued_at');
@@ -102,7 +104,8 @@ class GoodsReceiptTableQuery
                 'purchaseOrder.purchaseRequest.materialRequest.productionOrder:id,number,output_product_id,planned_quantity',
                 'purchaseOrder.purchaseRequest.materialRequest.productionOrder.outputProduct:id,style_code',
                 'purchaseOrder.purchaseRequest.materialRequest.outputProduct:id,style_code',
-                'items.product:id,code,name,unit_id,track_stock', 'items.product.unit:id,name,symbol', 'items.inventoryLot:id,lot_number',
+                'items.purchaseOrderItem.purchaseRequestItem.materialRequestItem:id,color,size',
+                'items.product:id,code,name,unit_id,track_stock,color,size', 'items.product.unit:id,name,symbol', 'items.inventoryLot:id,lot_number',
             ])
             ->findOrFail($receipt->id);
     }

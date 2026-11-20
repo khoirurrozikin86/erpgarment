@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Domain\Purchasing\Queries\PurchaseRequestTableQuery;
 use App\Domain\Purchasing\Services\PurchaseRequestService;
+use App\Domain\Purchasing\Services\ProductionSourceSummary;
 use App\Domain\Companies\Services\CompanyPdfBrandingService;
 use App\Exports\PurchaseRequestsExport;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -30,7 +31,7 @@ class PurchaseRequestController extends Controller
         ]);
     }
 
-    public function dt(Request $request, PurchaseRequestTableQuery $query): JsonResponse
+    public function dt(Request $request, PurchaseRequestTableQuery $query, ProductionSourceSummary $sourceSummary): JsonResponse
     {
         $filters = $request->validate([
             'from_date' => ['nullable', 'date_format:Y-m-d'],
@@ -44,31 +45,32 @@ class PurchaseRequestController extends Controller
         return DataTables::eloquent($query->builder($filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('material_request_number', fn (PurchaseRequest $request) => $request->materialRequest?->number ?? '—')
             ->addColumn('buyer_po_number', fn (PurchaseRequest $request) => $request->materialRequest?->productionOrder?->buyer_po_number ?: '—')
-            ->addColumn('production_item', function (PurchaseRequest $request) {
-                $materialRequest = $request->materialRequest;
-                $order = $materialRequest?->productionOrder;
-                $product = $order?->outputProduct ?? $materialRequest?->outputProduct;
-                $quantity = $order?->planned_quantity ?? $materialRequest?->production_quantity;
-                $styleCode = $product?->style_code;
-                if (!$styleCode && $quantity === null) {
+            ->addColumn('production_item', function (PurchaseRequest $request) use ($sourceSummary) {
+                $lines = $sourceSummary->lines($request->materialRequest);
+                if ($lines->isEmpty()) {
                     return '—';
                 }
-
-                $style = e($styleCode ?: '—');
-                $qty = $quantity === null
-                    ? '—'
-                    : rtrim(rtrim(number_format((float) $quantity, 4, ',', '.'), '0'), ',');
-
-                return '<span class="text-nowrap">' . $style . ' <span class="text-muted">/</span> ' . $qty . '</span>';
+                return $lines->map(function (array $line) {
+                    $style = e($line['style'] ?: '—');
+                    $color = e($line['color'] ?: '—');
+                    $size = e($line['size'] ?: '—');
+                    $quantity = $line['quantity'] === null
+                        ? '—'
+                        : rtrim(rtrim(number_format((float) $line['quantity'], 4, ',', '.'), '0'), ',');
+                    return '<span class="d-block text-nowrap">' . $style . ' <span class="text-muted">/ ' . $color . ' / ' . $size . ' / ' . $quantity . '</span></span>';
+                })->implode('');
             })
             ->addColumn('required_items', function (PurchaseRequest $request) {
                 if ($request->items->isEmpty()) return '—';
                 $items = $request->items->map(function (PurchaseRequestItem $item) {
                     $code = e($item->product?->code ?? '—');
-                    $name = e($item->product?->variant_display_name ?? __('ui.workflow.deleted_item'));
+                    $name = e($item->product?->name ?? __('ui.workflow.deleted_item'));
                     $quantity = rtrim(rtrim(number_format((float) $item->quantity, 4, ',', '.'), '0'), ',');
                     $unit = $item->product?->unit?->symbol ?: $item->product?->unit?->name;
-                    return '<span class="badge rounded-pill bg-light text-secondary border fw-normal" title="' . $name . '">' . $code . ' × ' . $quantity . ($unit ? ' ' . e($unit) : '') . '</span>';
+                    $color = $item->materialRequestItem?->color ?: $item->product?->color;
+                    $size = $item->materialRequestItem?->size ?: $item->product?->size;
+                    $dimensions = collect([$color, $size])->filter()->map(fn ($value) => e($value))->implode(' / ');
+                    return '<span class="badge rounded-pill bg-light text-secondary border fw-normal" title="' . $name . '">' . $code . ($dimensions ? ' [' . $dimensions . ']' : '') . ' × ' . $quantity . ($unit ? ' ' . e($unit) : '') . '</span>';
                 })->implode(' ');
 
                 return '<div class="d-flex flex-wrap gap-1" style="max-width:24rem;max-height:4.25rem;overflow:auto">' . $items . '</div>';
@@ -132,6 +134,11 @@ class PurchaseRequestController extends Controller
     public function source(int $materialRequestId, PurchaseRequestTableQuery $query): JsonResponse
     {
         $materialRequest = $query->sourceMaterialRequest($materialRequestId);
+        $materialRequest->load([
+            'productionOrder.outputProduct',
+            'productionOrderHeader.details.outputProduct',
+            'outputProduct',
+        ]);
         $reservedQuantities = PurchaseRequestItem::query()
             ->whereIn('material_request_item_id', $materialRequest->items->pluck('id'))
             ->whereHas('purchaseRequest', fn ($builder) => $builder->whereIn('status', ['pending', 'approved']))
@@ -142,13 +149,21 @@ class PurchaseRequestController extends Controller
         return response()->json([
             'id' => $materialRequest->id,
             'number' => $materialRequest->number,
+            'production_details' => app(ProductionSourceSummary::class)->lines($materialRequest)->map(fn ($line) => [
+                'style' => $line['style'],
+                'color' => $line['color'],
+                'size' => $line['size'],
+                'quantity' => $line['quantity'],
+            ])->values(),
             'items' => $materialRequest->items->map(function ($item) use ($reservedQuantities) {
                 $available = max(0, (float) $item->quantity - (float) ($reservedQuantities[$item->id] ?? 0));
                 return [
                     'material_request_item_id' => $item->id,
                     'product_id' => $item->product_id,
                     'code' => $item->product?->code ?? '—',
-                    'name' => $item->product?->variant_display_name ?? 'Barang dihapus',
+                    'name' => $item->product?->name ?? 'Barang dihapus',
+                    'color' => $item->color ?: $item->product?->color,
+                    'size' => $item->size ?: $item->product?->size,
                     'quantity' => $item->quantity,
                     'available_quantity' => number_format($available, 4, '.', ''),
                     'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
@@ -179,7 +194,10 @@ class PurchaseRequestController extends Controller
 
     public function show(PurchaseRequest $purchaseRequest): JsonResponse
     {
-        $purchaseRequest->load(['materialRequest', 'supplier', 'requester', 'reviewer', 'items.product.unit']);
+        $purchaseRequest->load([
+            'materialRequest.productionOrder.outputProduct', 'materialRequest.productionOrderHeader.details.outputProduct',
+            'materialRequest.outputProduct', 'supplier', 'requester', 'reviewer', 'items.product.unit', 'items.materialRequestItem',
+        ]);
         return response()->json([
             'number' => $purchaseRequest->number,
             'material_request_number' => $purchaseRequest->materialRequest?->number ?? '—',
@@ -191,9 +209,17 @@ class PurchaseRequestController extends Controller
             'reviewer' => $purchaseRequest->reviewer?->name ?? '—',
             'reviewed_at' => $purchaseRequest->reviewed_at?->format('d/m/Y H:i') ?? '—',
             'review_note' => $purchaseRequest->review_note ?: '—',
+            'production_details' => app(ProductionSourceSummary::class)->lines($purchaseRequest->materialRequest)->map(fn ($line) => [
+                'style' => $line['style'],
+                'color' => $line['color'],
+                'size' => $line['size'],
+                'quantity' => $line['quantity'],
+            ])->values(),
             'items' => $purchaseRequest->items->map(fn ($item) => [
                 'code' => $item->product?->code ?? '—',
-                'product' => $item->product?->variant_display_name ?? 'Barang dihapus',
+                'product' => $item->product?->name ?? 'Barang dihapus',
+                'color' => $item->materialRequestItem?->color ?: $item->product?->color,
+                'size' => $item->materialRequestItem?->size ?: $item->product?->size,
                 'quantity' => number_format((float) $item->quantity, 4, ',', '.'),
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
                 'unit_price' => (float) $item->unit_price,
@@ -206,10 +232,16 @@ class PurchaseRequestController extends Controller
     {
         $purchaseRequest->load([
             'materialRequest.requester', 'supplier', 'requester', 'reviewer',
-            'items.product.unit',
+            'materialRequest.productionOrder.outputProduct', 'materialRequest.productionOrderHeader.details.outputProduct',
+            'materialRequest.outputProduct',
+            'items.product.unit', 'items.materialRequestItem',
         ]);
         $filename = $this->pdfFilename($purchaseRequest->number);
-        $viewData = [...$branding->data(), 'purchaseRequest' => $purchaseRequest];
+        $viewData = [
+            ...$branding->data(),
+            'purchaseRequest' => $purchaseRequest,
+            'productionDetails' => app(ProductionSourceSummary::class)->lines($purchaseRequest->materialRequest),
+        ];
 
         return Pdf::loadView('super.purchase-requests.pdf', $viewData)
             ->setPaper('a4')
@@ -220,10 +252,16 @@ class PurchaseRequestController extends Controller
     {
         $purchaseRequest->load([
             'materialRequest.requester', 'supplier', 'requester', 'reviewer',
-            'items.product.unit',
+            'materialRequest.productionOrder.outputProduct', 'materialRequest.productionOrderHeader.details.outputProduct',
+            'materialRequest.outputProduct',
+            'items.product.unit', 'items.materialRequestItem',
         ]);
         $filename = $this->pdfFilename($purchaseRequest->number);
-        $viewData = [...$branding->data(), 'purchaseRequest' => $purchaseRequest];
+        $viewData = [
+            ...$branding->data(),
+            'purchaseRequest' => $purchaseRequest,
+            'productionDetails' => app(ProductionSourceSummary::class)->lines($purchaseRequest->materialRequest),
+        ];
 
         return Pdf::loadView('super.purchase-requests.pdf', $viewData)
             ->setPaper('a4')

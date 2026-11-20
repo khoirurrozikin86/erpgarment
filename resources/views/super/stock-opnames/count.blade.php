@@ -21,11 +21,19 @@
         @csrf
         <div class="card mb-3"><div class="card-body">
             <div class="table-responsive"><table class="table table-bordered align-middle">
-                <thead><tr><th>{{ __('ui.common.item') }}</th><th class="text-end">{{ __('ui.workflow.system_balance_at_count') }}</th><th style="width:220px">{{ __('ui.workflow.physical_count_result') }}</th><th class="text-end">{{ __('ui.common.difference') }}</th></tr></thead>
+                <thead><tr><th>{{ __('variants.stock_parent_code') }} / {{ __('variants.stock_sku') }}</th><th>{{ __('ui.common.item') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th class="text-end">{{ __('ui.workflow.system_balance_at_count') }}</th><th style="width:220px">{{ __('ui.workflow.physical_count_result') }}</th><th class="text-end">{{ __('ui.common.difference') }}</th></tr></thead>
                 <tbody>
                     @foreach ($stockOpname->items as $index => $item)
                         <tr class="opname-count-row" data-system="{{ $item->system_quantity }}">
-                            <td>{{ $item->product?->code ?? '—' }} — {{ $item->product?->name ?? __('ui.workflow.deleted_item') }}</td>
+                            <td>
+                                <div class="fw-semibold">{{ $item->product?->parentProduct?->code ?? $item->product?->code ?? '—' }}</div>
+                                @if ($item->product?->parentProduct)
+                                    <div class="small text-muted">{{ $item->product->code }}</div>
+                                @endif
+                            </td>
+                            <td>{{ $item->product?->name ?? __('ui.workflow.deleted_item') }}</td>
+                            <td>{{ $item->product?->color ?? '—' }}</td>
+                            <td>{{ $item->product?->size ?? '—' }}</td>
                             <td class="text-end">{{ number_format((float) $item->system_quantity, 4, ',', '.') }} {{ $item->product?->unit?->symbol ?: $item->product?->unit?->name }}</td>
                             <td>
                                 <input type="hidden" name="items[{{ $index }}][product_id]" value="{{ $item->product_id }}">

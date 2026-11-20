@@ -4,8 +4,9 @@ namespace App\Domain\Manufacturing\Actions;
 
 use App\Domain\Audit\Services\AuditLogService;
 use App\Domain\Companies\Services\CompanyContext;
-use App\Models\BillOfMaterial;
 use App\Models\ProductionOrder;
+use App\Models\RawMaterialOrderItem;
+use App\Models\Style;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -32,7 +33,7 @@ class UpdateMaterialOrderAction
     {
         return DB::transaction(function () use ($order, $data, $userId) {
             $order = ProductionOrder::query()->where('company_id', $this->company->id())->lockForUpdate()->findOrFail($order->id);
-            if ($order->materialRequests()->exists() || $order->stageEntries()->exists()) {
+            if ($order->materialRequests()->exists() || $order->hasOrderMaterialRequests() || $order->stageEntries()->exists()) {
                 throw ValidationException::withMessages(['order' => __('ui.workflow.material_order_locked')]);
             }
 
@@ -51,8 +52,21 @@ class UpdateMaterialOrderAction
             if ($data['number'] !== $order->number && ProductionOrder::query()->where('company_id', $order->company_id)->where('number', $data['number'])->exists()) {
                 throw ValidationException::withMessages(['number' => __('ui.workflow.material_order_number_group_locked')]);
             }
-            $bom = app(\App\Domain\Manufacturing\Services\ResolveProductionBom::class)
-                ->resolve($this->company->id(), (int) $data['output_product_id'], $data['po_date']);
+            $productId = $data['output_product_id'] ?? null;
+            $styleCode = Style::register($data['style_code'] ?? $order->model_style);
+            $bom = null;
+            if ($productId !== null && !empty($data['bill_of_material_id'])) {
+                $bom = app(\App\Domain\Manufacturing\Services\ResolveProductionBom::class)
+                    ->resolve($this->company->id(), (int) $productId, $data['po_date'], (int) $data['bill_of_material_id'], $styleCode);
+            }
+            $materialBasisChanged = (int) $order->output_product_id !== (int) $productId
+                || $order->model_style !== $styleCode
+                || $order->po_date?->toDateString() !== $data['po_date']
+                || (float) $order->planned_quantity !== (float) $data['planned_quantity'];
+            $replaceMaterials = $bom !== null || $materialBasisChanged;
+            if ($replaceMaterials && RawMaterialOrderItem::whereIn('production_order_material_id', $order->materials()->select('id'))->exists()) {
+                throw ValidationException::withMessages(['order' => __('ui.workflow.material_order_locked')]);
+            }
 
             $header = [
                 'buyer_po_number' => $data['buyer_po_number'] ?? null,
@@ -63,11 +77,25 @@ class UpdateMaterialOrderAction
                 'customer_id' => $data['customer_id'],
                 'planned_start_date' => $data['po_date'], 'planned_end_date' => $data['due_date'],
             ];
+            if ($order->header) {
+                $shared = collect($header)->except(['planned_start_date', 'planned_end_date'])->all();
+                $changed = collect($shared)->contains(fn ($v, $k) => (string) ($order->header->getRawOriginal($k) ?? '') !== (string) ($v ?? ''));
+                if ($changed && ProductionOrder::whereIn('id', $siblingIds)->where(fn ($q) => $q->whereHas('materialRequests')->orWhereHas('stageEntries'))->exists()) {
+                    throw ValidationException::withMessages(['order' => __('ui.workflow.material_order_locked')]);
+                }
+                $order->header->update(['number' => $data['number']] + $shared);
+            }
             if ($siblings->exists()) $siblings->update($header);
             $order->update([
                 'number' => $data['number'], ...$header,
-                'bill_of_material_id' => $bom->id,
-                'output_product_id' => $data['output_product_id'], 'bom_version' => $bom->version,
+                'style_code' => $styleCode,
+                'order_color' => $order->order_color !== null ? ($data['order_color'] ?? $order->order_color) : null,
+                'order_size' => $order->order_size !== null ? ($data['order_size'] ?? $order->order_size) : null,
+                ...($order->status === 'draft' && $productId !== null ? [
+                    'status' => 'released', 'released_by' => $userId, 'released_at' => now(),
+                ] : []),
+                'output_product_id' => $productId,
+                ...($replaceMaterials ? ['bill_of_material_id' => $bom?->id, 'bom_version' => $bom?->version] : []),
                 'planned_quantity' => $data['planned_quantity'],
                 'price_per_unit' => $data['price_per_unit'] ?? 0,
                 'total_price' => round((float) $data['planned_quantity'] * (float) ($data['price_per_unit'] ?? 0), 4),
@@ -75,15 +103,22 @@ class UpdateMaterialOrderAction
                 ...(!empty($data['image_path']) ? ['image_path' => $data['image_path']] : []),
                 'planned_start_date' => $data['po_date'], 'planned_end_date' => $data['due_date'],
             ]);
-            $order->materials()->delete();
-            $ratio = (float) $data['planned_quantity'] / (float) $bom->output_quantity;
-            $order->materials()->createMany($bom->items->map(fn ($item) => [
-                'product_id' => $item->product_id,
-                'operation' => $item->operation,
-                'quantity_per_output' => $item->quantity,
-                'wastage_percent' => $item->wastage_percent,
-                'required_quantity' => round((float) $item->quantity * $ratio * (1 + (float) $item->wastage_percent / 100), 4),
-            ])->all());
+            if ($replaceMaterials) {
+                $order->materials()->delete();
+            }
+            if ($bom) {
+                $ratio = (float) $data['planned_quantity'] / (float) $bom->output_quantity;
+                $order->materials()->createMany($bom->items->map(fn ($item) => [
+                    'bill_of_material_id' => $bom->id,
+                    'product_id' => $item->product_id,
+                    'operation' => $item->operation,
+                    'color' => $item->applies_to_color ?? '',
+                    'size' => $item->applies_to_size ?? '',
+                    'quantity_per_output' => $item->quantity,
+                    'wastage_percent' => $item->wastage_percent,
+                    'required_quantity' => round((float) $item->quantity * $ratio * (1 + (float) $item->wastage_percent / 100), 4),
+                ])->all());
+            }
 
             $newValues = $order->load('materials.product')->toArray();
             if ($siblingIds->isNotEmpty()) {

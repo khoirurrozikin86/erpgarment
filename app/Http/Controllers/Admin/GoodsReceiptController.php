@@ -96,7 +96,7 @@ class GoodsReceiptController extends Controller
             'number' => $order->number,
             'supplier' => $order->supplier?->name ?? __('ui.workflow.deleted_supplier'),
             'material_order_number' => $order->purchaseRequest?->materialRequest?->productionOrder?->number,
-            'style_code' => $order->purchaseRequest?->materialRequest?->productionOrder?->outputProduct?->style_code
+            'style_code' => $order->purchaseRequest?->materialRequest?->productionOrder?->model_style
                 ?? $order->purchaseRequest?->materialRequest?->outputProduct?->style_code,
             'currency' => $order->purchaseRequest?->materialRequest?->productionOrder?->currency ?: 'USD',
             'items' => $order->items->map(fn ($item) => [
@@ -107,6 +107,8 @@ class GoodsReceiptController extends Controller
                 'ordered' => (float) $item->quantity,
                 'received' => (float) $item->received_quantity,
                 'remaining' => max(0, round((float) $item->quantity - (float) $item->received_quantity, 4)),
+                'color' => $item->purchaseRequestItem?->materialRequestItem?->color ?: $item->product?->color,
+                'size' => $item->purchaseRequestItem?->materialRequestItem?->size ?: $item->product?->size,
                 'unit_price' => (float) $item->unit_price,
                 'track_stock' => (bool) ($item->product?->track_stock ?? false),
             ])->filter(fn ($item) => $item['remaining'] > 0)->values(),
@@ -147,7 +149,7 @@ class GoodsReceiptController extends Controller
             'number' => $receipt->number,
             'purchase_order' => $receipt->purchaseOrder?->number ?? '—',
             'material_order' => $receipt->purchaseOrder?->purchaseRequest?->materialRequest?->productionOrder?->number ?? '—',
-            'style' => $receipt->purchaseOrder?->purchaseRequest?->materialRequest?->productionOrder?->outputProduct?->style_code
+            'style' => $receipt->purchaseOrder?->purchaseRequest?->materialRequest?->productionOrder?->model_style
                 ?? $receipt->purchaseOrder?->purchaseRequest?->materialRequest?->outputProduct?->style_code ?? '—',
             'invoice_number' => $receipt->invoice_number ?: '—',
             'invoice_date' => $receipt->invoice_date?->format('d/m/Y') ?? '—',
@@ -165,6 +167,8 @@ class GoodsReceiptController extends Controller
             'items' => $receipt->items->map(fn ($item) => [
                 'code' => $item->product?->code ?? '—',
                 'name' => $item->product?->name ?? 'Barang dihapus',
+                'color' => $item->purchaseOrderItem?->purchaseRequestItem?->materialRequestItem?->color ?: $item->product?->color,
+                'size' => $item->purchaseOrderItem?->purchaseRequestItem?->materialRequestItem?->size ?: $item->product?->size,
                 'quantity' => number_format((float) $item->quantity, 4, ',', '.'),
                 'lot_number' => $item->inventoryLot?->lot_number ?? '—',
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',

@@ -62,31 +62,29 @@
             border-color: #eef2f6
         }
 
-        .material-order-section {
-            border: 1px solid #e8edf3;
-            border-radius: .65rem;
-            padding: 1rem;
-            background: #fff
-        }
-
-        .material-order-section-title {
-            font-size: .9rem;
-            font-weight: 600;
-            color: #344054;
-            margin-bottom: .9rem
-        }
+        #material-orders-table td { vertical-align: top; }
+        #material-orders-table .mo-merged-detail { height: 64px; display: flex; align-items: center; gap: .35rem; border-bottom: 1px solid #eef2f6; }
+        #material-orders-table .mo-merged-detail:last-child { border-bottom: 0; }
+        #material-orders-table .mo-action-column { position: sticky; right: 0; background: var(--bs-body-bg, #fff); z-index: 2; min-width: 55px; }
+        #material-orders-table th.mo-action-column { z-index: 3; }
+        #material-orders-table .mo-action-column .mo-merged-detail { justify-content: flex-end; }
     </style>
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <div>
             <h4 class="page-title mb-1">{{ __('ui.workflow.material_order') }}</h4>
             <p class="text-muted mb-0">{{ __('ui.workflow.material_order_subtitle') }}</p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex flex-wrap gap-2">
+            @can('production-orders.create')
+                <a class="btn btn-outline-secondary btn-sm" href="{{ route('super.material-orders.full-import-template') }}"><i data-feather="download" class="icon-sm me-1"></i>{{ __('variants.full_import_template') }}</a>
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#moFullImportModal">{{ __('variants.full_import') }}</button>
+            @endcan
+
             @can('production-orders.view')
                 <a href="{{ route('super.material-orders.export') }}" id="exportMaterialOrders" class="btn btn-outline-success btn-sm"><i data-feather="download" class="icon-sm me-1"></i>{{ __('ui.common.export_excel') }}</a>
             @endcan
             @can('production-orders.create')
-                <button type="button" class="btn btn-primary btn-sm" id="addMaterialOrder"><i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.workflow.material_order_admin') }}</button>
+                <a class="btn btn-primary btn-sm" href="{{ route('super.material-orders.create') }}"><i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.workflow.material_order_admin') }}</a>
             @endcan
         </div>
     </div>
@@ -98,7 +96,6 @@
                     <thead class="table-light">
                         <tr>
                             <th>{{ __('ui.common.no') }}</th>
-                            <th>{{ __('ui.common.action') }}</th>
                             <th>{{ __('ui.workflow.material_order_no') }}</th>
                             <th>{{ __('ui.workflow.po_date') }}</th>
                             <th>{{ __('ui.workflow.material_order_due_date') }}</th>
@@ -116,26 +113,118 @@
                             <th>{{ __('ui.workflow.price_per_unit') }}</th>
                             <th>{{ __('ui.workflow.total_price') }}</th>
                             <th>{{ __('ui.workflow.description') }}</th>
+                            <th class="text-end mo-action-column">{{ __('ui.common.action') }}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($orders as $order)
+                        @foreach ($orders->groupBy(fn ($line) => $line->production_order_header_id ?: 'legacy-'.$line->number) as $details)
+                            @php $order = $details->first(); @endphp
                             <tr data-po-date="{{ $order->po_date?->format('Y-m-d') }}">
                                 <td></td>
-                                <td class="text-center">
-                                    @canany(['production-orders.update', 'production-orders.delete'])
+
+                                <td>{{ $order->number }}</td>
+                                <td>{{ $order->po_date?->format('Y-m-d') ?: '—' }}</td>
+                                <td>{{ $order->due_date?->format('Y-m-d') ?: '—' }}</td>
+                                <td>{{ $order->buyer_po_number ?: '—' }}</td>
+                                <td>{{ $order->buyer?->name ?: '—' }}</td>
+                                <td>{{ $order->no_cbd ?: '—' }}</td>
+                                <td>{{ $order->currency }}</td>
+                                <td>{{ $order->destination ?: '—' }}</td>
+                                <td>@foreach($details as $detail)
+                                    @php $order = $detail; @endphp
+                                    <div class="mo-merged-detail">{{ $order->outputProduct?->parentProduct?->code ?: $order->outputProduct?->code ?: '—' }}</div>
+                                    @endforeach
+                                    @php $order = $details->first(); @endphp
+                                </td>
+                                <td>@foreach($details as $detail)
+                                    @php $order = $detail; @endphp
+                                    <div class="mo-merged-detail">@if($order->image_url)<img src="{{ $order->image_url }}" alt="{{ $order->outputProduct?->code ?? $order->model_style }}" loading="lazy" style="width:48px;height:48px;object-fit:contain" class="me-2 rounded">@endif{{ $order->outputProduct?->name ?: ($order->status === 'draft' ? __('variants.finished_good_pending') : '—') }}</div>
+                                    @endforeach
+                                    @php $order = $details->first(); @endphp
+                                </td>
+                                <td>@foreach($details as $detail)
+                                    @php $order = $detail; @endphp
+                                    <div class="mo-merged-detail">{{ $order->outputProduct?->unit?->symbol ?: $order->outputProduct?->unit?->name ?: '—' }}
+                                </div>
+                                    @endforeach
+                                    @php $order = $details->first(); @endphp
+                                </td>
+                                <td>@foreach($details as $detail)
+                                    @php $order = $detail; @endphp
+                                    <div class="mo-merged-detail">{{ $order->model_style ?: '—' }}</div>
+                                    @endforeach
+                                    @php $order = $details->first(); @endphp
+                                </td>
+                                <td>@foreach($details as $detail)
+                                    @php $order = $detail; @endphp
+                                    <div class="mo-merged-detail">{{ $order->line_color ?: '—' }}</div>
+                                    @endforeach
+                                    @php $order = $details->first(); @endphp
+                                </td><td>@foreach($details as $detail)
+                                    @php $order = $detail; @endphp
+                                    <div class="mo-merged-detail">{{ $order->line_size ?: '—' }}</div>
+                                    @endforeach
+                                    @php $order = $details->first(); @endphp
+                                </td>
+                                <td class="text-end">@foreach($details as $detail)
+                                    @php $order = $detail; @endphp
+                                    <div class="mo-merged-detail">{{ number_format((float) $order->planned_quantity, 4, ',', '.') }}
+                                </div>
+                                    @endforeach
+                                    @php $order = $details->first(); @endphp
+                                </td>
+                                <td class="text-end">@foreach($details as $detail)
+                                    @php $order = $detail; @endphp
+                                    <div class="mo-merged-detail">{{ number_format((float) $order->price_per_unit, 4, ',', '.') }}</div>
+                                    @endforeach
+                                    @php $order = $details->first(); @endphp
+                                </td>
+                                <td class="text-end">@foreach($details as $detail)
+                                    @php $order = $detail; @endphp
+                                    <div class="mo-merged-detail">{{ number_format((float) $order->total_price, 4, ',', '.') }}</div>
+                                    @endforeach
+                                    @php $order = $details->first(); @endphp
+                                </td>
+                                <td>@foreach($details as $detail)
+                                    @php $order = $detail; @endphp
+                                    <div class="mo-merged-detail">{{ $order->description ?: '—' }}</div>
+                                    @endforeach
+                                    @php $order = $details->first(); @endphp
+                                </td>
+                                @php
+                                    $needsFinishedGood = $details->contains(fn ($line) => !$line->output_product_id);
+                                    $requestOrder = $needsFinishedGood ? null : $details->first(fn ($line) => in_array($line->status, ['released', 'in_progress'], true));
+                                @endphp
+                                <td class="text-end mo-action-column">@foreach($details as $detail)
+                                    @php
+                                        $order = $detail;
+                                        $showRequestAction = $loop->first && ($requestOrder || $needsFinishedGood) && auth()->user()->can('material-requests.create');
+                                    @endphp
+                                    <div class="mo-merged-detail">
+                                    @if($showRequestAction || auth()->user()->canAny(['production-orders.update', 'production-orders.delete']))
                                         <div class="dropdown">
                                             <button class="btn btn-sm bg-transparent border-0 p-0" type="button"
                                                 data-bs-toggle="dropdown" aria-expanded="false"
                                                 title="{{ __('ui.common.actions') }}"><i data-feather="more-vertical"
                                                     class="icon-sm"></i></button>
                                             <ul class="dropdown-menu dropdown-menu-end">
+                                                @if($showRequestAction)
+                                                    <li>
+                                                        @if($requestOrder)
+                                                            <a class="dropdown-item d-flex align-items-center gap-2"
+                                                                href="{{ route('super.material-requests.create', ['mo_id' => $requestOrder->id]) }}"><i
+                                                                data-feather="file-plus" class="icon-sm"></i>{{ __('variants.create_mr') }}</a>
+                                                        @else
+                                                            <span class="dropdown-item disabled" aria-disabled="true">{{ __('variants.create_mr') }}</span>
+                                                            <small class="dropdown-item-text text-muted text-wrap">{{ __('variants.link_finished_good') }}</small>
+                                                        @endif
+                                                    </li>
+                                                @endif
                                                 @can('production-orders.update')
-                                                    <li><button type="button"
-                                                            class="dropdown-item d-flex align-items-center gap-2 edit-material-order"
-                                                            data-url="{{ route('super.material-orders.show', $order) }}"><i
+                                                    <li><a class="dropdown-item d-flex align-items-center gap-2"
+                                                            href="{{ route('super.material-orders.edit', $order) }}"><i
                                                                 data-feather="edit-2"
-                                                                class="icon-sm"></i>{{ __('ui.common.edit') }}</button></li>
+                                                                class="icon-sm"></i>{{ __('ui.common.edit') }}</a></li>
                                                 @endcan
                                                 @can('production-orders.delete')
                                                     <li><button type="button"
@@ -146,27 +235,11 @@
                                                 @endcan
                                             </ul>
                                         </div>
-                                    @endcanany
+                                    @endif
+                                </div>
+                                    @endforeach
+                                    @php $order = $details->first(); @endphp
                                 </td>
-                                <td>{{ $order->number }}</td>
-                                <td>{{ $order->po_date?->format('Y-m-d') ?: '—' }}</td>
-                                <td>{{ $order->due_date?->format('Y-m-d') ?: '—' }}</td>
-                                <td>{{ $order->buyer_po_number ?: '—' }}</td>
-                                <td>{{ $order->buyer?->name ?: '—' }}</td>
-                                <td>{{ $order->no_cbd ?: '—' }}</td>
-                                <td>{{ $order->currency }}</td>
-                                <td>{{ $order->destination ?: '—' }}</td>
-                                <td>{{ $order->outputProduct?->code ?: '—' }}</td>
-                                <td>@if($order->image_url)<img src="{{ $order->image_url }}" alt="{{ $order->outputProduct->code }}" loading="lazy" style="width:48px;height:48px;object-fit:contain" class="me-2 rounded">@endif{{ $order->outputProduct?->name ?: '—' }}</td>
-                                <td>{{ $order->outputProduct?->unit?->symbol ?: $order->outputProduct?->unit?->name ?: '—' }}
-                                </td>
-                                <td>{{ $order->outputProduct?->style_code ?: '—' }}</td>
-                                <td>{{ $order->outputProduct?->color ?: '—' }}</td><td>{{ $order->outputProduct?->size ?: '—' }}</td>
-                                <td class="text-end">{{ number_format((float) $order->planned_quantity, 4, ',', '.') }}
-                                </td>
-                                <td class="text-end">{{ number_format((float) $order->price_per_unit, 4, ',', '.') }}</td>
-                                <td class="text-end">{{ number_format((float) $order->total_price, 4, ',', '.') }}</td>
-                                <td>{{ $order->description ?: '—' }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -175,178 +248,28 @@
         </div>
     </div>
 
-    @canany(['production-orders.create', 'production-orders.update'])
-        <div class="modal fade" id="materialOrderModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-xl modal-dialog-scrollable">
-                    <form id="materialOrderForm" class="modal-content" enctype="multipart/form-data">
-                        @csrf <input type="hidden" id="mo_image_only" name="image_only" value="0"><input type="hidden" id="materialOrderId"><input type="hidden" name="output_product_id"
-                            id="output_product_id">
-                        <div class="modal-header bg-primary text-white">
-                            <h5 class="modal-title" id="materialOrderModalTitle">
-                                {{ __('ui.workflow.material_order_form_title') }}</h5><button type="button"
-                                class="btn-close btn-close-white" data-bs-dismiss="modal"
-                                aria-label="{{ __('ui.common.close') }}"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div id="mo_image_only_notice" class="alert alert-info d-none">{{ __('variants.image_only_notice') }}</div>
-                            <section class="material-order-section mb-3">
-                                <h6 class="material-order-section-title">{{ __('ui.workflow.material_order') }} —
-                                    {{ __('ui.workflow.order_information') }}</h6>
-                                <div class="row g-3">
-                                    <div class="col-md-4"><label for="number"
-                                            class="form-label">{{ __('ui.workflow.material_order_no') }} <span
-                                                class="text-danger">*</span></label><input class="form-control" id="number"
-                                            name="number" maxlength="100" required></div>
-                                    <div class="col-md-4"><label for="po_date"
-                                            class="form-label">{{ __('ui.workflow.po_date') }} <span
-                                                class="text-danger">*</span></label><input class="form-control" type="date"
-                                            id="po_date" name="po_date" required></div>
-                                    <div class="col-md-4"><label for="due_date"
-                                            class="form-label">{{ __('ui.workflow.material_order_due_date') }} <span
-                                                class="text-danger">*</span></label><input class="form-control" type="date"
-                                            id="due_date" name="due_date" required></div>
-                                    <div class="col-md-4"><label for="buyer_po_number"
-                                            class="form-label">{{ __('ui.workflow.buyer_po_no') }}</label><input
-                                            class="form-control" id="buyer_po_number" name="buyer_po_number" maxlength="100">
-                                    </div>
-                                    <div class="col-md-4"><label for="currency"
-                                            class="form-label">{{ __('ui.workflow.currency') }} <span
-                                                class="text-danger">*</span></label><select class="form-select" id="currency"
-                                            name="currency" required>
-                                            <option value="USD">USD</option>
-                                            @if ($defaultCurrency !== 'USD')
-                                                <option value="{{ $defaultCurrency }}">{{ $defaultCurrency }}</option>
-                                            @endif
-                                        </select>
-                                    </div>
-                                    <div class="col-md-4"><label for="no_cbd"
-                                            class="form-label">{{ __('ui.workflow.no_cbd') }}</label><input
-                                            class="form-control" id="no_cbd" name="no_cbd" maxlength="100"></div>
-                                    <div class="col-md-4"><label for="customer_id"
-                                            class="form-label">{{ __('ui.workflow.buyer') }} <span
-                                                class="text-danger">*</span></label><select class="form-select"
-                                            id="customer_id" name="customer_id" required>
-                                            <option value="">{{ __('ui.common.select') }}</option>
-                                            @foreach ($customers as $customer)
-                                                <option value="{{ $customer->id }}">{{ $customer->name }}</option>
-                                            @endforeach
-                                        </select></div>
-                                    <div class="col-md-8"><label for="destination"
-                                            class="form-label">{{ __('ui.workflow.destination') }}</label><input
-                                            class="form-control" id="destination" name="destination" maxlength="150"></div>
-                                </div>
-                            </section>
-                            <section class="material-order-section">
-                                <h6 class="material-order-section-title">{{ __('ui.workflow.detail_finished_good') }}</h6>
-                                <div class="row g-3">
-                                    <div class="col-lg-6"><label class="form-label"
-                                            for="item_code_display">{{ __('ui.workflow.item_code') }} <span
-                                                class="text-danger">*</span></label>
-                                        <div class="input-group"><input class="form-control bg-light" id="item_code_display"
-                                                readonly required><button class="btn btn-primary" type="button"
-                                                id="searchFinishedGood">{{ __('ui.common.search') }}</button></div>
-                                    </div>
-                                    <div class="col-lg-6"><label class="form-label"
-                                            for="item_name_display">{{ __('ui.workflow.item_name') }}</label><input
-                                            class="form-control bg-light" id="item_name_display" readonly></div>
-                                    <div class="col-12">
-                                        <label class="form-label" for="mo_image">{{ __('variants.image') }}</label>
-                                        <input type="file" class="form-control mb-2" id="mo_image" name="image" accept="image/jpeg,image/png,image/webp">
-                                        <div class="form-text mb-2">{{ __('variants.upload_hint') }}</div>
-                                        <img id="mo_item_image" class="img-thumbnail d-none" alt="{{ __('variants.image') }}" style="width:160px;height:160px;max-width:100%;object-fit:contain">
-                                        <div id="mo_item_image_empty" class="text-muted small">{{ __('variants.image_hint') }}</div>
-                                    </div>
-                                    <div class="col-md-3"><label class="form-label"
-                                            for="item_unit_display">{{ __('ui.common.unit') }}</label><input
-                                            class="form-control bg-light" id="item_unit_display" readonly></div>
-                                    <div class="col-md-3"><label class="form-label"
-                                            for="item_style_display">{{ __('ui.nav.styles') }}</label><input
-                                            class="form-control bg-light" id="item_style_display" readonly></div>
-                                    <div class="col-md-3"><label class="form-label" for="item_color_display">{{ __('ui.workflow.color') }}</label><input class="form-control" id="item_color_display" name="order_color" maxlength="80"></div>
-                                    <div class="col-md-3"><label class="form-label" for="item_size_display">{{ __('ui.workflow.size') }}</label><input class="form-control" id="item_size_display" name="order_size" maxlength="40"></div>
-                                    <div class="col-12" id="mo_matrix_toggle">
-                                        <label class="form-check-label"><input class="form-check-input me-2" type="checkbox" id="mo_use_matrix" checked> {{ __('variants.matrix') }}</label>
-                                    </div>
-                                    <div class="col-12" id="mo_size_matrix">
-                                        <p class="text-muted small">{{ __('variants.matrix_hint') }}</p>
-                                        <div class="table-responsive"><table class="table table-sm align-middle">
-                                            <thead><tr><th>{{ __('ui.workflow.size') }}</th><th>{{ __('ui.workflow.order_quantity') }}</th><th></th></tr></thead>
-                                            <tbody id="mo_size_rows"></tbody>
-                                        </table></div>
-                                        <button type="button" class="btn btn-outline-primary btn-sm" id="mo_add_size">{{ __('variants.add_size') }}</button>
-                                    </div>
-                                    <div class="col-md-3"><label class="form-label"
-                                            for="planned_quantity">{{ __('ui.workflow.order_quantity') }} <span
-                                                class="text-danger">*</span></label><input class="form-control text-end"
-                                            type="number" min="0.0001" step="0.0001" id="planned_quantity"
-                                            name="planned_quantity" value="0" required></div>
-                                    <div class="col-md-3"><label class="form-label"
-                                            for="price_per_unit">{{ __('ui.workflow.price_per_unit') }}</label><input
-                                            class="form-control text-end" type="number" min="0" step="0.0001"
-                                            id="price_per_unit" name="price_per_unit" value="0"></div>
-                                    <div class="col-md-4"><label class="form-label"
-                                            for="total_price_display">{{ __('ui.workflow.total_price') }}</label><input
-                                            class="form-control text-end bg-light" id="total_price_display" value="0"
-                                            readonly></div>
-                                    <div class="col-md-8"><label class="form-label"
-                                            for="description">{{ __('ui.workflow.description') }}</label><input
-                                            class="form-control" id="description" name="description" maxlength="5000"></div>
-                                </div>
-                            </section>
-                        </div>
-                        <div class="modal-footer"><button type="button" class="btn btn-light btn-sm"
-                                data-bs-dismiss="modal">{{ __('ui.common.cancel') }}</button><button type="submit"
-                                class="btn btn-primary btn-sm" id="saveMaterialOrder"><i data-feather="save"
-                                    class="icon-sm me-1"></i>{{ __('ui.common.save') }}</button></div>
-                    </form>
-            </div>
-        </div>
-
-        <div class="modal fade" id="finishedGoodPickerModal" tabindex="-1" aria-hidden="true">
-            <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">{{ __('ui.workflow.choose_finished_good') }}</h5><button type="button"
-                            class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div class="table-responsive">
-                            <table id="finishedGoodsPickerTable"
-                                class="table table-sm table-bordered table-hover align-middle w-100">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>{{ __('ui.workflow.item_code') }}</th>
-                                        <th>{{ __('ui.workflow.item_name') }}</th>
-                                        <th>{{ __('ui.common.unit') }}</th>
-                                        <th>{{ __('ui.nav.styles') }}</th>
-                            <th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th>
-                                        <th>{{ __('ui.common.action') }}</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach ($products as $product)
-                                        <tr>
-                                            <td>{{ $product->code }}</td>
-                                            <td>@if($product->mo_image_url)<img src="{{ $product->mo_image_url }}" alt="{{ $product->code }}" loading="lazy" style="width:48px;height:48px;object-fit:contain" class="me-2 rounded">@endif{{ $product->name }}</td>
-                                            <td>{{ $product->unit?->symbol ?: $product->unit?->name }}</td>
-                                            <td>{{ $product->style_code }}</td>
-                                            <td>{{ $product->color ?: '—' }}</td><td>{{ $product->size ?: '—' }}</td>
-                                            <td><button type="button" class="btn btn-primary btn-sm choose-finished-good"
-                                                    data-id="{{ $product->id }}" data-code="{{ $product->code }}"
-                                                    data-name="{{ $product->name }}"
-                                                    data-unit="{{ $product->unit?->symbol ?: $product->unit?->name }}"
-                                                    data-image="{{ $product->mo_image_url ?? '' }}" data-color="{{ $product->color }}" data-size="{{ $product->size }}" data-style="{{ $product->style_code }}">{{ __('ui.common.select') }}</button>
-                                            </td>
-                                        </tr>
-                                    @endforeach
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+        @can('production-orders.create')
+        <div class="modal fade" id="moFullImportModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable"><form id="moFullImportForm" class="modal-content">
+                @csrf
+                <div class="modal-header"><h5 class="modal-title">{{ __('variants.full_import') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div>
+                <div class="modal-body">
+                    <p class="small text-muted">{{ __('variants.full_import_hint') }}</p>
+                    <a class="btn btn-outline-secondary btn-sm mb-2" href="{{ route('super.material-orders.full-import-template') }}">{{ __('variants.full_import_template') }}</a>
+                    <p class="small text-muted">{{ __('variants.mo_template_variant_hint') }}</p>
+                    <input type="file" name="file" class="form-control form-control-sm mb-3" accept=".xlsx" required>
+                    <label class="form-label small" for="mo_full_image">{{ __('variants.image') }}</label>
+                    <input id="mo_full_image" type="file" name="image" class="form-control form-control-sm" accept="image/jpeg,image/png,image/webp">
+                    <p class="small text-muted mt-1">{{ __('variants.import_image_hint') }}</p>
+                    <div class="table-responsive" style="max-height:320px"><table class="table table-sm"><thead id="mo_full_preview_head"></thead><tbody id="mo_full_preview_body"></tbody></table></div>
+                    <div id="mo_full_preview_count" class="small text-muted"></div>
                 </div>
-            </div>
+                <div class="modal-footer"><button type="submit" class="btn btn-outline-primary btn-sm" id="mo_full_preview">{{ __('variants.preview_import') }}</button><button type="button" class="btn btn-primary btn-sm" id="mo_full_confirm" disabled>{{ __('variants.confirm_import') }}</button></div>
+            </form></div>
         </div>
-    @endcanany
+        @endcan
+
+
 @endsection
 
 @push('scripts')
@@ -371,10 +294,10 @@
                 pageLength: 10,
                 lengthMenu: [5, 10, 50, 100],
                 order: [
-                    [3, 'desc']
+                    [2, 'desc']
                 ],
                 columnDefs: [{
-                    targets: 0,
+                    targets: [0, -1],
                     orderable: false,
                     searchable: false
                 }],
@@ -409,181 +332,46 @@
                 if (toDate) url.searchParams.set('to_date', toDate); else url.searchParams.delete('to_date');
                 this.href = url.toString();
             });
-            const modalElement = document.getElementById('materialOrderModal'),
-                pickerElement = document.getElementById('finishedGoodPickerModal');
-            const modal = modalElement ? bootstrap.Modal.getOrCreateInstance(modalElement) : null;
-            const picker = pickerElement ? bootstrap.Modal.getOrCreateInstance(pickerElement) : null;
-            const setItemImage = (url, code = '') => {
-                const image = $('#mo_item_image');
-                image.off('error').on('error', function () {
-                    $(this).addClass('d-none').removeAttr('src');
-                    $('#mo_item_image_empty').removeClass('d-none');
-                });
-                if (url) image.attr({src: url, alt: code}).removeClass('d-none');
-                else image.addClass('d-none').removeAttr('src');
-                $('#mo_item_image_empty').toggleClass('d-none', Boolean(url));
-            };
-            let uploadedImagePreview = null;
-            let savedImageUrl = null;
-            $('#mo_image').on('change', function () {
-                if (uploadedImagePreview) URL.revokeObjectURL(uploadedImagePreview);
-                uploadedImagePreview = this.files[0] ? URL.createObjectURL(this.files[0]) : null;
-                setItemImage(uploadedImagePreview || savedImageUrl, $('#item_code_display').val());
-            });
-            let sizeRowIndex = 0;
-            function addSizeRow() {
-                const index = sizeRowIndex++;
-                $('#mo_size_rows').append(`<tr><td><input class="form-control" name="variant_rows[${index}][size]" maxlength="40" required></td><td><input class="form-control mo-size-quantity" type="number" name="variant_rows[${index}][quantity]" min="0.0001" step="0.0001" required></td><td><button type="button" class="btn btn-outline-danger btn-sm mo-remove-size" aria-label="{{ __('ui.common.delete') }}">×</button></td></tr>`);
+            function clearFullPreview() {
+                $('#mo_full_confirm').prop('disabled', true);
+                $('#mo_full_preview_head,#mo_full_preview_body,#mo_full_preview_count').empty();
             }
-            function syncMatrix() {
-                const active = $('#mo_use_matrix').prop('checked');
-                $('#mo_size_matrix').toggleClass('d-none', !active).find('input').prop('disabled', !active);
-                $('#item_size_display').prop('disabled', active).closest('.col-md-3').toggleClass('d-none', active);
-                $('#item_color_display').prop('required', active);
-                $('#planned_quantity').prop('readonly', active).toggleClass('bg-light', active);
-                recalculate();
-            }
-            $('#mo_add_size').on('click', addSizeRow);
-            $('#mo_use_matrix').on('change', syncMatrix);
-            $('#mo_size_rows').on('input', 'input', () => recalculate()).on('click', '.mo-remove-size', function () {
-                $(this).closest('tr').remove();
-                if (!$('#mo_size_rows tr').length) addSizeRow();
-                recalculate();
-            });
-            const resetLine = () => {
-                $('#materialOrderForm .modal-body :input').prop('disabled', false);
-                $('#mo_image_only').val('0');
-                $('#mo_image_only_notice').addClass('d-none');
-                $('#mo_matrix_toggle').removeClass('d-none');
-                $('#mo_use_matrix').prop('checked', true);
-                $('#mo_size_rows').empty();
-                sizeRowIndex = 0;
-                addSizeRow();
-                if (uploadedImagePreview) URL.revokeObjectURL(uploadedImagePreview);
-                uploadedImagePreview = null;
-                savedImageUrl = null;
-                $('#mo_image').val('');
-                setItemImage(null);
-                $('#output_product_id,#item_code_display,#item_name_display,#item_unit_display,#item_style_display,#item_color_display,#item_size_display')
-                    .val('');
-                $('#planned_quantity').val('0');
-                $('#price_per_unit').val('0');
-                $('#total_price_display').val('0');
-                $('#description').val('');
-                syncMatrix();
-            };
-            const recalculate = () => {
-                if ($('#mo_use_matrix').prop('checked')) {
-                    const total = [...document.querySelectorAll('.mo-size-quantity')].reduce((sum, input) => sum + Math.max(0, Number(input.value) || 0), 0);
-                    $('#planned_quantity').val(total.toFixed(4));
-                }
-                $('#total_price_display').val((Number($('#planned_quantity').val() || 0) * Number($('#price_per_unit').val() || 0)).toFixed(4));
-            };
-            $('#planned_quantity,#price_per_unit').on('input', recalculate);
-            $('#searchFinishedGood').on('click', function() {
-                if (!$.fn.DataTable.isDataTable('#finishedGoodsPickerTable')) $('#finishedGoodsPickerTable')
-                    .DataTable({
-                        pageLength: 10,
-                        lengthMenu: [5, 10, 50, 100],
-                        order: [
-                            [0, 'asc']
-                        ],
-                        language: dtLanguage
-                    });
-                picker.show();
-            });
-            $(document).on('click', '.choose-finished-good', function() {
-                const b = $(this);
-                $('#output_product_id').val(b.data('id'));
-                $('#item_code_display').val(b.data('code'));
-                $('#item_name_display').val(b.data('name'));
-                $('#item_unit_display').val(b.data('unit'));
-                $('#item_style_display').val(b.data('style'));
-                $('#item_color_display').val(b.data('color') || '');
-                $('#item_size_display').val(b.data('size') || '');
-                savedImageUrl = b.attr('data-image');
-                setItemImage(uploadedImagePreview || savedImageUrl, b.data('code'));
-                picker.hide();
-            });
-            @can('production-orders.create')
-                $('#addMaterialOrder').on('click', function() {
-                    $('#materialOrderForm')[0].reset();
-                    $('#materialOrderId').val('');
-                    resetLine();
-                    $('#number').prop('readonly', false);
-                    $('#po_date').val(@json(now()->format('Y-m-d')));
-                    $('#currency').val('USD');
-                    $('#materialOrderForm').attr('data-method', 'POST').attr('data-url',
-                        @json(route('super.material-orders.store')));
-                    $('#materialOrderModalTitle').text(@json(__('ui.workflow.material_order_form_title')));
-                    modal.show();
-                });
-            @endcan
-            @can('production-orders.update')
-                $(document).on('click', '.edit-material-order', function() {
-                    const b = $(this);
-                    $.get(b.data('url')).done(data => {
-                        $('#materialOrderForm')[0].reset();
-                        $('#materialOrderForm .modal-body :input').prop('disabled', false);
-                        $('#mo_use_matrix').prop('checked', false);
-                        $('#mo_matrix_toggle').addClass('d-none');
-                        syncMatrix();
-                        $('#materialOrderId').val(data.id);
-                        $('#number').val(data.number).prop('readonly', false);
-                        $('#buyer_po_number').val(data.buyer_po_number || '');
-                        $('#no_cbd').val(data.no_cbd || '');
-                        $('#currency').val(data.currency || 'USD');
-                        $('#destination').val(data.destination || '');
-                        $('#po_date').val(data.po_date);
-                        $('#due_date').val(data.due_date);
-                        $('#customer_id').val(data.customer_id);
-                        $('#output_product_id').val(data.output_product_id);
-                        $('#item_code_display').val(data.product_code);
-                        $('#item_name_display').val(data.product);
-                        $('#item_unit_display').val(data.unit);
-                        $('#item_style_display').val(data.style);
-                        $('#item_color_display').val(data.color || '');
-                        $('#item_size_display').val(data.size || '');
-                        if (uploadedImagePreview) URL.revokeObjectURL(uploadedImagePreview);
-                        uploadedImagePreview = null;
-                        savedImageUrl = data.image_url;
-                        setItemImage(savedImageUrl, data.product_code);
-                        $('#planned_quantity').val(data.planned_quantity);
-                        $('#price_per_unit').val(data.price_per_unit);
-                        $('#description').val(data.description || '');
-                        recalculate();
-                        $('#materialOrderForm').attr('data-method', 'PUT').attr('data-url', b.data(
-                            'url'));
-                        $('#materialOrderModalTitle').text(@json(__('ui.common.edit')) + ' MO ' +
-                            data.number);
-                        $('#mo_image_only').val(data.is_locked ? '1' : '0');
-                        $('#mo_image_only_notice').toggleClass('d-none', !data.is_locked);
-                        if (data.is_locked) $('#materialOrderForm .modal-body :input').not('#mo_image').prop('disabled', true);
-                        modal.show();
-                    }).fail(xhr => showError(xhr));
-                });
-            @endcan
-            $('#materialOrderForm').on('submit', function(event) {
-                event.preventDefault();
-                const form = $(this),
-                    button = $('#saveMaterialOrder').prop('disabled', true);
-                const payload = new FormData(form[0]);
-                if (form.attr('data-method') === 'PUT') payload.append('_method', 'PUT');
-                $.ajax({
-                    url: form.attr('data-url'),
-                    method: 'POST',
-                    data: payload,
-                    processData: false,
-                    contentType: false
+            $('#moFullImportForm input[type=file]').on('change', clearFullPreview);
+            let fullImportBusy = false;
+            function uploadFullImport(confirm) {
+                const form = document.getElementById('moFullImportForm');
+                if (!form || fullImportBusy || !form.reportValidity()) return;
+                fullImportBusy = true;
+                const payload = new FormData(form); payload.append('confirm', confirm ? '1' : '0');
+                $('#mo_full_preview,#mo_full_confirm').prop('disabled', true);
+                $('#moFullImportForm input[type=file]').prop('disabled', true);
+                let previewReady = false;
+                $.ajax({url: @json(route('super.material-orders.full-import')), method: 'POST',
+                    data: payload, processData: false, contentType: false
                 }).done(response => {
-                    modal.hide();
-                    Swal.fire({
-                        icon: 'success',
-                        title: @json(__('ui.workflow.success')),
-                        text: response.message
-                    }).then(() => window.location.reload());
-                }).fail(xhr => showError(xhr)).always(() => button.prop('disabled', false));
-            });
+                    if (confirm) {
+                        Swal.fire({icon: 'success', text: response.message}).then(() => window.location.reload());
+                        return;
+                    }
+                    clearFullPreview();
+                    const columns = ['number','buyer_po_number','no_cbd','currency','destination','po_date','due_date','customer_code','style_code','color','size','qty','price_per_unit','description'];
+                    const head = $('<tr>'); columns.forEach(key => head.append($('<th>').text(key)));
+                    $('#mo_full_preview_head').append(head);
+                    response.rows.forEach(row => {
+                        const tr = $('<tr>'); columns.forEach(key => tr.append($('<td>').text(row[key] ?? '')));
+                        $('#mo_full_preview_body').append(tr);
+                    });
+                    $('#mo_full_preview_count').text(response.count);
+                    previewReady = true;
+                }).fail(xhr => { clearFullPreview(); showError(xhr); }).always(() => {
+                    fullImportBusy = false;
+                    $('#mo_full_preview').prop('disabled', false);
+                    $('#moFullImportForm input[type=file]').prop('disabled', false);
+                    $('#mo_full_confirm').prop('disabled', !previewReady);
+                });
+            }
+            $('#moFullImportForm').on('submit', function (e) { e.preventDefault(); uploadFullImport(false); });
+            $('#mo_full_confirm').on('click', () => uploadFullImport(true));
             @can('production-orders.delete')
                 $(document).on('click', '.delete-material-order', function() {
                     const b = $(this);

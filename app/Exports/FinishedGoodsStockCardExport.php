@@ -26,21 +26,23 @@ class FinishedGoodsStockCardExport implements FromCollection, WithHeadings, With
 
     public function headings(): array
     {
-        if ($this->products) return ['No MO', 'Kode Barang', 'Nama Barang', 'Satuan'];
+        if ($this->products) return ['Kode Barang', 'Nama Barang', 'Warna / Color', 'Ukuran / Size', 'Satuan'];
 
-        return ['Tanggal', 'No Mutasi', 'Uraian', 'Jumlah', '(+/-)', 'Saldo', 'Pengguna'];
+        return ['Kode Barang', 'Warna / Color', 'Ukuran / Size', 'Satuan', 'Tanggal', 'No Mutasi', 'Uraian', 'Jumlah', '(+/-)', 'Saldo', 'Pengguna'];
     }
 
     public function map($row): array
     {
         if ($row instanceof Product) {
-            return ['', $row->code, $row->name, $row->unit?->symbol ?: $row->unit?->name ?: '—'];
+            return [$row->code, $row->name, $row->color, $row->size, $row->unit?->symbol ?: $row->unit?->name ?: '—'];
         }
 
         /** @var StockMovement $row */
         $query = app(FinishedGoodsStockCardQuery::class);
 
         return [
+            $this->product?->code, $this->product?->color, $this->product?->size,
+            $this->product?->unit?->symbol ?: $this->product?->unit?->name,
             $row->created_at?->format('Y-m-d'),
             $query->documentNumber($row),
             $query->description($row),

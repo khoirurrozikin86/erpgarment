@@ -23,7 +23,6 @@ class FinishedGoodsStockCardController extends Controller
     {
         return DataTables::eloquent($query->products())
             ->addColumn('unit_label', fn (Product $product) => $product->unit?->symbol ?: $product->unit?->name ?: '—')
-            ->addColumn('mo_number', fn () => '')
             ->addColumn('actions', fn (Product $product) => '<a class="btn btn-sm btn-primary" href="'.e(route('super.finished-goods-stock-card.show', $product)).'"><i data-feather="eye" class="icon-sm me-1"></i>Tampil</a>')
             ->rawColumns(['actions'])
             ->toJson();

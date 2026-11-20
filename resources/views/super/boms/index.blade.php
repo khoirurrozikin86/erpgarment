@@ -9,74 +9,45 @@
     </nav>
 @endsection
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <h4 class="page-title mb-1">{{ __('ui.workflow.bom_title') }}</h4>
-            <p class="text-muted mb-0">Finished Goods dan Style</p>
-        </div>
-        <a href="{{ route('super.boms.export') }}" class="btn btn-sm btn-outline-success"><i data-feather="download"
-                class="icon-sm me-1"></i>Export Excel</a>
+    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+        <div><h4 class="page-title mb-1">{{ __('ui.workflow.bom_title') }}</h4><p class="text-muted mb-0">{{ __('variants.bom_style_overview') }}</p></div>
+        <div class="d-flex gap-2">@can('boms.create')<a class="btn btn-primary btn-sm" href="{{ route('super.boms.create') }}">+ {{ __('ui.workflow.bom_create') }}</a>@endcan
+        <a href="{{ route('super.boms.export') }}" class="btn btn-sm btn-outline-success">{{ __('ui.common.export_excel') }}</a></div>
     </div>
-    @if (session('success'))
-        <div class="alert alert-success alert-dismissible fade show py-2" role="alert">{{ session('success') }}<button
-                type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>
-    @endif
-    <div class="card border-0 shadow-sm bom-card">
-
-        <div class="card-body">
-            <div class="table-responsive">
-                <table id="bom-products-table" class="table table-hover align-middle w-100 mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>No</th>
-                            <th>Aksi</th>
-                            <th>Style</th>
-                            <th>Item Code</th>
-                            <th>Finished Goods</th>
-                            <th>Unit</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($products as $product)
-                            @php($bom = $product->billsOfMaterial->first())
-                            <tr>
-                                <td></td>
-                                <td class="text-nowrap">
-                                    @if ($bom)
-                                        <a class="btn btn-sm btn-outline-info bom-action"
-                                            href="{{ route('super.boms.detail', $product) }}">Detail</a>
-                                        @can('boms.update')
-                                            <a class="btn btn-sm btn-outline-primary bom-action"
-                                                href="{{ route('super.boms.edit', $bom) }}">Edit</a>
-                                        @endcan
-                                        @can('boms.delete')
-                                            <form method="POST" action="{{ route('super.boms.destroy', $bom) }}"
-                                                class="d-inline"
-                                                onsubmit="return confirm('Hapus BOM ini beserta rincian materialnya?')">@csrf
-                                                @method('DELETE')<button class="btn btn-sm btn-outline-danger bom-action"
-                                                    type="submit">Hapus</button></form>
-                                        @endcan
-                                    @else
-                                        @can('boms.create')
-                                            <a class="btn btn-sm btn-outline-success bom-action"
-                                                href="{{ route('super.boms.input', $product) }}">Input</a>
-                                        @endcan
-                                    @endif
-                                </td>
-                                <td>{{ $product->style_code }}</td>
-                                <td>{{ $product->code }}</td>
-                                <td>{{ $product->name }}</td>
-                                <td>{{ $product->unit?->symbol ?: $product->unit?->name ?: '—' }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+    @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
+    <div class="card border-0 shadow-sm bom-card"><div class="card-body"><div class="table-responsive">
+        <table id="bom-products-table" class="table table-hover align-middle w-100 mb-0"><thead><tr>
+            <th>No</th><th>{{ __('variants.bom_number') }}</th><th>Style</th><th>{{ __('variants.bom_type') }}</th><th>{{ __('variants.process') }}</th><th>{{ __('ui.workflow.size') }}</th><th>{{ __('ui.workflow.color') }}</th><th>Item Code</th><th>{{ __('ui.common.item') }}</th><th>{{ __('ui.common.category') }}</th><th>{{ __('ui.common.unit') }}</th><th>Consumption</th><th>{{ __('ui.common.actions') }}</th>
+        </tr></thead><tbody>
+        @foreach($boms as $bom)
+            <tr><td></td><td class="align-top text-nowrap">{{ $bom->number }}</td><td class="align-top text-nowrap">{{ $bom->style_code ?: $bom->product?->style_code }}<small class="d-block text-muted">{{ $bom->name }}</small></td>
+                <td class="align-top">{{ __('variants.bom_type_'.$bom->bom_type) }}</td>
+            @foreach(['process','size','color','code','name','category','unit','consumption'] as $column)
+                <td class="align-top">@forelse($bom->items as $component)<div class="bom-component-line">
+                    @switch($column)
+                        @case('process') {{ $component->operation ?: '—' }} @break
+                        @case('color') {{ $component->applies_to_color ?: __('variants.all') }} @break
+                        @case('size') {{ $component->applies_to_size ?: __('variants.all') }} @break
+                        @case('code') {{ $component->product?->code }} @break
+                        @case('name') {{ $component->product?->name }} @break
+                        @case('category') {{ $component->product?->category?->name }} @break
+                        @case('unit') {{ $component->product?->unit?->symbol ?: $component->product?->unit?->name ?: '—' }} @break
+                        @case('consumption') {{ $component->quantity }} @break
+                    @endswitch
+                </div>@empty — @endforelse</td>
+            @endforeach
+            <td class="align-top text-nowrap text-end">
+                @can('boms.update')<a class="btn btn-sm btn-outline-primary" href="{{ route('super.boms.edit', $bom) }}">{{ __('ui.common.edit') }}</a>@endcan
+                @can('boms.delete')<form method="POST" action="{{ route('super.boms.destroy', $bom) }}" data-confirm="{{ __('variants.bom_delete_confirm') }}" class="d-inline bom-delete-form">@csrf @method('DELETE')<button class="btn btn-sm btn-outline-danger">{{ __('ui.common.delete') }}</button></form>@endcan
+            </td></tr>
+        @endforeach
+        </tbody></table>
+    </div></div></div>
 @endsection
 @push('styles')
     <style>
+        .bom-delete-message { white-space: pre-line; overflow-wrap: anywhere; }
+        .bom-component-line { height: 2.25rem; display: flex; align-items: center; white-space: nowrap; border-bottom: 1px solid #eef2f6; }
         .bom-card {
             border-radius: .75rem;
         }
@@ -144,15 +115,36 @@
 @push('scripts')
     <script>
         $(function() {
+            @if(session('bom_delete_error'))
+                const blocked = @json(session('bom_delete_error'));
+                Swal.fire({
+                    icon: 'warning',
+                    title: @json(__('ui.common.cannot_delete')),
+                    text: blocked.message + '\n\n' + blocked.references.join('\n'),
+                    confirmButtonText: 'OK',
+                    confirmButtonColor: '#6571ff',
+                    customClass: {htmlContainer: 'bom-delete-message'}
+                });
+            @endif
+            $(document).on('submit', '.bom-delete-form', function(e) {
+                e.preventDefault();
+                const form = this;
+                Swal.fire({
+                    icon: 'warning', title: @json(__('ui.workflow.bom_delete')),
+                    text: form.dataset.confirm, showCancelButton: true,
+                    confirmButtonText: @json(__('ui.common.delete')),
+                    cancelButtonText: @json(__('ui.common.cancel')),
+                    confirmButtonColor: '#d33'
+                }).then(result => { if (result.isConfirmed) HTMLFormElement.prototype.submit.call(form); });
+            });
             $('#bom-products-table').DataTable({
                 pageLength: 10,
                 lengthMenu: [5, 10, 50, 100],
                 order: [
-                    [2, 'asc'],
-                    [3, 'asc']
+                    [1, 'desc']
                 ],
                 columnDefs: [{
-                    targets: [0, 1],
+                    targets: [0, 12],
                     orderable: false,
                     searchable: false
                 }],

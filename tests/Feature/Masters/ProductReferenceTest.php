@@ -6,7 +6,6 @@ use App\Exports\ProductsExport;
 use App\Exports\ProductsTemplateExport;
 use App\Models\Category;
 use App\Models\Product;
-use App\Models\Style;
 use App\Models\Unit;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -28,11 +27,11 @@ class ProductReferenceTest extends TestCase
 
         $html = $this->actingAs($user)->get(route('super.products.index'))->assertOk()->getContent();
 
-        foreach (['category_id', 'code', 'name', 'unit_id', 'style_code', 'color', 'size', 'is_active', 'is_available'] as $field) {
+        foreach (['category_id', 'code', 'name', 'unit_id', 'color', 'size', 'is_active', 'is_available'] as $field) {
             $this->assertStringContainsString('id="'.$field.'"', $html);
         }
 
-        foreach (['barcode', 'sku', 'short_name', 'hs_code', 'composition', 'sales_price', 'taxable', 'tax_rate', 'allow_discount', 'allow_purchase', 'allow_sales', 'description'] as $field) {
+        foreach (['style_code', 'barcode', 'sku', 'short_name', 'hs_code', 'composition', 'sales_price', 'taxable', 'tax_rate', 'allow_discount', 'allow_purchase', 'allow_sales', 'description'] as $field) {
             $this->assertStringNotContainsString('for="'.$field.'"', $html);
             $this->assertStringNotContainsString('id="'.$field.'"', $html);
         }
@@ -42,12 +41,12 @@ class ProductReferenceTest extends TestCase
 
         $this->assertStringNotContainsString('<th>'.__('ui.workflow.barcode').'</th>', $html);
         $this->assertStringNotContainsString('<th>'.__('ui.workflow.current_stock').'</th>', $html);
-        $this->assertStringContainsString('<th>'.__('ui.workflow.style_code').'</th>', $html);
-        $this->assertStringContainsString('id="style-search"', $html);
+        $this->assertStringNotContainsString('<th>'.__('ui.workflow.style_code').'</th>', $html);
+        $this->assertStringNotContainsString('id="style-search"', $html);
         $this->assertStringContainsString('<th>Available</th>', $html);
         $this->assertStringContainsString('modal-lg', $html);
         $this->assertStringNotContainsString('modal-xl', $html);
-        $expectedHeadings = ['Kategori', 'Kode Barang', 'Nama Barang', 'Satuan', 'Kode Style', 'Warna', 'Ukuran', 'Available'];
+        $expectedHeadings = ['Kategori', 'Kode Barang', 'Nama Barang', 'Satuan', 'Warna', 'Ukuran', 'Available'];
         $this->assertSame($expectedHeadings, (new ProductsExport())->headings());
         $this->assertSame($expectedHeadings, (new ProductsTemplateExport())->headings());
     }
@@ -71,8 +70,6 @@ class ProductReferenceTest extends TestCase
 
         Category::query()->create(['code' => 'FAB', 'name' => 'Fabric', 'is_active' => true]);
         Unit::query()->create(['code' => 'MTR', 'name' => 'Meter', 'symbol' => 'm', 'is_active' => true]);
-        Style::query()->create(['code' => 'ST-10', 'name' => 'Basic Shirt']);
-        Style::query()->create(['code' => 'ST-11', 'name' => 'Jacket']);
 
         $csv = "Kategori,Kode Barang,Nama Barang,Satuan,Kode Style,Warna,Ukuran,Available\nFabric,ITM-CSV,Imported Fabric,Meter (m),ST-10,Navy,M,Available\nFabric,ITM-OFF,Inactive Fabric,Meter,ST-11,Black,L,Unavailable\n";
         $this->post(route('super.products.import'), [
@@ -81,7 +78,7 @@ class ProductReferenceTest extends TestCase
 
         $product = Product::query()->where('code', 'ITM-CSV')->firstOrFail();
         $this->assertSame('Imported Fabric', $product->name);
-        $this->assertSame('ST-10', $product->style_code);
+        $this->assertNull($product->style_code);
         $this->assertSame('Navy', $product->color);
         $this->assertSame('M', $product->size);
         $this->assertTrue($product->is_active);
@@ -91,19 +88,4 @@ class ProductReferenceTest extends TestCase
         $this->assertDatabaseHas('products', ['code' => 'ITM-OFF', 'is_available' => false]);
         $this->assertDatabaseHas('audit_logs', ['module' => 'PRODUCT', 'action' => 'CREATE']);
     }
-
-
-    public function test_style_search_returns_matches_from_style_master(): void
-    {
-        $user = User::factory()->create();
-        $user->givePermissionTo(Permission::firstOrCreate(['name' => 'products.view', 'guard_name' => 'web']));
-        Style::query()->create(['code' => 'ST-SEARCH', 'name' => 'Searchable Shirt']);
-
-        $this->actingAs($user)
-            ->getJson(route('super.products.style-options', ['q' => 'Searchable']))
-            ->assertOk()
-            ->assertJsonPath('data.0.code', 'ST-SEARCH')
-            ->assertJsonPath('data.0.name', 'Searchable Shirt');
-    }
-
 }

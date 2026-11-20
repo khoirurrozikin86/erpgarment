@@ -24,14 +24,14 @@ class GoodsReceiptsExport implements FromQuery, WithHeadings, WithMapping, Shoul
     {
         return [
             'No.', 'No. GRN', 'Tanggal GRN', 'No. Invoice', 'Tanggal Invoice', 'Supplier', 'Style',
-            'No. Material Request', 'No. PO Supplier', 'Status GRN', 'Kode Item', 'Nama Item', 'Satuan', 'Qty', 'Harga', 'Mata Uang', 'Total', 'Keterangan',
+            'No. Material Request', 'No. PO Supplier', 'Status GRN', 'Kode Item', 'Nama Item', 'Color', 'Size', 'Satuan', 'Qty', 'Harga', 'Mata Uang', 'Total', 'Keterangan',
         ];
     }
 
     public function map($item): array
     {
         $receipt = $item->goodsReceipt;
-        $style = $receipt?->purchaseOrder?->purchaseRequest?->materialRequest?->productionOrder?->outputProduct?->style_code
+        $style = $receipt?->purchaseOrder?->purchaseRequest?->materialRequest?->productionOrder?->model_style
             ?? $receipt?->purchaseOrder?->purchaseRequest?->materialRequest?->outputProduct?->style_code
             ?? $item->product?->style_code;
 
@@ -48,6 +48,8 @@ class GoodsReceiptsExport implements FromQuery, WithHeadings, WithMapping, Shoul
             $receipt?->status,
             $item->product?->code,
             $item->product?->name,
+            $item->purchaseOrderItem?->purchaseRequestItem?->materialRequestItem?->color ?: $item->product?->color,
+            $item->purchaseOrderItem?->purchaseRequestItem?->materialRequestItem?->size ?: $item->product?->size,
             $item->product?->unit?->symbol ?: $item->product?->unit?->name,
             (float) $item->quantity,
             (float) $item->unit_price,

@@ -3,6 +3,7 @@
 namespace App\Domain\Inventory\Queries;
 
 use App\Models\Product;
+use App\Models\StockOpnameItem;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
@@ -14,7 +15,9 @@ class MaterialMutationReportQuery
         $from = CarbonImmutable::parse($filters['from_date'])->startOfDay();
         $until = CarbonImmutable::parse($filters['to_date'])->addDay()->startOfDay();
         $query = $this->products($filters)
-            ->when($filters['search'] ?? null, fn (Builder $q, string $search) => $q->where(fn (Builder $q) => $q->where('code', 'like', "%{$search}%")->orWhere('name', 'like', "%{$search}%")))
+            ->when($filters['search'] ?? null, fn (Builder $q, string $search) => $q->where(
+                fn (Builder $items) => $this->search($items, "%{$search}%")
+            ))
             ->withSum(['stockMovements as adjustment_in' => fn (Builder $q) => $q->where('created_at', '>=', $from)->where('created_at', '<', $until)->where('movement_type', 'stock_adjustment')->where('quantity', '>', 0)], 'quantity')
             ->withSum(['stockMovements as adjustment_out' => fn (Builder $q) => $q->where('created_at', '>=', $from)->where('created_at', '<', $until)->where('movement_type', 'stock_adjustment')->where('quantity', '<', 0)], 'quantity');
 
@@ -30,10 +33,19 @@ class MaterialMutationReportQuery
         ])->reorder('code')->orderBy('id');
     }
 
+    protected function search(Builder $products, string $pattern): Builder
+    {
+        return $products->where('code', 'like', $pattern)->orWhere('name', 'like', $pattern)
+            ->orWhereHas('parentProduct', fn (Builder $parent) => $parent->where('code', 'like', $pattern));
+    }
+
     protected function products(array $filters): Builder
     {
-        return app(InventoryReportQuery::class)->builder($filters['from_date'], $filters['to_date'])
-            ->where('product_type', 'stock')
+        return $this->stockIdentityProducts($filters)
+            ->with(['stockMovements' => fn ($movements) => $movements
+                ->where('created_at', '>=', $filters['from_date'])
+                ->where('created_at', '<', CarbonImmutable::parse($filters['to_date'])->addDay()->startOfDay())
+                ->withTransactionDimensions()])
             ->where(function (Builder $q) {
                 $q->whereIn('garment_item_type', ['fabric', 'accessory', 'packaging'])
                     ->orWhereHas('category', fn (Builder $q) => $q->whereIn('code', ['RAW', 'FAB', 'ACC', 'PACK']))
@@ -41,6 +53,20 @@ class MaterialMutationReportQuery
                         $q->where('garment_item_type', 'general')->whereHas('billOfMaterialComponents');
                     });
             });
+    }
+
+    protected function stockIdentityProducts(array $filters): Builder
+    {
+        $until = CarbonImmutable::parse($filters['to_date'])->addDay()->startOfDay();
+
+        return app(InventoryReportQuery::class)->builder($filters['from_date'], $filters['to_date'])
+            ->where('product_type', 'stock')
+            ->where(fn (Builder $items) => $items->whereNotNull('parent_product_id')
+                ->orWhereDoesntHave('variants')
+                ->orWhereHas('stockMovements', fn (Builder $movements) => $movements->where('created_at', '<', $until))
+                ->orWhereExists(StockOpnameItem::query()->selectRaw('1')->whereColumn('product_id', 'products.id')
+                    ->whereHas('stockOpname', fn (Builder $counts) => $counts->where('status', 'posted')
+                        ->where('posted_at', '>=', $filters['from_date'])->where('posted_at', '<', $until))));
     }
 
     public static function values(Product $product): array

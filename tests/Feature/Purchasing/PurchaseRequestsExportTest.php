@@ -26,8 +26,8 @@ class PurchaseRequestsExportTest extends TestCase
                 'production_quantity' => null,
             ],
             'items' => collect([
-                (object) ['product' => (object) ['code' => 'MAT-01', 'name' => 'Fabric', 'unit' => (object) ['symbol' => 'MTR', 'name' => 'Meter']], 'quantity' => '2.5000'],
-                (object) ['product' => (object) ['code' => 'MAT-02', 'name' => 'Thread', 'unit' => (object) ['symbol' => 'PCS', 'name' => 'Pieces']], 'quantity' => '3.0000'],
+                (object) ['product' => (object) ['code' => 'MAT-01', 'name' => 'Fabric', 'color' => null, 'size' => null, 'unit' => (object) ['symbol' => 'MTR', 'name' => 'Meter']], 'materialRequestItem' => (object) ['color' => 'Black', 'size' => 'S'], 'quantity' => '2.5000'],
+                (object) ['product' => (object) ['code' => 'MAT-02', 'name' => 'Thread', 'color' => null, 'size' => null, 'unit' => (object) ['symbol' => 'PCS', 'name' => 'Pieces']], 'materialRequestItem' => (object) ['color' => null, 'size' => null], 'quantity' => '3.0000'],
             ]),
             'supplier' => (object) ['name' => 'Supplier One'],
             'requester' => (object) ['name' => 'Requester One'],
@@ -41,10 +41,12 @@ class PurchaseRequestsExportTest extends TestCase
         $this->assertSame(25.0, $rows[0][6]);
         $this->assertSame('MAT-01', $rows[0][7]);
         $this->assertSame('Fabric', $rows[0][8]);
-        $this->assertSame(2.5, $rows[0][9]);
+        $this->assertSame('Black', $rows[0][9]);
+        $this->assertSame('S', $rows[0][10]);
+        $this->assertSame(2.5, $rows[0][11]);
         $this->assertSame('MAT-02', $rows[1][7]);
         $this->assertSame('PR-001', $rows[1][0]);
-        $this->assertSame(15, count($export->headings()));
+        $this->assertSame(17, count($export->headings()));
     }
 
     public function test_export_query_applies_selected_date_range(): void

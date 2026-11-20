@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
             CompanySeeder::class,
             CategorySeeder::class,
             UnitSeeder::class,
+            VariantDimensionSeeder::class,
             SupplierSeeder::class,
             DocumentNumberingSeeder::class,
             ChartOfAccountsSeeder::class,

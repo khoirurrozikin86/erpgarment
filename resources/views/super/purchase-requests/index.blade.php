@@ -37,7 +37,7 @@
                     <div class="table-responsive">
                         <table id="purchase-requests-table" class="table table-bordered table-hover align-middle w-100">
                             <thead><tr>
-                                <th width="50">{{ __('ui.common.no') }}</th><th>{{ __('ui.common.pr_number') }}</th><th>{{ __('ui.common.request_date') }}</th><th>{{ __('ui.common.mr_number') }}</th><th>{{ __('ui.workflow.buyer_po_no') }}</th><th>{{ __('ui.nav.styles') }} / {{ __('ui.workflow.order_quantity') }}</th><th>{{ __('ui.workflow.items_needed') }}</th><th>{{ __('ui.common.supplier') }}</th>
+                                <th width="50">{{ __('ui.common.no') }}</th><th>{{ __('ui.common.pr_number') }}</th><th>{{ __('ui.common.request_date') }}</th><th>{{ __('ui.common.mr_number') }}</th><th>{{ __('ui.workflow.buyer_po_no') }}</th><th>{{ __('ui.nav.styles') }} / {{ __('ui.workflow.color') }} / {{ __('ui.workflow.size') }} / {{ __('ui.workflow.order_quantity') }}</th><th>{{ __('ui.workflow.items_needed') }}</th><th>{{ __('ui.common.supplier') }}</th>
                                 <th>{{ __('ui.common.requester') }}</th><th>{{ __('ui.common.estimated_total') }}</th><th>{{ __('ui.common.status') }}</th><th width="130" class="text-end">{{ __('ui.common.action') }}</th>
                             </tr></thead>
                         </table>
@@ -112,7 +112,11 @@
             $(document).on('click', '.btn-view-purchase-request', function() {
                 $.get($(this).data('url')).done(function(request) {
                     const status = { pending: '{{ __('ui.workflow.approval_pending') }}', approved: '{{ __('ui.workflow.approval_approved') }}', rejected: '{{ __('ui.workflow.approval_rejected') }}' }[request.status];
-                    const rows = request.items.map(item => `<tr><td>${safe(item.code)} — ${safe(item.product)}</td><td class="text-end">${item.quantity} ${safe(item.unit)}</td><td class="text-end">${money(item.unit_price)}</td><td class="text-end">${money(item.line_total)}</td></tr>`).join('');
+                    const productionRows = (request.production_details || []).map(detail => {
+                        const quantity = detail.quantity === null ? '—' : Number(detail.quantity).toLocaleString('id-ID', { maximumFractionDigits: 4 });
+                        return `<tr><td>${safe(detail.style || '—')}</td><td>${safe(detail.color || '—')}</td><td>${safe(detail.size || '—')}</td><td class="text-end">${quantity}</td></tr>`;
+                    }).join('');
+                    const rows = request.items.map(item => `<tr><td>${safe(item.code)} — ${safe(item.product)}</td><td>${safe(item.color || '—')}</td><td>${safe(item.size || '—')}</td><td class="text-end">${item.quantity} ${safe(item.unit)}</td><td class="text-end">${money(item.unit_price)}</td><td class="text-end">${money(item.line_total)}</td></tr>`).join('');
                     $('#viewPurchaseRequestTitle').text(`Purchase Request ${request.number}`);
                     $('#viewPurchaseRequestBody').html(`
                         <dl class="row mb-3"><dt class="col-sm-3">{{ __('ui.common.material_request') }}</dt><dd class="col-sm-9">${safe(request.material_request_number)}</dd>
@@ -122,7 +126,8 @@
                         <dt class="col-sm-3">{{ __('ui.common.notes') }}</dt><dd class="col-sm-9 text-break">${safe(request.notes)}</dd>
                         <dt class="col-sm-3">{{ __('ui.common.reviewed_by') }}</dt><dd class="col-sm-9">${safe(request.reviewer)} (${safe(request.reviewed_at)})</dd>
                         <dt class="col-sm-3">{{ __('ui.common.approval_notes') }}</dt><dd class="col-sm-9 text-break">${safe(request.review_note)}</dd></dl>
-                        <div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>{{ __('ui.common.item') }}</th><th class="text-end">{{ __('ui.common.quantity') }}</th><th class="text-end">{{ __('ui.common.unit_price') }}</th><th class="text-end">{{ __('ui.common.subtotal') }}</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><th colspan="3" class="text-end">{{ __('ui.common.estimated_total') }}</th><th class="text-end">${money(request.total_amount)}</th></tr></tfoot></table></div>`);
+                        ${productionRows ? `<div class="table-responsive mb-3"><table class="table table-sm table-bordered"><thead><tr><th>{{ __('ui.nav.styles') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th class="text-end">{{ __('ui.workflow.order_quantity') }}</th></tr></thead><tbody>${productionRows}</tbody></table></div>` : ''}
+                        <div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr><th>{{ __('ui.common.item') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th class="text-end">{{ __('ui.common.quantity') }}</th><th class="text-end">{{ __('ui.common.unit_price') }}</th><th class="text-end">{{ __('ui.common.subtotal') }}</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><th colspan="5" class="text-end">{{ __('ui.common.estimated_total') }}</th><th class="text-end">${money(request.total_amount)}</th></tr></tfoot></table></div>`);
                     viewModal.show();
                 }).fail(() => Swal.fire({ icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: '{{ __('ui.workflow.pr_detail_load_failed') }}' }));
             });

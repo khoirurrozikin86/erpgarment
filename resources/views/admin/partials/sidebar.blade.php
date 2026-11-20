@@ -47,7 +47,7 @@
             @endcan
 
             {{-- Master konfigurasi yang ditempatkan di Setting sesuai permintaan. --}}
-            @canany(['categories.view', 'units.view', 'importers.view', 'exporters.view', 'company.view', 'general-settings.view', 'email-settings.view', 'document-numbering.view'])
+            @canany(['categories.view', 'units.view', 'products.view', 'importers.view', 'exporters.view', 'company.view', 'general-settings.view', 'email-settings.view', 'document-numbering.view'])
                 <li class="nav-item nav-category">{{ __('ui.nav.settings') }}</li>
             @endcanany
             @can('categories.view')
@@ -55,6 +55,11 @@
             @endcan
             @can('units.view')
                 <li class="nav-item"><a href="{{ route('super.units.index') }}" class="nav-link {{ request()->routeIs('super.units.*') ? 'active' : '' }}"><i class="link-icon" data-feather="box"></i><span class="link-title">{{ __('ui.nav.units') }}</span></a></li>
+            @endcan
+            @can('products.view')
+                @foreach (['color' => 'droplet', 'size' => 'grid'] as $dimensionKind => $dimensionIcon)
+                    <li class="nav-item"><a href="{{ route('super.variant-dimensions.index', $dimensionKind) }}" class="nav-link {{ request()->routeIs('super.variant-dimensions.index') && request()->route('kind') === $dimensionKind ? 'active' : '' }}"><i class="link-icon" data-feather="{{ $dimensionIcon }}"></i><span class="link-title">{{ __('variants.master_'.$dimensionKind) }}</span></a></li>
+                @endforeach
             @endcan
             @can('importers.view')
                 <li class="nav-item"><a href="{{ route('super.importers.index') }}" class="nav-link {{ request()->routeIs('super.importers.*') ? 'active' : '' }}"><i class="link-icon" data-feather="globe"></i><span class="link-title">{{ __('ui.master.importers') }}</span></a></li>
@@ -85,14 +90,12 @@
             @can('customers.view')
                 <li class="nav-item"><a href="{{ route('super.customers.index') }}" class="nav-link {{ request()->routeIs('super.customers.*') ? 'active' : '' }}"><i class="link-icon" data-feather="users"></i><span class="link-title">{{ __('ui.nav.customers') }}</span></a></li>
             @endcan
-            @can('styles.view')
-                <li class="nav-item"><a href="{{ route('super.styles.index') }}" class="nav-link {{ request()->routeIs('super.styles.*') ? 'active' : '' }}"><i class="link-icon" data-feather="tag"></i><span class="link-title">{{ __('ui.nav.styles') }}</span></a></li>
-            @endcan
             @can('products.view')
                 <li class="nav-item"><a href="{{ route('super.products.index') }}" class="nav-link {{ request()->routeIs('super.products.*') ? 'active' : '' }}"><i class="link-icon" data-feather="package"></i><span class="link-title">{{ __('ui.nav.item') }}</span></a></li>
             @endcan
             @can('boms.view')
-                <li class="nav-item"><a href="{{ route('super.boms.index') }}" class="nav-link {{ request()->routeIs('super.boms.*') ? 'active' : '' }}"><i class="link-icon" data-feather="git-branch"></i><span class="link-title">BOM</span></a></li>
+                <li class="nav-item"><a href="{{ route('super.boms.styles') }}" class="nav-link {{ request()->routeIs('super.boms.styles') ? 'active' : '' }}"><i class="link-icon" data-feather="tag"></i><span class="link-title">{{ __('variants.master_style') }}</span></a></li>
+                <li class="nav-item"><a href="{{ route('super.boms.index') }}" class="nav-link {{ request()->routeIs('super.boms.*') && !request()->routeIs('super.boms.styles') ? 'active' : '' }}"><i class="link-icon" data-feather="git-branch"></i><span class="link-title">BOM</span></a></li>
             @endcan
             @can('production-orders.view')
                 <li class="nav-item"><a href="{{ route('super.material-orders.index') }}" class="nav-link {{ request()->routeIs('super.material-orders.*') ? 'active' : '' }}"><i class="link-icon" data-feather="clipboard"></i><span class="link-title">{{ __('ui.workflow.material_order') }}</span></a></li>

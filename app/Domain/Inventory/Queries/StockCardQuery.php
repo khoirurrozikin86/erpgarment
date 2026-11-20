@@ -13,20 +13,12 @@ class StockCardQuery
 {
     use AppliesDateRange;
 
-    public function products(): Builder
-    {
-        return Product::query()
-            ->where('track_stock', true)
-            ->with('unit:id,name,symbol')
-            ->select(['id', 'code', 'name', 'unit_id', 'track_stock'])
-            ->orderBy('name');
-    }
-
-    public function movements(?int $productId, ?string $fromDate, ?string $toDate): Builder
+    public function movements(?int $productId, ?string $fromDate, ?string $toDate, bool $family = false): Builder
     {
         $query = StockMovement::query()
             ->with([
-                'product:id,code,name,unit_id',
+                'product:id,code,name,unit_id,parent_product_id,color,size',
+                'product.parentProduct:id,code',
                 'product.unit:id,name,symbol',
                 'subcontractMaterialIssueDocument:id,number,issue_kind',
                 'goodsReceipt:id,number',
@@ -70,11 +62,29 @@ class StockCardQuery
                 'notes',
                 'created_at',
             ])
-            ->when($productId, fn(Builder $builder) => $builder->where('product_id', $productId), fn(Builder $builder) => $builder->whereRaw('1 = 0'))
+            ->when($family && $productId, fn (Builder $builder) => $builder->whereIn('product_id',
+                Product::query()->select('id')->where('track_stock', true)
+                    ->where(fn (Builder $items) => $items->whereKey($productId)->orWhere('parent_product_id', $productId))),
+                fn (Builder $builder) => $builder->where('product_id', $productId ?? 0))
             ->orderBy('created_at')
             ->orderBy('id');
 
         return $this->applyDateRange($query, 'created_at', $fromDate, $toDate);
+    }
+
+    public function familyDetails(Product $parent, string $fromDate, string $toDate, InventoryReportQuery $report): array
+    {
+        return $report->builder($fromDate, $toDate)->withoutEagerLoads()
+            ->addSelect(['products.color', 'products.size'])
+            ->with('stock:id,product_id,quantity')
+            ->where(fn (Builder $items) => $items->whereKey($parent->id)->orWhere('parent_product_id', $parent->id))
+            ->get()->map(fn (Product $sku) => [
+                'id' => $sku->id, 'code' => $sku->code, 'color' => $sku->color, 'size' => $sku->size,
+                'opening_balance' => (float) ($sku->opening_balance ?? 0),
+                'quantity_in' => (float) ($sku->quantity_in ?? 0),
+                'quantity_out' => abs((float) ($sku->quantity_out ?? 0)),
+                'current_balance' => (float) ($sku->stock?->quantity ?? 0),
+            ])->values()->all();
     }
 
     public function summary(Product $product, ?string $fromDate, ?string $toDate): array

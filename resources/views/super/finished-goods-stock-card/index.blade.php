@@ -17,7 +17,7 @@
                 <a href="{{ route('super.finished-goods-stock-card.export') }}" class="btn btn-sm btn-outline-success"><i data-feather="download" class="icon-sm me-1"></i>{{ __('ui.common.export_excel') }}</a>
             </div>
             <div class="table-responsive"><table id="finishedGoodsProductsTable" class="table table-bordered table-hover align-middle w-100">
-                <thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.common.action') }}</th><th>No MO</th><th>{{ __('ui.common.item_code') }}</th><th>{{ __('ui.common.item_name') }}</th><th>{{ __('ui.common.unit') }}</th></tr></thead>
+                <thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.common.action') }}</th><th>{{ __('ui.common.item_code') }}</th><th>{{ __('ui.common.item_name') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th>{{ __('ui.common.unit') }}</th></tr></thead>
             </table></div>
         </div>
     </div>
@@ -32,12 +32,13 @@ $(function () {
         columns: [
             { data: 'id', orderable: false, searchable: false, render: (data, type, row, meta) => meta.row + meta.settings._iDisplayStart + 1 },
             { data: 'actions', orderable: false, searchable: false },
-            { data: 'mo_number', orderable: false, searchable: false },
             { data: 'code', name: 'code' },
             { data: 'name', name: 'name' },
+            { data: 'color', name: 'color', defaultContent: '—' },
+            { data: 'size', name: 'size', defaultContent: '—' },
             { data: 'unit_label', orderable: false, searchable: false }
         ],
-        order: [[4, 'asc']],
+        order: [[2, 'asc']],
         drawCallback: function () { if (window.feather) feather.replace(); }
     });
 });

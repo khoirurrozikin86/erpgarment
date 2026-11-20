@@ -6,15 +6,21 @@
     <style>
         @page { margin: 32px 36px; }
         body { font-family: DejaVu Sans, sans-serif; color: #202938; font-size: 11px; }
-        h1 { font-size: 20px; margin: 0 0 5px; }
+        h1 { font-size: 20px; margin: 0 0 4px; text-align: center; }
         .muted { color: #667085; }
+        .company-header { width: 100%; border-bottom: 1px solid #cfd5df; padding-bottom: 10px; margin-bottom: 16px; }
+        .company-logo-cell { width: 90px; vertical-align: middle; }
+        .company-logo-cell img { max-width: 76px; max-height: 62px; }
+        .company-info { vertical-align: middle; line-height: 1.5; }
+        .company-name { font-size: 16px; font-weight: bold; color: #263b5e; margin-bottom: 2px; }
+        .company-contact { color: #475467; }
         .header { border-bottom: 2px solid #263b5e; padding-bottom: 13px; margin-bottom: 16px; }
-        .document-no { font-size: 13px; font-weight: bold; color: #263b5e; }
-        .meta { width: 100%; margin-bottom: 18px; }
-        .meta td { padding: 5px 8px 5px 0; vertical-align: top; }
+        .document-no { font-size: 13px; font-weight: bold; color: #263b5e; text-align: center; }
+        .meta { width: 100%; margin-bottom: 12px; table-layout: fixed; font-size: 9px; line-height: 1.2; }
+        .meta td { padding: 3px 5px 3px 0; vertical-align: top; }
         .meta .label { width: 135px; color: #667085; }
-        table.items { border-collapse: collapse; width: 100%; }
-        .items th, .items td { border: 1px solid #cfd5df; padding: 7px 8px; }
+        table.items { border-collapse: collapse; table-layout: fixed; width: 100%; font-size: 8px; line-height: 1.2; }
+        .items th, .items td { border: 1px solid #cfd5df; padding: 3px 3px; vertical-align: top; overflow-wrap: break-word; word-wrap: break-word; }
         .items th { background: #f1f4f8; text-align: left; }
         .right { text-align: right; }
         .center { text-align: center; }
@@ -43,27 +49,33 @@
 
     <table class="items">
         <thead><tr>
-            <th class="center" style="width:32px">{{ __('ui.common.no') }}</th>
-            <th>{{ __('ui.material_issue.source_item_number') }}</th>
-            <th>{{ __('ui.common.item_code') }}</th>
-            <th>{{ __('ui.common.item_name') }}</th>
-            <th>{{ __('ui.material_issue.style') }}</th>
-            <th>{{ __('ui.common.unit') }}</th>
-            <th class="right" style="width:100px">{{ __('ui.common.quantity') }}</th>
+            <th class="center" style="width:4%">{{ __('ui.common.no') }}</th>
+            <th style="width:12%">{{ __('ui.material_issue.source_item_number') }}</th>
+            <th style="width:12%">{{ __('variants.stock_parent_code') }}</th>
+            <th style="width:15%">{{ __('variants.stock_sku') }}</th>
+            <th style="width:19%">{{ __('ui.common.item_name') }}</th>
+            <th style="width:9%">{{ __('ui.material_issue.style') }}</th>
+            <th style="width:7%">{{ __('ui.workflow.color') }}</th>
+            <th style="width:6%">{{ __('ui.workflow.size') }}</th>
+            <th style="width:5%">{{ __('ui.common.unit') }}</th>
+            <th class="right" style="width:11%">{{ __('ui.common.quantity') }}</th>
         </tr></thead>
         <tbody>
             @forelse ($issue->items as $item)
                 <tr>
                     <td class="center">{{ $loop->iteration }}</td>
-                    <td>{{ $item->rawMaterialOrderItem?->number ?? '—' }}</td>
+                    <td>{{ $issue->rawMaterialOrder?->number ?? '—' }}</td>
+                    <td>{{ $item->product?->parentProduct?->code ?? $item->product?->code ?? '—' }}</td>
                     <td>{{ $item->product?->code ?? '—' }}</td>
                     <td>{{ $item->product?->name ?? '—' }}</td>
                     <td>{{ $item->rawMaterialOrderItem?->style_code ?? '—' }}</td>
+                    <td>{{ $item->issued_color ?? '—' }}</td>
+                    <td>{{ $item->issued_size ?? '—' }}</td>
                     <td>{{ $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—' }}</td>
                     <td class="right">{{ number_format((float) $item->quantity, 4, ',', '.') }}</td>
                 </tr>
             @empty
-                <tr><td colspan="7" class="center">{{ __('ui.common.no_matching_records') }}</td></tr>
+                <tr><td colspan="10" class="center">{{ __('ui.common.no_matching_records') }}</td></tr>
             @endforelse
         </tbody>
     </table>

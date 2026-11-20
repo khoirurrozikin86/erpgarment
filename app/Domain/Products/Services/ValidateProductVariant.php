@@ -37,7 +37,8 @@ class ValidateProductVariant
         }
         if ($product && ($product->stockMovements()->exists() || $product->billOfMaterialComponents()->exists() || $product->billsOfMaterial()->exists()
             || \App\Models\ProductionOrder::where('output_product_id', $product->id)->exists()
-            || \App\Models\MaterialRequestItem::where('product_id', $product->id)->exists())) {
+            || \App\Models\MaterialRequestItem::where('product_id', $product->id)->exists()
+            || \App\Models\StockOpnameItem::where('product_id', $product->id)->exists())) {
             foreach (['parent_product_id', 'color', 'size'] as $field) {
                 if ((string) $product->$field !== (string) $attributes[$field]) {
                     throw ValidationException::withMessages([$field => __('variants.used_identity')]);

@@ -17,8 +17,8 @@ class FinishedGoodsReturnReportQuery
             ->whereHas('product', fn (Builder $q) => $q->where('track_stock', true)->where(function (Builder $q) {
                 $q->where('garment_item_type', 'finished_good')->orWhereHas('category', fn (Builder $q) => $q->where('code', 'FG')->orWhereRaw('LOWER(name) = ?', ['finished goods']));
             }))
-            ->with('product.unit')
-            ->when($filters['search'] ?? null, fn (Builder $q, string $search) => $q->whereHas('product', fn (Builder $q) => $q->where('code', 'like', "%{$search}%")->orWhere('name', 'like', "%{$search}%")))
+            ->with(['product.unit', 'product.parentProduct:id,code'])
+            ->when($filters['search'] ?? null, fn (Builder $q, string $search) => $q->whereHas('product', fn (Builder $q) => $q->where('code', 'like', "%{$search}%")->orWhere('name', 'like', "%{$search}%")->orWhereHas('parentProduct', fn (Builder $parent) => $parent->where('code', 'like', "%{$search}%"))))
             ->orderBy('created_at')->orderBy('id');
     }
 }

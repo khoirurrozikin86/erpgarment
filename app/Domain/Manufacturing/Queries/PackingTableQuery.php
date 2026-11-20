@@ -11,7 +11,7 @@ class PackingTableQuery
     {
         return ProductionOrderStageEntry::query()->where('stage','packing')->whereDate('processed_at','>=',$from?:'1000-01-01')->whereDate('processed_at','<=',$to?:'9999-12-31')
             ->whereHas('productionOrder',fn(Builder $q)=>$q->where('company_id',$companyId))
-            ->with(['productionOrder:id,company_id,number,buyer_po_number,no_cbd,output_product_id,planned_quantity','productionOrder.stageEntries'=>fn($q)=>$q->where('stage','sewing')->select('id','production_order_id','good_quantity'),'productionOrder.outputProduct:id,code,name,style_code,unit_id,color,size','productionOrder.outputProduct.unit:id,name,symbol','processor:id,name','materialProduct:id,code,name,unit_id','materialProduct.unit:id,name,symbol'])
+            ->with(['productionOrder:id,company_id,number,buyer_po_number,no_cbd,output_product_id,planned_quantity,style_code','productionOrder.stageEntries'=>fn($q)=>$q->where('stage','sewing')->select('id','production_order_id','good_quantity'),'productionOrder.outputProduct:id,code,name,style_code,unit_id,color,size,parent_product_id','productionOrder.outputProduct.parentProduct:id,code','productionOrder.outputProduct.unit:id,name,symbol','processor:id,name','materialProduct:id,code,name,unit_id','materialProduct.unit:id,name,symbol'])
             ->select('production_order_stage_entries.*')->latest('processed_at');
     }
     public function productionOrders(int $companyId):Builder
@@ -22,8 +22,8 @@ class PackingTableQuery
             ->joinSub($sew,'sew_stage',fn($j)=>$j->on('sew_stage.production_order_id','=','production_orders.id'))
             ->leftJoinSub($pack,'pack_stage',fn($j)=>$j->on('pack_stage.production_order_id','=','production_orders.id'))
             ->whereRaw('COALESCE(sew_stage.sewing_qty,0)>COALESCE(pack_stage.packing_qty,0)')
-            ->with(['outputProduct:id,code,name,style_code,unit_id,color,size','outputProduct.unit:id,name,symbol','materials.product:id,code,name,unit_id'])
-            ->select(['production_orders.id','production_orders.company_id','production_orders.number','production_orders.buyer_po_number','production_orders.no_cbd','production_orders.output_product_id','production_orders.planned_quantity','production_orders.status'])
+            ->with(['outputProduct:id,code,name,style_code,unit_id,color,size,parent_product_id','outputProduct.parentProduct:id,code','outputProduct.unit:id,name,symbol','materials.product:id,code,name,unit_id'])
+            ->select(['production_orders.id','production_orders.company_id','production_orders.number','production_orders.buyer_po_number','production_orders.no_cbd','production_orders.output_product_id', 'production_orders.style_code','production_orders.planned_quantity','production_orders.status'])
             ->selectRaw('COALESCE(sew_stage.sewing_qty,0)-COALESCE(pack_stage.packing_qty,0) as available_sewing_quantity')->latest('production_orders.created_at');
     }
 }

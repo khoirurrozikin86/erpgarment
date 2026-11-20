@@ -72,8 +72,7 @@ class SaveFinishedGoodsAction
 
     private function assertAvailable(ProductionOrder $order, float $received, ?int $exceptId = null): void
     {
-        $packed = (float) $order->stageEntries()->where('stage', 'packing')->sum('good_quantity');
-        $receivedBefore = (float) $order->stageEntries()->where('stage', 'finishing')->when($exceptId, fn ($q) => $q->where('id', '!=', $exceptId))->sum('input_quantity');
-        if ($received > $packed - $receivedBefore + 0.0001) throw ValidationException::withMessages(['receive_from_packing' => __('ui.finished_goods.qty_exceeds_packing')]);
+        $available = app(\App\Domain\Manufacturing\Services\ProductionStageBalance::class)->remaining($order, 'finishing', $exceptId);
+        if ($received > $available + 0.0001) throw ValidationException::withMessages(['receive_from_packing' => __('ui.finished_goods.qty_exceeds_packing')]);
     }
 }

@@ -14,7 +14,7 @@ class FinishedGoodsTableQuery
         return ProductionOrderStageEntry::query()->where('stage', 'finishing')
             ->whereDate('processed_at', '>=', $from ?: '1000-01-01')->whereDate('processed_at', '<=', $to ?: '9999-12-31')
             ->whereHas('productionOrder', fn (Builder $q) => $q->where('company_id', $companyId))
-            ->with(['productionOrder:id,company_id,number,buyer_po_number,no_cbd,output_product_id,planned_quantity', 'productionOrder.outputProduct:id,code,name,style_code,unit_id,color,size', 'productionOrder.outputProduct.unit:id,name,symbol', 'processor:id,name'])
+            ->with(['productionOrder:id,company_id,number,buyer_po_number,no_cbd,output_product_id,planned_quantity,style_code', 'productionOrder.outputProduct:id,code,name,style_code,unit_id,color,size', 'productionOrder.outputProduct.unit:id,name,symbol', 'processor:id,name'])
             ->select('production_order_stage_entries.*')->latest('processed_at');
     }
 
@@ -29,7 +29,7 @@ class FinishedGoodsTableQuery
             ->leftJoinSub($received, 'finished_stage', fn ($j) => $j->on('finished_stage.production_order_id', '=', 'production_orders.id'))
             ->whereRaw('COALESCE(packing_stage.packing_qty,0)>COALESCE(finished_stage.received_qty,0)')
             ->with(['outputProduct:id,code,name,style_code,unit_id,color,size', 'outputProduct.unit:id,name,symbol'])
-            ->select(['production_orders.id', 'production_orders.company_id', 'production_orders.number', 'production_orders.buyer_po_number', 'production_orders.no_cbd', 'production_orders.output_product_id', 'production_orders.planned_quantity'])
+            ->select(['production_orders.id', 'production_orders.company_id', 'production_orders.number', 'production_orders.buyer_po_number', 'production_orders.no_cbd', 'production_orders.output_product_id', 'production_orders.style_code', 'production_orders.planned_quantity'])
             ->selectRaw('COALESCE(packing_stage.packing_qty,0)-COALESCE(finished_stage.received_qty,0) as available_packing_quantity')
             ->latest('production_orders.created_at');
     }

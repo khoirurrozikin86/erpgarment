@@ -9,7 +9,6 @@ use App\Http\Requests\Admin\ProductStoreRequest;
 use App\Http\Requests\Admin\ProductUpdateRequest;
 use App\Models\Category;
 use App\Models\Product;
-use App\Models\Style;
 use App\Models\Unit;
 use App\Exports\ProductsExport;
 use App\Imports\ProductsImport;
@@ -94,23 +93,21 @@ class ProductController extends Controller
         return redirect()->route('super.products.index')->with('import_success', 'Data barang berhasil diimpor.');
     }
 
-    public function styleOptions(Request $request): JsonResponse
+    public function variants(Product $product): JsonResponse
     {
-        $search = trim((string) $request->query('q', ''));
-        if ($search === '') {
-            return response()->json(['data' => []]);
-        }
-
-        $styles = Style::query()
-            ->where(function ($query) use ($search) {
-                $query->where('code', 'like', "%{$search}%")
-                    ->orWhere('name', 'like', "%{$search}%");
-            })
-            ->orderBy('code')
-            ->limit(20)
-            ->get(['code', 'name']);
-
-        return response()->json(['data' => $styles]);
+        abort_if($product->parent_product_id, 404);
+        $rows = Product::where(fn ($q) => $q->whereKey($product->id)->orWhere('parent_product_id', $product->id))
+            ->with(['stock', 'unit'])->orderBy('color')->orderBy('size')->get();
+        return response()->json([
+            'label' => $product->code.' — '.$product->name,
+            'total' => $rows->sum(fn ($row) => (float) ($row->stock?->quantity ?? 0)),
+            'items' => $rows->map(fn ($row) => [
+                'code' => $product->code, 'color' => $row->color ?: '—', 'size' => $row->size ?: '—',
+                'quantity' => (float) ($row->stock?->quantity ?? 0),
+                'unit' => $row->unit?->symbol ?: $row->unit?->name,
+                'stock_card_url' => auth()->user()->can('stock-card.view') ? route('super.stock-card.index', ['product_id' => $row->id]) : null,
+            ]),
+        ]);
     }
 
     public function dt(ProductTableQuery $query): JsonResponse
@@ -130,6 +127,9 @@ class ProductController extends Controller
                         ? " ({$product->unit->symbol})"
                         : '');
             })
+
+            ->addColumn('global_stock', fn (Product $product) => number_format((float) ($product->stock?->quantity ?? 0) + $product->variants->sum(fn ($v) => (float) ($v->stock?->quantity ?? 0)), 4, ',', '.'))
+            ->addColumn('variants_button', fn (Product $product) => '<button type="button" class="btn btn-sm btn-outline-primary view-item-variants" data-url="'.e(route('super.products.variants', $product)).'">'.e(__('variants.variant')).' ('.$product->variants->count().')</button>')
 
             ->addColumn('availability', fn (Product $product) => $product->is_available
                 ? '<span class="badge bg-success">Masih Ada</span>'
@@ -153,7 +153,6 @@ class ProductController extends Controller
                             'unit_id' => $product->unit_id,
                             'product_type' => $product->product_type,
                             'garment_item_type' => $product->garment_item_type,
-                            'style_code' => $product->style_code,
                             'parent_product_id' => $product->parent_product_id,
                             'color' => $product->color,
                             'size' => $product->size,
@@ -189,7 +188,7 @@ class ProductController extends Controller
                 )->render();
             })
 
-            ->rawColumns(['availability', 'actions'])
+            ->rawColumns(['availability', 'actions', 'variants_button'])
 
             ->toJson();
     }
@@ -266,6 +265,7 @@ class ProductController extends Controller
      * Jangan kirim file ke ProductService.
      */
         unset($validated['images']);
+        $validated['style_code'] = $product->style_code;
 
         /*
      * Update data Product.

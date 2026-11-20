@@ -4,6 +4,7 @@ namespace App\Domain\Inventory\Actions;
 
 use App\Domain\Audit\Services\AuditLogService;
 use App\Domain\Companies\Services\CompanyContext;
+use App\Domain\Inventory\Services\MaterialIssueStockSku;
 use App\Domain\Settings\Services\DocumentNumberService;
 use App\Models\{InventoryLot, MaterialIssueDocument, Product, ProductStock, ProductionOrderMaterial, RawMaterialOrderItem, StockMovement};
 use Illuminate\Support\Facades\DB;
@@ -39,12 +40,30 @@ class IssueRawMaterialOrderItemAction
                 throw ValidationException::withMessages(['items' => __('ui.material_issue.same_order_required')]);
             }
 
-            $materialIds = $sources->pluck('production_order_material_id')->unique()->sort()->values();
-            $materials = ProductionOrderMaterial::query()->whereIn('id', $materialIds)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
+            $materialIds = $sources->pluck('production_order_material_id')->filter()->unique()->sort()->values();
+            $materials = $materialIds->isEmpty()
+                ? collect()
+                : ProductionOrderMaterial::query()->whereIn('id', $materialIds)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
             if ($materials->count() !== $materialIds->count()) {
                 throw ValidationException::withMessages(['source' => __('ui.material_issue.source_material_missing')]);
             }
-            $productIds = $sources->pluck('product_id')->unique()->sort()->values();
+            $sourceProducts = Product::whereIn('id', $sources->pluck('product_id')->unique())
+                ->with(['variants', 'parentProduct.variants'])->get()->keyBy('id');
+            $skuResolver = app(MaterialIssueStockSku::class);
+            $stockProductIds = $sources->map(function (RawMaterialOrderItem $source) use ($sourceProducts, $materials, $skuResolver) {
+                $product = $sourceProducts->get($source->product_id);
+                if (!$product || !$product->track_stock) {
+                    throw ValidationException::withMessages(['stock' => __('ui.workflow.material_issue_stock_not_tracked')]);
+                }
+
+                $sku = $skuResolver->resolve($source, $product, $materials->get($source->production_order_material_id));
+                if (!$sku) {
+                    throw ValidationException::withMessages(['items' => __('variants.mis_variant_required', ['code' => $product->code])]);
+                }
+
+                return $sku->id;
+            });
+            $productIds = $stockProductIds->unique()->sort()->values();
             $products = Product::query()->whereIn('id', $productIds)->orderBy('id')->lockForUpdate()->get()->keyBy('id');
             $stocks = ProductStock::query()->whereIn('product_id', $productIds)->orderBy('product_id')->lockForUpdate()->get()->keyBy('product_id');
 
@@ -53,30 +72,37 @@ class IssueRawMaterialOrderItemAction
             $stockBalances = [];
             foreach ($lines as $line) {
                 $source = $sources->get($line['raw_material_order_item_id']);
-                $material = $materials->get($source->production_order_material_id);
-                $product = $products->get($source->product_id);
-                $stock = $stocks->get($source->product_id);
+                $material = $source->production_order_material_id ? $materials->get($source->production_order_material_id) : null;
+                $productId = $stockProductIds->get($source->id);
+                $product = $products->get($productId);
+                $stock = $stocks->get($productId);
                 $quantity = $line['quantity'];
                 $sourceIssued = $sourceBalances[$source->id] ?? (float) $source->issued_quantity;
-                $materialIssued = $materialBalances[$material->id] ?? (float) $material->issued_quantity;
-                $stockQuantity = $stockBalances[$source->product_id] ?? (float) ($stock?->quantity ?? 0);
+                $materialIssued = $material
+                    ? ($materialBalances[$material->id] ?? (float) $material->issued_quantity)
+                    : 0;
+                $stockQuantity = $stockBalances[$productId] ?? (float) ($stock?->quantity ?? 0);
                 $sourceRemaining = round((float) $source->quantity - $sourceIssued, 4);
-                $materialRemaining = round((float) $material->required_quantity - $materialIssued, 4);
+                $materialRemaining = $material
+                    ? round((float) $material->required_quantity - $materialIssued, 4)
+                    : null;
                 if ($quantity <= 0 || $quantity > $sourceRemaining) {
                     throw ValidationException::withMessages(['items' => __('ui.material_issue.quantity_invalid')]);
                 }
-                if ($quantity > $materialRemaining) {
+                if ($materialRemaining !== null && $quantity > $materialRemaining) {
                     throw ValidationException::withMessages(['items' => __('ui.workflow.production_order_material_limit')]);
                 }
                 if (!$product || !$product->track_stock) {
                     throw ValidationException::withMessages(['stock' => __('ui.workflow.material_issue_stock_not_tracked')]);
                 }
                 if (!$stock || $stockQuantity < $quantity) {
-                    throw ValidationException::withMessages(['stock' => __('ui.workflow.material_issue_insufficient_stock', ['item' => $product->name, 'available' => number_format((float) ($stock?->quantity ?? 0), 4, ',', '.')])]);
+                    throw ValidationException::withMessages(['stock' => __('ui.workflow.material_issue_insufficient_stock', ['item' => $product->variant_display_name, 'available' => number_format((float) ($stock?->quantity ?? 0), 4, ',', '.')])]);
                 }
                 $sourceBalances[$source->id] = round($sourceIssued + $quantity, 4);
-                $materialBalances[$material->id] = round($materialIssued + $quantity, 4);
-                $stockBalances[$source->product_id] = round($stockQuantity - $quantity, 4);
+                if ($material) {
+                    $materialBalances[$material->id] = round($materialIssued + $quantity, 4);
+                }
+                $stockBalances[$productId] = round($stockQuantity - $quantity, 4);
             }
 
             $firstSource = $sources->get($ids->first());
@@ -91,8 +117,9 @@ class IssueRawMaterialOrderItemAction
             $lotsByProduct = [];
             foreach ($lines as $line) {
                 $source = $sources->get($line['raw_material_order_item_id']);
-                $product = $products->get($source->product_id);
-                $stock = $stocks->get($source->product_id);
+                $productId = $stockProductIds->get($source->id);
+                $product = $products->get($productId);
+                $stock = $stocks->get($productId);
                 $quantity = $line['quantity'];
                 $lots = $lotsByProduct[$product->id] ??= InventoryLot::query()->where('product_id', $product->id)
                     ->where('current_quantity', '>', 0)->orderBy('received_at')->orderBy('id')->lockForUpdate()->get();
@@ -122,8 +149,10 @@ class IssueRawMaterialOrderItemAction
                 $after = round($before - $quantity, 4);
                 $stock->update(['quantity' => $after]);
                 $source->update(['issued_quantity' => round((float) $source->issued_quantity + $quantity, 4)]);
-                $material = $materials->get($source->production_order_material_id);
-                $material->update(['issued_quantity' => round((float) $material->issued_quantity + $quantity, 4)]);
+                $material = $source->production_order_material_id ? $materials->get($source->production_order_material_id) : null;
+                if ($material) {
+                    $material->update(['issued_quantity' => round((float) $material->issued_quantity + $quantity, 4)]);
+                }
                 $unitCost = (float) $stock->average_unit_cost > 0 ? (float) $stock->average_unit_cost : (float) $product->purchase_price;
                 $movement = StockMovement::query()->create([
                     'product_id' => $product->id,

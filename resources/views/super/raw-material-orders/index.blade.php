@@ -16,12 +16,12 @@
 </div>
 @include('super.purchasing.date-filter')
 <div class="card"><div class="card-body"><div class="table-responsive"><table id="rawMaterialOrdersTable" class="table table-bordered table-hover align-middle w-100">
-    <thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.common.action') }}</th><th>{{ __('ui.raw_material_order.number') }}</th><th>{{ __('ui.raw_material_order.date') }}</th><th>{{ __('ui.raw_material_order.style') }}</th><th>{{ __('ui.raw_material_order.mo_number') }}</th><th>{{ __('ui.raw_material_order.item_code') }}</th><th>{{ __('ui.raw_material_order.item_name') }}</th><th>{{ __('ui.raw_material_order.unit') }}</th><th>{{ __('ui.raw_material_order.quantity') }}</th><th>{{ __('ui.raw_material_order.sent_quantity') }}</th></tr></thead>
+    <thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.common.action') }}</th><th>{{ __('ui.raw_material_order.number') }}</th><th>{{ __('ui.raw_material_order.date') }}</th><th>{{ __('ui.raw_material_order.mo_number') }}</th><th>Detail Barang</th></tr></thead>
 </table></div></div></div>
 
 <div class="modal fade" id="rawMoPickerModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content">
     <div class="modal-header"><h5 class="modal-title">{{ __('ui.raw_material_order.select_mo') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div>
-    <div class="modal-body"><div class="table-responsive"><table id="rawMoPickerTable" class="table table-sm table-bordered align-middle w-100"><thead><tr><th>{{ __('ui.raw_material_order.mo_number') }}</th><th>{{ __('ui.common.date') }}</th><th>{{ __('ui.raw_material_order.style') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead></table></div></div>
+    <div class="modal-body"><div class="table-responsive"><table id="rawMoPickerTable" class="table table-sm table-bordered align-middle w-100"><thead><tr><th>{{ __('ui.raw_material_order.mo_number') }}</th><th>{{ __('ui.common.date') }}</th><th>{{ __('ui.nav.styles') }} / {{ __('ui.workflow.color') }} / {{ __('ui.workflow.size') }} / {{ __('ui.workflow.order_quantity') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead></table></div></div>
 </div></div></div>
 @endsection
 
@@ -30,12 +30,11 @@
 $(function(){
     const table=$('#rawMaterialOrdersTable').DataTable({processing:true,serverSide:true,responsive:true,ajax:{url:@json(route('super.raw-material-orders.dt')),data:d=>{d.from_date=$('#from_date').val();d.to_date=$('#to_date').val()}},columns:[
         {data:'id',orderable:false,searchable:false,render:(d,t,r,m)=>m.row+m.settings._iDisplayStart+1},
-        {data:'actions',orderable:false,searchable:false,className:'text-center'},
-        {data:'number',name:'number'},{data:'order_date',name:'document.order_date',render:d=>d?new Date(d+'T00:00:00').toLocaleDateString():'—'},
-        {data:'style_code',name:'style_code',defaultContent:'—'},{data:'mo_number',name:'document.production_order_number'},
-        {data:'code',name:'product.code'},{data:'name',name:'product.name'},{data:'unit',orderable:false,searchable:false},
-        {data:'quantity',name:'quantity',className:'text-end',render:d=>Number(d).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:4})},
-        {data:'issued_quantity',name:'issued_quantity',className:'text-end',render:d=>Number(d||0).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:4})}
+        {data:'actions',orderable:false,searchable:false,responsivePriority:1,className:'text-center'},
+        {data:'number',name:'number'},
+        {data:'order_date',name:'order_date',render:d=>d?new Date(d+'T00:00:00').toLocaleDateString():'—'},
+        {data:'mo_number',orderable:false,searchable:false,defaultContent:'—'},
+        {data:'item_details',orderable:false,searchable:false,defaultContent:'—'}
     ],order:[[3,'desc']],drawCallback:()=>window.feather&&feather.replace()});
     $('#applyDateFilter').on('click',()=>table.ajax.reload());
     $('#todayDateFilter').on('click',()=>{const today=@json(now()->toDateString());$('#from_date,#to_date').val(today);table.ajax.reload()});

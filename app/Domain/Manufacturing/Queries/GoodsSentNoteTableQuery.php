@@ -28,8 +28,8 @@ class GoodsSentNoteTableQuery
             ->joinSub($finished, 'finished', fn ($j) => $j->on('finished.production_order_id', '=', 'production_orders.id'))
             ->leftJoinSub($sent, 'sent', fn ($j) => $j->on('sent.production_order_id', '=', 'production_orders.id'))
             ->whereRaw('COALESCE(finished.finished_qty,0)>COALESCE(sent.sent_qty,0)')
-            ->with(['outputProduct:id,code,name,style_code,unit_id,track_stock', 'outputProduct.unit:id,name,symbol', 'buyer:id,name'])
-            ->select(['production_orders.id', 'production_orders.company_id', 'production_orders.number', 'production_orders.buyer_po_number', 'production_orders.customer_id', 'production_orders.output_product_id'])
+            ->with(['outputProduct:id,code,name,style_code,unit_id,track_stock,parent_product_id,color,size', 'outputProduct.parentProduct:id,code', 'outputProduct.unit:id,name,symbol', 'buyer:id,name'])
+            ->select(['production_orders.id', 'production_orders.company_id', 'production_orders.number', 'production_orders.buyer_po_number', 'production_orders.customer_id', 'production_orders.output_product_id', 'production_orders.style_code', 'production_orders.order_color', 'production_orders.order_size'])
             ->selectRaw('COALESCE(finished.finished_qty,0)-COALESCE(sent.sent_qty,0) as available_quantity')->latest('production_orders.created_at');
     }
 

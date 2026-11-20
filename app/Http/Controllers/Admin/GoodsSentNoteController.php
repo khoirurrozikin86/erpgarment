@@ -44,12 +44,15 @@ class GoodsSentNoteController extends Controller
     public function ordersDt(CompanyContext $company, GoodsSentNoteTableQuery $query): JsonResponse
     {
         return DataTables::eloquent($query->eligibleOrders($company->id()))
-            ->addColumn('style', fn ($o) => $o->outputProduct?->style_code ?: '—')
-            ->addColumn('item_code', fn ($o) => $o->outputProduct?->code)
+            ->addColumn('style', fn ($o) => $o->model_style ?: '—')
+            ->addColumn('parent_code', fn ($o) => $o->outputProduct?->parentProduct?->code ?? $o->outputProduct?->code ?? '—')
+            ->addColumn('sku_code', fn ($o) => $o->outputProduct?->parent_product_id ? $o->outputProduct->code : '—')
+            ->addColumn('color', fn ($o) => $o->line_color ?: '—')
+            ->addColumn('size', fn ($o) => $o->line_size ?: '—')
             ->addColumn('item_name', fn ($o) => $o->outputProduct?->name)
             ->addColumn('unit', fn ($o) => $o->outputProduct?->unit?->symbol ?: $o->outputProduct?->unit?->name ?: '—')
             ->addColumn('customer', fn ($o) => $o->buyer?->name ?: '—')
-            ->addColumn('actions', fn ($o) => '<button type="button" class="btn btn-primary btn-sm js-choose-gsn-order" data-id="'.$o->id.'" data-mo="'.e($o->number).'" data-po="'.e($o->buyer_po_number).'" data-product="'.$o->output_product_id.'" data-style="'.e($o->outputProduct?->style_code).'" data-code="'.e($o->outputProduct?->code).'" data-name="'.e($o->outputProduct?->name).'" data-unit="'.e($o->outputProduct?->unit?->symbol ?: $o->outputProduct?->unit?->name).'" data-customer="'.e($o->customer_id).'" data-available="'.e($o->available_quantity).'">'.e(__('ui.common.select')).'</button>')
+            ->addColumn('actions', fn ($o) => '<button type="button" class="btn btn-primary btn-sm js-choose-gsn-order" data-id="'.$o->id.'" data-mo="'.e($o->number).'" data-po="'.e($o->buyer_po_number).'" data-product="'.$o->output_product_id.'" data-style="'.e($o->model_style).'" data-parent-code="'.e($o->outputProduct?->parentProduct?->code ?? $o->outputProduct?->code).'" data-sku-code="'.e($o->outputProduct?->parent_product_id ? $o->outputProduct->code : '').'" data-color="'.e($o->line_color).'" data-size="'.e($o->line_size).'" data-name="'.e($o->outputProduct?->name).'" data-unit="'.e($o->outputProduct?->unit?->symbol ?: $o->outputProduct?->unit?->name).'" data-customer="'.e($o->customer_id).'" data-available="'.e($o->available_quantity).'">'.e(__('ui.common.select')).'</button>')
             ->rawColumns(['actions'])->toJson();
     }
 
@@ -57,8 +60,8 @@ class GoodsSentNoteController extends Controller
     public function store(Request $request, SaveGoodsSentNoteAction $action): JsonResponse { $action->create($this->validated($request), (int) $request->user()->id); return response()->json(['message' => __('ui.gsn.saved')], 201); }
     public function update(Request $request, GoodsSentNote $note, CompanyContext $company, SaveGoodsSentNoteAction $action): JsonResponse { abort_unless($note->company_id === $company->id(), 404); $action->update($note, $this->validated($request), (int) $request->user()->id); return response()->json(['message' => __('ui.gsn.updated')]); }
     public function destroy(Request $request, GoodsSentNote $note, CompanyContext $company, SaveGoodsSentNoteAction $action): JsonResponse { abort_unless($note->company_id === $company->id(), 404); $action->delete($note, (int) $request->user()->id); return response()->json(['message' => __('ui.gsn.deleted')]); }
-    public function show(GoodsSentNote $note, CompanyContext $company): JsonResponse { abort_unless($note->company_id === $company->id(), 404); return response()->json($note->load(['items.productionOrder.outputProduct.unit', 'items.customer'])); }
-    public function print(GoodsSentNote $note, CompanyContext $company) { abort_unless($note->company_id === $company->id(), 404); return view('super.goods-sent-notes.print', ['note' => $note->load(['items.productionOrder.outputProduct.unit', 'items.productionOrder.buyer', 'items.customer']), 'company' => $company->get()]); }
+    public function show(GoodsSentNote $note, CompanyContext $company): JsonResponse { abort_unless($note->company_id === $company->id(), 404); return response()->json($note->load(['items.productionOrder', 'items.product.unit', 'items.product.parentProduct:id,code', 'items.customer'])); }
+    public function print(GoodsSentNote $note, CompanyContext $company) { abort_unless($note->company_id === $company->id(), 404); return view('super.goods-sent-notes.print', ['note' => $note->load(['items.product.unit', 'items.product.parentProduct:id,code', 'items.productionOrder.buyer', 'items.customer']), 'company' => $company->get()]); }
     public function export(Request $request, CompanyContext $company) { $f = $this->filters($request); return Excel::download(new GoodsSentNotesExport($company->id(), $f['from_date'] ?? now()->startOfMonth()->toDateString(), $f['to_date'] ?? now()->toDateString()), 'goods-sent-notes.xlsx'); }
 
     private function validated(Request $request): array

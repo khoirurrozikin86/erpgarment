@@ -15,7 +15,7 @@
             <input type="hidden" name="search" id="report-export-search" value="">
         </form>
         <div class="table-responsive"><table id="bc-report-table" class="table table-bordered table-striped align-middle supplier-return-table">
-            <thead><tr><th>{{ __('bc_reports.no') }}</th><th>{{ __('bc_reports.return_no') }}</th><th>{{ __('bc_reports.date') }}</th><th>{{ __('bc_reports.item_code') }}</th><th>{{ __('bc_reports.item_name') }}</th><th>{{ __('bc_reports.unit') }}</th><th>{{ __('bc_reports.quantity') }}</th></tr></thead>
+            <thead><tr><th>{{ __('bc_reports.no') }}</th><th>{{ __('bc_reports.return_no') }}</th><th>{{ __('bc_reports.date') }}</th><th>{{ __('variants.stock_parent_code') }}</th><th>{{ __('variants.stock_sku') }}</th><th>{{ __('bc_reports.item_name') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th>{{ __('bc_reports.unit') }}</th><th>{{ __('bc_reports.quantity') }}</th></tr></thead>
             <tbody></tbody>
         </table></div>
         <p class="small text-muted mt-3 mb-0">{{ __('bc_reports.the_period_uses_the_return_date_each_row_is_an_item_on_a_purchase_return_do') }}</p>

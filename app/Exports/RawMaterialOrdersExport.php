@@ -14,9 +14,9 @@ class RawMaterialOrdersExport implements FromQuery, WithHeadings, WithMapping, S
     private int $row = 0;
     public function __construct(private readonly int $companyId, private readonly ?string $fromDate = null, private readonly ?string $toDate = null) {}
     public function query(): Builder { return (new RawMaterialOrderTableQuery())->rows($this->companyId, $this->fromDate, $this->toDate); }
-    public function headings(): array { return ['No.', 'No. Order Bahan Baku', 'Tanggal Order', 'No. MO', 'Style', 'Kode Barang', 'Nama Barang', 'Satuan', 'Jumlah Order', 'Jumlah Terkirim']; }
+    public function headings(): array { return ['No.', 'No. Order Bahan Baku', 'Tanggal Order', 'No. MO', 'Style', 'Kategori', 'Kode Barang', 'Nama Barang', 'Color', 'Size', 'Satuan', 'Jumlah Order', 'Jumlah Terkirim']; }
     public function map($item): array
     {
-        return [++$this->row, $item->number, $item->document?->order_date?->format('Y-m-d'), $item->document?->production_order_number, $item->style_code, $item->product?->code, $item->product?->name, $item->product?->unit?->symbol ?: $item->product?->unit?->name, (float) $item->quantity, (float) $item->issued_quantity];
+        return [++$this->row, $item->document?->number ?: $item->number, $item->document?->order_date?->format('Y-m-d'), $item->document?->production_order_number ?: 'Manual', $item->style_code, match ($item->category) { 'fabric' => 'Fabric', 'accessory' => 'Aksesoris', 'general' => 'Umum', default => '—' }, $item->product?->code, $item->product?->name, $item->color ?: $item->sourceMaterial?->color ?: $item->product?->color ?: '—', $item->size ?: $item->sourceMaterial?->size ?: $item->product?->size ?: '—', $item->product?->unit?->symbol ?: $item->product?->unit?->name, (float) $item->quantity, (float) $item->issued_quantity];
     }
 }

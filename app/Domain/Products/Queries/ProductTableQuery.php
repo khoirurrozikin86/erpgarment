@@ -9,9 +9,12 @@ class ProductTableQuery
 {
     public function builder(): Builder
     {
-        return Product::query()
+        return Product::query()->whereNull('parent_product_id')
             ->with([
                 'category:id,name',
+                'stock:id,product_id,quantity',
+                'variants:id,parent_product_id',
+                'variants.stock:id,product_id,quantity',
                 'unit:id,name,symbol',
             ])
             ->select([
@@ -23,7 +26,6 @@ class ProductTableQuery
                 'unit_id',
                 'product_type',
                 'garment_item_type',
-                'style_code',
                 'color',
                 'size',
                 'purchase_price',

@@ -3,8 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Domain\Inventory\Queries\InventoryReportQuery;
+use App\Domain\Inventory\Queries\StockFamilyPage;
 use App\Exports\InventoryReportExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StockFamilyTableRequest;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -15,29 +18,30 @@ class InventoryReportController extends Controller
     public function index(Request $request, InventoryReportQuery $query): View
     {
         [$fromDate, $toDate] = $this->period($request);
-        $products = $query->builder($fromDate, $toDate)->get()->map(function ($product) {
-            $opening = (float) ($product->opening_balance ?? 0);
-            $incoming = (float) ($product->quantity_in ?? 0);
-            $outgoing = abs((float) ($product->quantity_out ?? 0));
-            $product->report_opening = $opening;
-            $product->report_incoming = $incoming;
-            $product->report_outgoing = $outgoing;
-            $product->report_closing = $opening + $incoming - $outgoing;
-            $threshold = (float) ($product->reorder_point > 0 ? $product->reorder_point : $product->min_stock);
-            $product->report_status = $product->report_closing <= 0 && $threshold > 0
-                ? 'Habis'
-                : ($threshold > 0 && $product->report_closing <= $threshold ? 'Stok Rendah' : 'Aman');
-            return $product;
-        });
-        $summary = [
-            'products' => $products->count(),
-            'out_of_stock' => $products->where('report_status', 'Habis')->count(),
-            'low_stock' => $products->where('report_status', 'Stok Rendah')->count(),
-            'safe_stock' => $products->where('report_status', 'Aman')->count(),
-            'moved_products' => $products->filter(fn ($product) => $product->report_incoming > 0 || $product->report_outgoing > 0)->count(),
-        ];
+        $summary = $query->summary($fromDate, $toDate);
 
-        return view('super.reports.inventory', compact('products', 'summary', 'fromDate', 'toDate'));
+        return view('super.reports.inventory', compact('summary', 'fromDate', 'toDate'));
+    }
+
+    public function dt(StockFamilyTableRequest $request, InventoryReportQuery $query, StockFamilyPage $families): JsonResponse
+    {
+        [$fromDate, $toDate] = $this->period($request);
+        $inputs = $request->validated();
+        $page = $families->get($inputs['start'], $inputs['length'], trim($inputs['search']['value'] ?? ''));
+        $ids = $page['ids'];
+        $groups = $query->groups($fromDate, $toDate, $ids->all())->keyBy('id');
+        $rows = $ids->map(fn ($id) => $groups->get($id))->filter()->map(function (array $group) {
+            $group['detail_html'] = view('super.reports.partials.inventory-sku-details', ['group' => $group])->render();
+            unset($group['details']);
+            return $group;
+        })->values();
+
+        return response()->json([
+            'draw' => (int) $inputs['draw'],
+            'recordsTotal' => $page['total'],
+            'recordsFiltered' => $page['filtered'],
+            'data' => $rows,
+        ]);
     }
 
     public function export(Request $request)

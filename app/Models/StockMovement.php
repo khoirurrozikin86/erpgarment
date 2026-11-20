@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -64,6 +65,28 @@ class StockMovement extends Model
         return $this->belongsTo(SubcontractMaterialIssueDocument::class,'subcontract_material_issue_document_id')->withTrashed();
     }
 
+    public function scopeWithTransactionDimensions(Builder $query): Builder
+    {
+        return $query
+            ->where(fn ($query) => $query->whereNotNull('goods_receipt_item_id')
+                ->orWhereNotNull('purchase_return_item_id')
+                ->orWhereNotNull('material_issue_item_id')
+                ->orWhereNotNull('material_request_item_id')
+                ->orWhereNotNull('stock_opname_item_id')
+                ->orWhereNotNull('production_order_stage_entry_id'))
+            ->with([
+                'goodsReceiptItem.purchaseOrderItem.purchaseRequestItem.materialRequestItem',
+                'purchaseReturnItem.goodsReceiptItem.purchaseOrderItem.purchaseRequestItem.materialRequestItem',
+                'materialIssueItem.rawMaterialOrderItem.sourceMaterial',
+                'materialIssueItem.requestItem',
+                'materialRequestItem',
+                'stockOpnameItem:id,product_id',
+                'stockOpnameItem.product:id,color,size',
+                'productionOrderStageEntry' => fn ($entry) => $entry->withTrashed()->select('id', 'production_order_id'),
+                'productionOrderStageEntry.productionOrder:id,order_color,order_size',
+            ]);
+    }
+
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
@@ -74,6 +97,16 @@ class StockMovement extends Model
         return $this->belongsTo(GoodsReceipt::class);
     }
 
+    public function goodsReceiptItem(): BelongsTo
+    {
+        return $this->belongsTo(GoodsReceiptItem::class);
+    }
+
+    public function purchaseReturnItem(): BelongsTo
+    {
+        return $this->belongsTo(PurchaseReturnItem::class);
+    }
+
     public function purchaseReturn(): BelongsTo
     {
         return $this->belongsTo(PurchaseReturn::class);
@@ -82,6 +115,11 @@ class StockMovement extends Model
     public function stockOpname(): BelongsTo
     {
         return $this->belongsTo(StockOpname::class);
+    }
+
+    public function stockOpnameItem(): BelongsTo
+    {
+        return $this->belongsTo(StockOpnameItem::class);
     }
 
     public function damagedItemDocument(): BelongsTo

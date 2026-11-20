@@ -14,11 +14,15 @@ class MaterialRequestData
         public ?string $bomVersion = null,
         public ?float $productionQuantity = null,
         public ?int $productionOrderId = null,
+        public ?int $productionOrderHeaderId = null,
+        public ?array $sourceDetails = null,
     ) {}
 
     public static function fromArray(array $data): self
     {
         return new self(
+            productionOrderHeaderId: $data['production_order_header_id'] ?? null,
+            sourceDetails: $data['source_details'] ?? null,
             department: $data['department'] ?? null,
             neededAt: $data['needed_at'] ?? null,
             reason: $data['reason'],
@@ -34,6 +38,8 @@ class MaterialRequestData
     public function toArray(): array
     {
         return [
+            'production_order_header_id' => $this->productionOrderHeaderId,
+            'source_details' => $this->sourceDetails,
             'department' => $this->department,
             'needed_at' => $this->neededAt,
             'reason' => $this->reason,

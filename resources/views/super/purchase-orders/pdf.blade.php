@@ -6,7 +6,7 @@
     <style>
         @page { margin: 32px 36px; }
         body { font-family: DejaVu Sans, sans-serif; color: #202938; font-size: 11px; }
-        h1 { font-size: 20px; margin: 0 0 4px; }
+        h1 { font-size: 20px; margin: 0 0 4px; text-align: center; }
         .muted { color: #667085; }
         .company-header { width: 100%; border-bottom: 1px solid #cfd5df; padding-bottom: 10px; margin-bottom: 16px; }
         .company-logo-cell { width: 90px; vertical-align: middle; }
@@ -15,13 +15,13 @@
         .company-name { font-size: 16px; font-weight: bold; color: #263b5e; margin-bottom: 2px; }
         .company-contact { color: #475467; }
         .header { border-bottom: 2px solid #263b5e; padding-bottom: 14px; margin-bottom: 18px; }
-        .document-no { font-size: 13px; font-weight: bold; color: #263b5e; }
-        .meta { width: 100%; margin-bottom: 18px; }
-        .meta td { padding: 4px 8px 4px 0; vertical-align: top; }
-        .meta .label { width: 150px; color: #667085; }
+        .document-no { font-size: 13px; font-weight: bold; color: #263b5e; text-align: center; }
+        .meta { width: 100%; margin-bottom: 12px; table-layout: fixed; font-size: 9px; line-height: 1.2; }
+        .meta td { padding: 3px 5px 3px 0; vertical-align: top; }
+        .meta .label { width: 125px; color: #667085; }
         .section-title { font-size: 12px; font-weight: bold; margin: 16px 0 8px; }
-        table.items { border-collapse: collapse; width: 100%; }
-        .items th, .items td { border: 1px solid #cfd5df; padding: 7px 8px; }
+        table.items { border-collapse: collapse; table-layout: fixed; width: 100%; font-size: 9px; }
+        .items th, .items td { border: 1px solid #cfd5df; padding: 5px 4px; vertical-align: top; overflow-wrap: break-word; word-wrap: break-word; }
         .items th { background: #f1f4f8; text-align: left; }
         .right { text-align: right; }
         .center { text-align: center; }
@@ -37,7 +37,6 @@
     @include('super.documents.partials.company-pdf-header', ['company' => $company, 'companyLogoDataUri' => $companyLogoDataUri])
     <div class="header">
         <h1>{{ __('ui.common.purchase_order') }}</h1>
-        <div class="muted">Pesanan pembelian kepada supplier</div>
         <div class="document-no">{{ $purchaseOrder->number }}</div>
     </div>
 
@@ -49,15 +48,16 @@
         <tr><td class="label">{{ __('ui.common.payment_terms') }}</td><td>{{ $purchaseOrder->payment_terms ?: '—' }}</td><td class="label">Tanggal Terbit</td><td>{{ $purchaseOrder->issued_at?->format('d/m/Y H:i') ?? 'Belum diterbitkan' }}</td></tr>
     </table>
 
-    <div class="section-title">Rincian Pesanan</div>
     <table class="items">
-        <thead><tr><th class="center" style="width:32px">{{ __('ui.common.no') }}</th><th style="width:105px">{{ __('ui.common.code') }}</th><th>{{ __('ui.common.item_name') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th class="right" style="width:75px">{{ __('ui.common.quantity') }}</th><th style="width:65px">{{ __('ui.common.unit') }}</th><th class="right" style="width:105px">{{ __('ui.common.unit_price') }}</th><th class="right" style="width:110px">{{ __('ui.common.subtotal') }}</th></tr></thead>
+        <thead><tr><th class="center" style="width:4%">{{ __('ui.common.no') }}</th><th style="width:12%">{{ __('ui.common.code') }}</th><th style="width:21%">{{ __('ui.common.item_name') }}</th><th style="width:10%">{{ __('ui.workflow.color') }}</th><th style="width:7%">{{ __('ui.workflow.size') }}</th><th class="right" style="width:10%">{{ __('ui.common.quantity') }}</th><th style="width:7%">{{ __('ui.common.unit') }}</th><th class="right" style="width:14%">{{ __('ui.common.unit_price') }}</th><th class="right" style="width:15%">{{ __('ui.common.subtotal') }}</th></tr></thead>
         <tbody>
             @forelse ($purchaseOrder->items as $item)
                 <tr>
                     <td class="center">{{ $loop->iteration }}</td>
                     <td>{{ $item->product?->code ?? '—' }}</td>
-                    <td>{{ $item->product?->name ?? 'Barang dihapus' }}</td><td>{{ $item->product?->color ?: '—' }}</td><td>{{ $item->product?->size ?: '—' }}</td>
+                    <td>{{ $item->product?->name ?? 'Barang dihapus' }}</td>
+                    <td>{{ $item->purchaseRequestItem?->materialRequestItem?->color ?: $item->product?->color ?: '—' }}</td>
+                    <td>{{ $item->purchaseRequestItem?->materialRequestItem?->size ?: $item->product?->size ?: '—' }}</td>
                     <td class="right">{{ number_format((float) $item->quantity, 4, ',', '.') }}</td>
                     <td>{{ $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—' }}</td>
                     <td class="right">Rp {{ number_format((float) $item->unit_price, 2, ',', '.') }}</td>

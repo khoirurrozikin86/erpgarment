@@ -18,9 +18,9 @@ class SavePackingAction
     {
         return DB::transaction(function () use ($data, $userId) {
             $order = ProductionOrder::query()->where('company_id',$this->company->id())->lockForUpdate()->findOrFail($data['production_order_id']);
-            $this->assertOrder($order); $this->ensureMaterials->__invoke($order); $this->assertMaterial($order,(int)$data['material_product_id']);
+            $this->assertOrder($order); $this->ensureMaterials->__invoke($order); $this->assertMaterial($order, $data);
             [$input,$good,$reject] = $this->quantities($data); $this->assertAvailable($order,$input);
-            $entry = $order->stageEntries()->create(['stage'=>'packing','packing_number'=>$this->numbers->generate('packing'),'material_product_id'=>$data['material_product_id'],'material_waste_quantity'=>$data['material_waste_quantity'],'input_quantity'=>$input,'good_quantity'=>$good,'rejected_quantity'=>$reject,'waste_quantity'=>0,'processed_by'=>$userId,'processed_at'=>Carbon::parse($data['packing_date'])->startOfDay()]);
+            $entry = $order->stageEntries()->create(['stage'=>'packing','packing_number'=>$this->numbers->generate('packing'),'material_product_id'=>$data['material_product_id'] ?? null,'material_waste_quantity'=>$data['material_waste_quantity'] ?? 0,'input_quantity'=>$input,'good_quantity'=>$good,'rejected_quantity'=>$reject,'waste_quantity'=>0,'processed_by'=>$userId,'processed_at'=>Carbon::parse($data['packing_date'])->startOfDay()]);
             if ($good > 0) $this->adjustFinishedGoods($entry,$order,$good,$userId);
             $this->audit->log('CREATE','PACKING',"Mencatat Packing {$entry->packing_number} untuk MO {$order->number}",$entry,null,$entry->toArray(),$userId);
             return $entry->load(['productionOrder.outputProduct.unit','materialProduct.unit','processor']);
@@ -33,11 +33,12 @@ class SavePackingAction
             $row=ProductionOrderStageEntry::query()->where('stage','packing')->lockForUpdate()->findOrFail($entry->id);
             if ($row->productionOrder()->firstOrFail()->stageEntries()->where('stage','finishing')->exists()) throw ValidationException::withMessages(['packing'=>__('ui.packing.downstream_exists')]);
             if ((int)$row->production_order_id !== (int)$data['production_order_id']) throw ValidationException::withMessages(['production_order_id'=>__('ui.packing.mo_immutable')]);
+            $data += $row->only(['material_product_id', 'material_waste_quantity']);
             $order=ProductionOrder::query()->where('company_id',$this->company->id())->lockForUpdate()->findOrFail($row->production_order_id);
-            $this->assertOrder($order); $this->ensureMaterials->__invoke($order); $this->assertMaterial($order,(int)$data['material_product_id']);
+            $this->assertOrder($order); $this->ensureMaterials->__invoke($order); $this->assertMaterial($order, $data);
             [$input,$good,$reject]=$this->quantities($data); $this->assertAvailable($order,$input,$row->id);
             $old=$row->toArray(); $delta=round($good-(float)$row->good_quantity,4);
-            $row->update(['material_product_id'=>$data['material_product_id'],'material_waste_quantity'=>$data['material_waste_quantity'],'input_quantity'=>$input,'good_quantity'=>$good,'rejected_quantity'=>$reject,'waste_quantity'=>0,'processed_at'=>Carbon::parse($data['packing_date'])->startOfDay()]);
+            $row->update(['material_product_id'=>$data['material_product_id'] ?? null,'material_waste_quantity'=>$data['material_waste_quantity'] ?? 0,'input_quantity'=>$input,'good_quantity'=>$good,'rejected_quantity'=>$reject,'waste_quantity'=>0,'processed_at'=>Carbon::parse($data['packing_date'])->startOfDay()]);
             if(abs($delta)>0.00001)$this->adjustFinishedGoods($row,$order,$delta,$userId);
             $this->audit->log('UPDATE','PACKING',"Memperbarui Packing {$row->packing_number}",$row,$old,$row->fresh()->toArray(),$userId);
             return $row->fresh(['productionOrder.outputProduct.unit','materialProduct.unit','processor']);
@@ -63,12 +64,26 @@ class SavePackingAction
         return[$input,$good,$reject];
     }
     private function assertOrder(ProductionOrder $order):void{if($order->status!=='in_progress')throw ValidationException::withMessages(['production_order_id'=>__('ui.packing.mo_not_active')]);}
-    private function assertMaterial(ProductionOrder $order,int $productId):void{if(!$order->materials()->where('product_id',$productId)->exists())throw ValidationException::withMessages(['material_product_id'=>__('ui.packing.material_not_in_mo')]);}
+    private function assertMaterial(ProductionOrder $order, array $data): void
+    {
+        $productId = $data['material_product_id'] ?? null;
+        if ($productId === null) {
+            if ((float) ($data['material_waste_quantity'] ?? 0) > 0) {
+                throw ValidationException::withMessages(['material_product_id' => __('variants.packing_waste_requires_material')]);
+            }
+
+            return;
+        }
+
+        if (!$order->materials()->where('product_id', $productId)->exists()) {
+            throw ValidationException::withMessages(['material_product_id' => __('ui.packing.material_not_in_mo')]);
+        }
+    }
+
     private function assertAvailable(ProductionOrder $order,float $input,?int $exceptId=null):void
     {
-        $sewing=(float)$order->stageEntries()->where('stage','sewing')->sum('good_quantity');
-        $packed=(float)$order->stageEntries()->where('stage','packing')->when($exceptId,fn($q)=>$q->where('id','!=',$exceptId))->sum('input_quantity');
-        if($input>$sewing-$packed+0.0001)throw ValidationException::withMessages(['input_quantity'=>__('ui.packing.qty_exceeds_sewing')]);
+        $available = app(\App\Domain\Manufacturing\Services\ProductionStageBalance::class)->remaining($order, 'packing', $exceptId);
+        if($input>$available+0.0001)throw ValidationException::withMessages(['input_quantity'=>__('ui.packing.qty_exceeds_sewing')]);
     }
     private function adjustFinishedGoods(ProductionOrderStageEntry $entry,ProductionOrder $order,float $delta,int $userId):void
     {

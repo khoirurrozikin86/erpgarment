@@ -42,7 +42,7 @@
     <table class="meta">
         <tr><td class="label">{{ __('ui.common.purchase_order_number') }}</td><td>{{ $receipt->purchaseOrder?->number ?? '—' }}</td><td class="label">{{ __('ui.common.receipt_date') }}</td><td>{{ $receipt->received_at?->format('d/m/Y H:i') ?? '—' }}</td></tr>
         <tr><td class="label">{{ __('ui.common.status') }}</td><td>{{ $receipt->status === 'approved' ? __('ui.workflow.approval_approved') : __('ui.workflow.approval_pending') }}</td><td class="label">{{ __('ui.workflow.approved_by') }}</td><td>{{ $receipt->approver?->name ?? '—' }} @if ($receipt->approved_at) · {{ $receipt->approved_at->format('d/m/Y H:i') }} @endif</td></tr>
-        <tr><td class="label">{{ __('ui.workflow.material_order') }}</td><td>{{ $receipt->purchaseOrder?->purchaseRequest?->materialRequest?->productionOrder?->number ?? '—' }}</td><td class="label">{{ __('ui.workflow.style') }}</td><td>{{ $receipt->purchaseOrder?->purchaseRequest?->materialRequest?->productionOrder?->outputProduct?->style_code ?? $receipt->purchaseOrder?->purchaseRequest?->materialRequest?->outputProduct?->style_code ?? '—' }}</td></tr>
+        <tr><td class="label">{{ __('ui.workflow.material_order') }}</td><td>{{ $receipt->purchaseOrder?->purchaseRequest?->materialRequest?->productionOrder?->number ?? '—' }}</td><td class="label">{{ __('ui.workflow.style') }}</td><td>{{ $receipt->purchaseOrder?->purchaseRequest?->materialRequest?->productionOrder?->model_style ?? $receipt->purchaseOrder?->purchaseRequest?->materialRequest?->outputProduct?->style_code ?? '—' }}</td></tr>
         <tr><td class="label">{{ __('ui.common.invoice_number') }}</td><td>{{ $receipt->invoice_number ?: '—' }}</td><td class="label">{{ __('ui.common.invoice_date') }}</td><td>{{ $receipt->invoice_date?->format('d/m/Y') ?? '—' }} · {{ $receipt->currency ?: '—' }}</td></tr>
         <tr><td class="label">{{ __('ui.common.supplier') }}</td><td>{{ $receipt->supplier?->name ?? 'Supplier dihapus' }}</td><td class="label">{{ __('ui.common.received_by') }}</td><td>{{ $receipt->receiver?->name ?? 'User dihapus' }}</td></tr>
         @if ($receipt->customs_document_number)
@@ -52,13 +52,15 @@
     </table>
 
     <table class="items">
-        <thead><tr><th class="center" style="width:32px">{{ __('ui.common.no') }}</th><th style="width:110px">{{ __('ui.common.code') }}</th><th>{{ __('ui.common.item_name') }}</th><th>{{ __('ui.workflow.lot_roll') }}</th><th class="right" style="width:100px">Jumlah Diterima</th><th style="width:70px">{{ __('ui.common.unit') }}</th><th class="right" style="width:110px">{{ __('ui.common.unit_price') }}</th><th class="right" style="width:110px">{{ __('ui.common.subtotal') }}</th></tr></thead>
+        <thead><tr><th class="center" style="width:3%">{{ __('ui.common.no') }}</th><th style="width:11%">{{ __('ui.common.code') }}</th><th style="width:21%">{{ __('ui.common.item_name') }}</th><th style="width:8%">{{ __('ui.workflow.color') }}</th><th style="width:6%">{{ __('ui.workflow.size') }}</th><th style="width:12%">{{ __('ui.workflow.lot_roll') }}</th><th class="right" style="width:10%">Jumlah Diterima</th><th style="width:5%">{{ __('ui.common.unit') }}</th><th class="right" style="width:11%">{{ __('ui.common.unit_price') }}</th><th class="right" style="width:13%">{{ __('ui.common.subtotal') }}</th></tr></thead>
         <tbody>
             @forelse ($receipt->items as $item)
                 <tr>
                     <td class="center">{{ $loop->iteration }}</td>
                     <td>{{ $item->product?->code ?? '—' }}</td>
                     <td>{{ $item->product?->name ?? 'Barang dihapus' }}</td>
+                    <td>{{ $item->purchaseOrderItem?->purchaseRequestItem?->materialRequestItem?->color ?: $item->product?->color ?: '—' }}</td>
+                    <td>{{ $item->purchaseOrderItem?->purchaseRequestItem?->materialRequestItem?->size ?: $item->product?->size ?: '—' }}</td>
                     <td>{{ $item->inventoryLot?->lot_number ?? '—' }}</td>
                     <td class="right">{{ number_format((float) $item->quantity, 4, ',', '.') }}</td>
                     <td>{{ $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—' }}</td>
@@ -66,7 +68,7 @@
                     <td class="right">{{ $receipt->currency ?: '' }} {{ number_format((float) $item->line_total, 2, ',', '.') }}</td>
                 </tr>
             @empty
-                <tr><td colspan="8" class="center">Tidak ada rincian penerimaan.</td></tr>
+                <tr><td colspan="10" class="center">Tidak ada rincian penerimaan.</td></tr>
             @endforelse
         </tbody>
     </table>

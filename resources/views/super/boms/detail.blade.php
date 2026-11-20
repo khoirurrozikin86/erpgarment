@@ -14,7 +14,7 @@
 @if(session('success'))<div class="alert alert-success alert-dismissible fade show py-2" role="alert">{{ session('success') }}<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>@endif
 @forelse($bills as $bom)
 <div class="card border-0 shadow-sm bom-card mb-3">
-    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3"><div><h6 class="mb-0">Consumption · {{ $product->style_code }} · {{ $product->code }}</h6><small class="text-muted">{{ $product->name }}</small></div><span class="badge rounded-pill text-bg-light">{{ $bom->items->count() }} material</span></div>
+    <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center py-3"><div><h6 class="mb-0">{{ $bom->number }} · {{ $product->style_code }} · {{ $product->code }}</h6><small class="text-muted">{{ $product->name }} · {{ __('variants.bom_type_'.$bom->bom_type) }}</small></div><span class="badge rounded-pill text-bg-light">{{ $bom->items->count() }} material</span></div>
     <div class="card-body"><div class="table-responsive">
         <table class="table table-hover align-middle w-100 bom-detail-table mb-0">
             <thead class="table-light"><tr><th>No</th><th>Aksi</th><th>Item Code</th><th>Name Material/Support</th><th>Unit</th><th>{{ __('variants.applies_color') }}</th><th>{{ __('variants.applies_size') }}</th><th>Consumption/PCS</th><th>Span</th><th>Scrap (%)</th><th>User</th></tr></thead>

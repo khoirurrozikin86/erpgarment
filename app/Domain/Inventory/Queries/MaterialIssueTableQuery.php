@@ -3,17 +3,37 @@
 namespace App\Domain\Inventory\Queries;
 
 use App\Models\MaterialIssueItem;
+use App\Models\MaterialIssueDocument;
 use App\Models\RawMaterialOrderDocument;
 use Illuminate\Database\Eloquent\Builder;
 
 class MaterialIssueTableQuery
 {
+    public function historyDocuments(int $companyId, ?string $from = null, ?string $to = null): Builder
+    {
+        return MaterialIssueDocument::query()
+            ->where('company_id', $companyId)
+            ->with([
+                'rawMaterialOrder:id,number,production_order_number',
+                'request:id,number,production_order_id',
+                'request.productionOrder:id,number',
+                'items.product:id,code,name,unit_id',
+                'items.product.unit:id,name,symbol',
+                'items.rawMaterialOrderItem.sourceMaterial.productionOrder:id,number',
+                'items.requestItem:id,color,size',
+            ])
+            ->when($from, fn (Builder $q) => $q->whereDate('issue_date', '>=', $from))
+            ->when($to, fn (Builder $q) => $q->whereDate('issue_date', '<=', $to))
+            ->orderByDesc('issue_date')
+            ->orderByDesc('id');
+    }
+
     public function productionRequests(int $companyId): Builder
     {
         return RawMaterialOrderDocument::query()
             ->where('company_id', $companyId)
             ->with([
-                'items:id,raw_material_order_document_id,production_order_material_id,product_id,quantity,issued_quantity',
+                'items:id,raw_material_order_document_id,production_order_material_id,product_id,style_code,color,size,quantity,issued_quantity',
                 'items.sourceMaterial.productionOrder:id,number',
                 'items.latestMaterialIssueItem.document:id,number,issue_date',
             ])

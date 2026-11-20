@@ -32,11 +32,11 @@ class UpdateMaterialIssueItemAction
                 [, $source, $orderMaterial, $stock] = ($this->restore)($item, $userId);
                 /** @var RawMaterialOrderItem $source */
                 $source->refresh();
-                $orderMaterial->refresh();
+                $orderMaterial?->refresh();
                 $stock->refresh();
 
                 $sourceRemaining = round((float) $source->quantity - (float) $source->issued_quantity, 4);
-                $moRemaining = round((float) $orderMaterial->required_quantity - (float) $orderMaterial->issued_quantity, 4);
+                $moRemaining = $orderMaterial ? round((float) $orderMaterial->required_quantity - (float) $orderMaterial->issued_quantity, 4) : $sourceRemaining;
                 if ($quantity > $sourceRemaining || $quantity > $moRemaining) {
                     throw ValidationException::withMessages(['quantity' => __('ui.material_issue.quantity_invalid')]);
                 }
@@ -67,7 +67,7 @@ class UpdateMaterialIssueItemAction
                 $unitCost = (float) $stock->average_unit_cost > 0 ? (float) $stock->average_unit_cost : (float) $product->purchase_price;
                 $stock->update(['quantity' => $after]);
                 $source->update(['issued_quantity' => round((float) $source->issued_quantity + $quantity, 4)]);
-                $orderMaterial->update(['issued_quantity' => round((float) $orderMaterial->issued_quantity + $quantity, 4)]);
+                $orderMaterial?->update(['issued_quantity' => round((float) $orderMaterial->issued_quantity + $quantity, 4)]);
                 $item->update(['quantity' => $quantity]);
 
                 $movement = StockMovement::query()->create([

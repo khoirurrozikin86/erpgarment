@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Domain\Companies\Services\CompanyPdfBrandingService;
 use App\Domain\Purchasing\Queries\PurchaseOrderTableQuery;
 use App\Domain\Purchasing\Services\PurchaseOrderService;
+use App\Domain\Purchasing\Services\ProductionSourceSummary;
 use App\Exports\PurchaseOrdersExport;
 use App\Http\Controllers\Controller;
 use App\Models\PurchaseOrder;
@@ -54,7 +55,7 @@ class PurchaseOrderController extends Controller
         return view('super.purchase-orders.create', compact('initialPurchaseRequest'));
     }
 
-    public function dt(Request $request, PurchaseOrderTableQuery $query): JsonResponse
+    public function dt(Request $request, PurchaseOrderTableQuery $query, ProductionSourceSummary $sourceSummary): JsonResponse
     {
         $filters = $request->validate([
             'from_date' => ['nullable', 'date_format:Y-m-d'],
@@ -69,18 +70,20 @@ class PurchaseOrderController extends Controller
             ->addColumn('purchase_request_number', fn (PurchaseOrder $order) => $order->purchaseRequest?->number ?? '—')
             ->addColumn('supplier_name', fn (PurchaseOrder $order) => $order->supplier?->name ?? __('ui.workflow.deleted_supplier'))
             ->addColumn('creator_name', fn (PurchaseOrder $order) => $order->creator?->name ?? __('ui.workflow.deleted_user'))
-            ->addColumn('production_style_quantity', function (PurchaseOrder $order) {
-                $materialRequest = $order->purchaseRequest?->materialRequest;
-                $productionOrder = $materialRequest?->productionOrder;
-                $product = $productionOrder?->outputProduct ?? $materialRequest?->outputProduct;
-                $quantity = $productionOrder?->planned_quantity ?? $materialRequest?->production_quantity;
-                if (!$product?->style_code && $quantity === null) {
+            ->addColumn('production_style_quantity', function (PurchaseOrder $order) use ($sourceSummary) {
+                $lines = $sourceSummary->lines($order->purchaseRequest?->materialRequest);
+                if ($lines->isEmpty()) {
                     return '—';
                 }
-                $style = e($product?->style_code ?: '—');
-                $qty = $quantity === null ? '—' : rtrim(rtrim(number_format((float) $quantity, 4, ',', '.'), '0'), ',');
-
-                return '<span class="text-nowrap">' . $style . ' <span class="text-muted">/</span> ' . $qty . '</span>';
+                return $lines->map(function (array $line) {
+                    $style = e($line['style'] ?: '—');
+                    $color = e($line['color'] ?: '—');
+                    $size = e($line['size'] ?: '—');
+                    $quantity = $line['quantity'] === null
+                        ? '—'
+                        : rtrim(rtrim(number_format((float) $line['quantity'], 4, ',', '.'), '0'), ',');
+                    return '<span class="d-block text-nowrap">' . $style . ' <span class="text-muted">/ ' . $color . ' / ' . $size . ' / ' . $quantity . '</span></span>';
+                })->implode('');
             })
             ->addColumn('requested_items', function (PurchaseOrder $order) {
                 if ($order->items->isEmpty()) {
@@ -90,8 +93,11 @@ class PurchaseOrderController extends Controller
                     $code = e($item->product?->code ?? '—');
                     $name = e($item->product?->variant_display_name ?? __('ui.workflow.deleted_item'));
                     $quantity = rtrim(rtrim(number_format((float) $item->quantity, 4, ',', '.'), '0'), ',');
+                    $color = $item->purchaseRequestItem?->materialRequestItem?->color ?: $item->product?->color;
+                    $size = $item->purchaseRequestItem?->materialRequestItem?->size ?: $item->product?->size;
+                    $dimensions = collect([$color, $size])->filter()->map(fn ($value) => e($value))->implode(' / ');
 
-                    return '<span class="badge rounded-pill bg-light text-secondary border fw-normal" title="' . $name . '">' . $code . ' × ' . $quantity . '</span>';
+                    return '<span class="badge rounded-pill bg-light text-secondary border fw-normal" title="' . $name . '">' . $code . ($dimensions ? ' [' . $dimensions . ']' : '') . ' × ' . $quantity . '</span>';
                 })->implode(' ');
 
                 return '<div class="d-flex flex-wrap gap-1" style="max-width:24rem;max-height:4.25rem;overflow:auto">' . $items . '</div>';
@@ -134,13 +140,26 @@ class PurchaseOrderController extends Controller
     public function source(int $purchaseRequestId, PurchaseOrderTableQuery $query): JsonResponse
     {
         $purchaseRequest = $query->sourcePurchaseRequest($purchaseRequestId);
+        $purchaseRequest->load([
+            'materialRequest.productionOrder.outputProduct',
+            'materialRequest.productionOrderHeader.details.outputProduct',
+            'materialRequest.outputProduct',
+        ]);
         return response()->json([
             'id' => $purchaseRequest->id,
             'number' => $purchaseRequest->number,
             'supplier' => $purchaseRequest->supplier?->name ?? __('ui.workflow.deleted_supplier'),
+            'production_details' => app(ProductionSourceSummary::class)->lines($purchaseRequest->materialRequest)->map(fn ($line) => [
+                'style' => $line['style'],
+                'color' => $line['color'],
+                'size' => $line['size'],
+                'quantity' => $line['quantity'],
+            ])->values(),
             'items' => $purchaseRequest->items->map(fn ($item) => [
                 'code' => $item->product?->code ?? '—',
-                'name' => $item->product?->variant_display_name ?? __('ui.workflow.deleted_item'),
+                'name' => $item->product?->name ?? __('ui.workflow.deleted_item'),
+                'color' => $item->materialRequestItem?->color ?: $item->product?->color,
+                'size' => $item->materialRequestItem?->size ?: $item->product?->size,
                 'quantity' => $item->quantity,
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
                 'unit_price' => $item->unit_price,
@@ -164,6 +183,11 @@ class PurchaseOrderController extends Controller
     public function show(PurchaseOrder $purchaseOrder, PurchaseOrderTableQuery $query): JsonResponse
     {
         $order = $query->details($purchaseOrder);
+        $order->load([
+            'purchaseRequest.materialRequest.productionOrder.outputProduct',
+            'purchaseRequest.materialRequest.productionOrderHeader.details.outputProduct',
+            'purchaseRequest.materialRequest.outputProduct',
+        ]);
         return response()->json([
             'number' => $order->number,
             'purchase_request_number' => $order->purchaseRequest?->number ?? '—',
@@ -176,9 +200,17 @@ class PurchaseOrderController extends Controller
             'payment_terms' => $order->payment_terms ?: '—',
             'notes' => $order->notes ?: '—',
             'total_amount' => (float) $order->total_amount,
+            'production_details' => app(ProductionSourceSummary::class)->lines($order->purchaseRequest?->materialRequest)->map(fn ($line) => [
+                'style' => $line['style'],
+                'color' => $line['color'],
+                'size' => $line['size'],
+                'quantity' => $line['quantity'],
+            ])->values(),
             'items' => $order->items->map(fn ($item) => [
                 'code' => $item->product?->code ?? '—',
-                'product' => $item->product?->variant_display_name ?? 'Barang dihapus',
+                'product' => $item->product?->name ?? 'Barang dihapus',
+                'color' => $item->purchaseRequestItem?->materialRequestItem?->color ?: $item->product?->color,
+                'size' => $item->purchaseRequestItem?->materialRequestItem?->size ?: $item->product?->size,
                 'quantity' => number_format((float) $item->quantity, 4, ',', '.'),
                 'received_quantity' => number_format((float) $item->received_quantity, 4, ',', '.'),
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
@@ -231,7 +263,10 @@ class PurchaseOrderController extends Controller
     public function pdf(PurchaseOrder $purchaseOrder, PurchaseOrderTableQuery $query, CompanyPdfBrandingService $branding)
     {
         $purchaseOrder = $query->details($purchaseOrder);
-        $viewData = [...$branding->data(), 'purchaseOrder' => $purchaseOrder];
+        $viewData = [
+            ...$branding->data(),
+            'purchaseOrder' => $purchaseOrder,
+        ];
         return Pdf::loadView('super.purchase-orders.pdf', $viewData)
             ->setPaper('a4')
             ->stream($this->pdfFilename($purchaseOrder->number));
@@ -240,7 +275,10 @@ class PurchaseOrderController extends Controller
     public function downloadPdf(PurchaseOrder $purchaseOrder, PurchaseOrderTableQuery $query, CompanyPdfBrandingService $branding)
     {
         $purchaseOrder = $query->details($purchaseOrder);
-        $viewData = [...$branding->data(), 'purchaseOrder' => $purchaseOrder];
+        $viewData = [
+            ...$branding->data(),
+            'purchaseOrder' => $purchaseOrder,
+        ];
         return Pdf::loadView('super.purchase-orders.pdf', $viewData)
             ->setPaper('a4')
             ->download($this->pdfFilename($purchaseOrder->number));

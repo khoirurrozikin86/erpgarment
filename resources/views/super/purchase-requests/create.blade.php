@@ -51,14 +51,15 @@
                         </div>
 
                         <div class="alert alert-info py-2">{{ __('ui.workflow.pr_supplier_guidance') }}</div>
+                        <div id="pr-production-summary" class="alert alert-light border py-2 d-none"></div>
 
                         <div class="table-responsive mb-3">
                             <table class="table table-sm table-bordered align-middle">
-                                <thead><tr><th style="width:55px" class="text-center">{{ __('ui.workflow.select') }}</th><th>{{ __('ui.common.item') }}</th><th class="text-end">{{ __('ui.workflow.remaining_mr_need') }}</th><th style="min-width:140px">{{ __('ui.workflow.pr_quantity') }}</th><th style="min-width:170px">{{ __('ui.common.unit_price') }}</th><th class="text-end">{{ __('ui.common.subtotal') }}</th></tr></thead>
+                                <thead><tr><th style="width:55px" class="text-center">{{ __('ui.workflow.select') }}</th><th>{{ __('ui.common.item') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th class="text-end">{{ __('ui.workflow.remaining_mr_need') }}</th><th style="min-width:140px">{{ __('ui.workflow.pr_quantity') }}</th><th style="min-width:170px">{{ __('ui.common.unit_price') }}</th><th class="text-end">{{ __('ui.common.subtotal') }}</th></tr></thead>
                                 <tbody id="purchase-request-items">
-                                    <tr><td colspan="6" class="text-center text-muted py-4">{{ __('ui.workflow.load_mr_items_prompt') }}</td></tr>
+                                    <tr><td colspan="8" class="text-center text-muted py-4">{{ __('ui.workflow.load_mr_items_prompt') }}</td></tr>
                                 </tbody>
-                                <tfoot><tr><th colspan="5" class="text-end">{{ __('ui.common.estimated_total') }}</th><th class="text-end" id="purchase-request-total">Rp 0</th></tr></tfoot>
+                                <tfoot><tr><th colspan="7" class="text-end">{{ __('ui.common.estimated_total') }}</th><th class="text-end" id="purchase-request-total">Rp 0</th></tr></tfoot>
                             </table>
                         </div>
 
@@ -143,13 +144,18 @@
                 $('#pr_material_request_id').val(id);
                 $('#pr_material_request_number').val(number);
                 $('#submitPurchaseRequest').prop('disabled', true);
-                $('#purchase-request-items').html('<tr><td colspan="6" class="text-center text-muted">{{ __('ui.workflow.loading_mr_items') }}</td></tr>');
+                $('#purchase-request-items').html('<tr><td colspan="8" class="text-center text-muted">{{ __('ui.workflow.loading_mr_items') }}</td></tr>');
                 const sourceUrl = @json(route('super.purchase-requests.source', ['materialRequestId' => '__ID__']));
                 $.get(sourceUrl.replace('__ID__', encodeURIComponent(id)))
                     .done(function(source) {
+                        const productionRows = (source.production_details || []).map(detail => {
+                            const quantity = detail.quantity === null ? '—' : Number(detail.quantity).toLocaleString('id-ID', { maximumFractionDigits: 4 });
+                            return `<span class="text-nowrap me-3"><strong>${$('<div>').text(detail.style || '—').html()}</strong> / ${$('<div>').text(detail.color || '—').html()} / ${$('<div>').text(detail.size || '—').html()} / ${quantity}</span>`;
+                        }).join('');
+                        $('#pr-production-summary').toggleClass('d-none', !productionRows).html(productionRows);
                         const body = $('#purchase-request-items').empty();
                         if (!source.items.length) {
-                            body.html('<tr><td colspan="6" class="text-center text-muted">{{ __('ui.workflow.mr_fully_allocated') }}</td></tr>');
+                            body.html('<tr><td colspan="8" class="text-center text-muted">{{ __('ui.workflow.mr_fully_allocated') }}</td></tr>');
                             recalculateTotal();
                             return;
                         }
@@ -165,6 +171,8 @@
                             });
                             row.append($('<td class="text-center">').append(checkbox));
                             row.append($('<td>').text(`${item.code} — ${item.name}`));
+                            row.append($('<td>').text(item.color || '—'));
+                            row.append($('<td>').text(item.size || '—'));
                             row.append($('<td class="text-end">').text(`${item.available_quantity} ${item.unit}`));
                             row.append($('<td>').append(quantityInput));
                             row.append($('<td>').append(priceInput));

@@ -5,6 +5,7 @@ namespace App\Domain\Purchasing\Actions;
 use App\Domain\Audit\Services\AuditLogService;
 use App\Domain\Companies\Services\CompanyContext;
 use App\Domain\Settings\Services\DocumentNumberService;
+use App\Domain\Products\Services\ProductVariantService;
 use App\Models\MaterialRequest;
 use App\Models\MaterialRequestItem;
 use App\Models\InventoryLot;
@@ -65,10 +66,12 @@ class IssueMaterialRequestAction
                 if (!$product || !$product->track_stock) {
                     throw ValidationException::withMessages(['items' => __('ui.workflow.material_issue_stock_not_tracked')]);
                 }
+                $variant = app(ProductVariantService::class)->forStockMovement($product, $item->color, $item->size);
+                $product = Product::lockForUpdate()->findOrFail($variant->id);
                 $stock = ProductStock::query()->where('product_id', $product->id)->lockForUpdate()->first();
                 $before = round((float) ($stock?->quantity ?? 0), 4);
                 if (!$stock || $before < $quantity) {
-                    throw ValidationException::withMessages(['items' => __('ui.workflow.material_issue_insufficient_stock', ['item' => $product->name, 'available' => number_format($before, 4, ',', '.')])]);
+                    throw ValidationException::withMessages(['items' => __('ui.workflow.material_issue_insufficient_stock', ['item' => $product->variant_display_name, 'available' => number_format($before, 4, ',', '.')])]);
                 }
 
                 $lots = InventoryLot::query()->where('product_id', $product->id)
@@ -90,9 +93,26 @@ class IssueMaterialRequestAction
                 }
 
                 if ($request->production_order_id) {
-                    $orderMaterials = ProductionOrderMaterial::query()
-                        ->where('production_order_id', $request->production_order_id)
-                        ->where('product_id', $product->id)->orderBy('id')->lockForUpdate()->get();
+                    $orderIds = $request->production_order_header_id
+                        ? \App\Models\ProductionOrder::where('company_id', $request->company_id ?? $this->company->id())->where('production_order_header_id', $request->production_order_header_id)->pluck('id')
+                        : collect([$request->production_order_id]);
+                    $sourceMaterials = ProductionOrderMaterial::whereIn('production_order_id', $orderIds);
+                    if ($request->bill_of_material_id) {
+                        $sourceMaterials->where(fn ($query) => $query
+                            ->where('bill_of_material_id', $request->bill_of_material_id)
+                            ->orWhere(fn ($legacy) => $legacy->whereNull('bill_of_material_id')
+                                ->whereHas('productionOrder', fn ($order) => $order->where('bill_of_material_id', $request->bill_of_material_id))));
+                    }
+                    // A request may split a base material into variants; issue the selected variant stock
+                    // while allocating the quantity against the base material's MO requirement.
+                    $sourceProductId = (clone $sourceMaterials)->where('product_id', $product->id)->exists()
+                        ? $product->id : ($product->parent_product_id ?: $product->id);
+                    $orderMaterials = $sourceMaterials->where('product_id', $sourceProductId)
+                        ->when(filled($item->color), fn ($query) => $query->where(fn ($query) => $query
+                            ->whereNull('color')->orWhere('color', '')->orWhereRaw('LOWER(color) = ?', [mb_strtolower(trim($item->color))])))
+                        ->when(filled($item->size), fn ($query) => $query->where(fn ($query) => $query
+                            ->whereNull('size')->orWhere('size', '')->orWhereRaw('LOWER(size) = ?', [mb_strtolower(trim($item->size))])))
+                        ->orderBy('production_order_id')->orderBy('id')->lockForUpdate()->get();
                     $orderRemaining = $orderMaterials->sum(fn ($material) => max(0, (float) $material->required_quantity - (float) $material->issued_quantity));
                     if ($orderRemaining + 0.0000001 < $quantity) {
                         throw ValidationException::withMessages(['items' => __('ui.workflow.production_order_material_limit')]);

@@ -11,13 +11,20 @@ class CuttingTableQuery
         return ProductionOrderStageEntry::query()->where('stage','cutting')
             ->whereDate('processed_at','>=',$from ?: '1000-01-01')->whereDate('processed_at','<=',$to ?: '9999-12-31')
             ->whereHas('productionOrder',fn(Builder $q)=>$q->where('company_id',$companyId))
-            ->with(['productionOrder:id,company_id,number,buyer_po_number,output_product_id,planned_quantity','productionOrder.outputProduct:id,code,name,style_code,unit_id,color,size','productionOrder.outputProduct.unit:id,name,symbol','processor:id,name','materialProduct:id,code,name,unit_id','materialProduct.unit:id,name,symbol'])
+            ->with(['productionOrder:id,company_id,number,buyer_po_number,output_product_id,planned_quantity,style_code','productionOrder.outputProduct:id,code,name,style_code,unit_id,color,size,parent_product_id','productionOrder.outputProduct.parentProduct:id,code','productionOrder.outputProduct.unit:id,name,symbol','processor:id,name','materialProduct:id,code,name,unit_id','materialProduct.unit:id,name,symbol'])
             ->select('production_order_stage_entries.*')->latest('processed_at');
     }
     public function productionOrders(int $companyId): Builder
     {
-        return ProductionOrder::query()->where('company_id',$companyId)->where('status','in_progress')
-            ->with(['outputProduct:id,code,name,style_code,unit_id,color,size','outputProduct.unit:id,name,symbol','materials.product:id,code,name,unit_id'])
+        $firstRows = ProductionOrder::query()->selectRaw('MIN(id)')
+            ->where('company_id',$companyId)
+            ->whereIn('status',['released','in_progress'])
+            ->groupBy('number');
+
+        return ProductionOrder::query()->where('company_id',$companyId)
+            ->whereIn('status',['released','in_progress'])
+            ->whereIn('id',$firstRows)
+            ->with(['outputProduct:id,code,name,style_code,unit_id,color,size,parent_product_id','outputProduct.parentProduct:id,code','outputProduct.unit:id,name,symbol','materials.product:id,code,name,unit_id'])
             ->select(['id','company_id','number','buyer_po_number','output_product_id','planned_quantity','status'])->latest('created_at');
     }
 }

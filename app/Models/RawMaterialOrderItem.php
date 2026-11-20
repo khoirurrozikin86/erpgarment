@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class RawMaterialOrderItem extends Model
 {
-    protected $fillable = ['company_id', 'number', 'issued_quantity', 'raw_material_order_document_id', 'production_order_material_id', 'product_id', 'style_code', 'quantity'];
+    protected $fillable = ['company_id', 'number', 'issued_quantity', 'raw_material_order_document_id', 'production_order_material_id', 'product_id', 'style_code', 'color', 'size', 'category', 'quantity'];
     protected function casts(): array { return ['quantity' => 'decimal:4', 'issued_quantity' => 'decimal:4']; }
     public function company(): BelongsTo { return $this->belongsTo(Company::class); }
     public function document(): BelongsTo { return $this->belongsTo(RawMaterialOrderDocument::class, 'raw_material_order_document_id'); }

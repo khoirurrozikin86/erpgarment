@@ -1,4 +1,18 @@
 <table><tr><td colspan="12"><h3>{{ __('bc_reports.trace_incoming_materials') }}</h3></td></tr><tr><td>{{ __('bc_reports.mo_no') }}</td><td colspan="11">{{ $selected?->number ?? __('bc_reports.all') }}</td></tr><tr><td>{{ __('bc_reports.mo_required_quantity') }}</td><td colspan="11">{{ number_format($requiredQuantity, 4, ',', '.') }}</td></tr><tr><td>{{ __('bc_reports.raw_material') }}</td><td colspan="11">{{ $product->code }} | {{ $product->name }}</td></tr><tr><td>{{ __('bc_reports.unit') }}</td><td colspan="11">{{ $product->unit?->symbol ?: $product->unit?->name }}</td></tr></table>
+@if ($selectedReceiptItem)
+    <table class="table table-sm table-bordered mt-3">
+        <thead><tr>
+            <th>{{ __('bc_reports.receipt_no_2') }}</th>
+            <th>{{ __('ui.workflow.color') }}</th>
+            <th>{{ __('ui.workflow.size') }}</th>
+        </tr></thead>
+        <tbody><tr>
+            <td>{{ $selectedReceiptItem->goodsReceipt?->number ?? '—' }}</td>
+            <td>{{ $selectedReceiptItem->received_color ?? '—' }}</td>
+            <td>{{ $selectedReceiptItem->received_size ?? '—' }}</td>
+        </tr></tbody>
+    </table>
+@endif
 @foreach($sections as $section)
 <div class="mt-4 mb-2" style="color:navy">{{ $section['title'] }}</div>
 <div class="table-responsive"><table class="table table-bordered table-striped align-middle" style="font-size:12px"><thead><tr><th>{{ __('bc_reports.no') }}</th>@foreach($section['headers'] as $header)<th style="background:#f8f8f8;white-space:nowrap">{{ $header }}</th>@endforeach</tr></thead><tbody>

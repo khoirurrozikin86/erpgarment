@@ -20,7 +20,8 @@ class RestoreMaterialIssueItemAction
 
         $source = RawMaterialOrderItem::query()->where('company_id', $this->company->id())
             ->lockForUpdate()->findOrFail($item->raw_material_order_item_id);
-        if ((int) $source->product_id !== (int) $item->product_id) {
+        $postedProduct = $item->product()->firstOrFail();
+        if (!in_array((int) $source->product_id, [(int) $postedProduct->id, (int) $postedProduct->parent_product_id], true)) {
             throw ValidationException::withMessages(['item' => __('ui.material_issue.correction_source_mismatch')]);
         }
 
@@ -33,16 +34,16 @@ class RestoreMaterialIssueItemAction
         /** @var StockMovement $movement */
         $movement = $movements->first();
         $allocated = $movement->lotAllocations->sum(fn ($allocation) => abs((float) $allocation->quantity));
-        if ((float) $movement->quantity >= 0 || abs(abs((float) $movement->quantity) - $quantity) > 0.0001 || abs($allocated - $quantity) > 0.0001) {
+        if ((int) $movement->product_id !== (int) $item->product_id || (float) $movement->quantity >= 0 || abs(abs((float) $movement->quantity) - $quantity) > 0.0001 || abs($allocated - $quantity) > 0.0001) {
             throw ValidationException::withMessages(['item' => __('ui.material_issue.correction_movement_mismatch')]);
         }
 
         $orderMaterial = $source->sourceMaterial()->lockForUpdate()->first();
-        if (!$orderMaterial || (int) $orderMaterial->product_id !== (int) $item->product_id) {
+        if ($source->production_order_material_id && (!$orderMaterial || (int) $orderMaterial->product_id !== (int) $source->product_id)) {
             throw ValidationException::withMessages(['item' => __('ui.material_issue.source_material_missing')]);
         }
-        $nextOrderIssued = round((float) $orderMaterial->issued_quantity - $quantity, 4);
-        if ($nextOrderIssued + 0.0000001 < (float) $orderMaterial->consumed_quantity) {
+        $nextOrderIssued = round((float) $orderMaterial?->issued_quantity - $quantity, 4);
+        if ($orderMaterial && $nextOrderIssued + 0.0000001 < (float) $orderMaterial->consumed_quantity) {
             throw ValidationException::withMessages(['quantity' => __('ui.material_issue.correction_already_consumed')]);
         }
         if ((float) $source->issued_quantity + 0.0000001 < $quantity) {
@@ -58,7 +59,7 @@ class RestoreMaterialIssueItemAction
                 throw ValidationException::withMessages(['item' => __('ui.material_issue.correction_movement_mismatch')]);
             }
             $lot = InventoryLot::query()->lockForUpdate()->find($allocation->inventory_lot_id);
-            if (!$lot) throw ValidationException::withMessages(['item' => __('ui.material_issue.correction_lot_missing')]);
+            if (!$lot || (int) $lot->product_id !== (int) $item->product_id) throw ValidationException::withMessages(['item' => __('ui.material_issue.correction_lot_missing')]);
             $lotQuantity = abs((float) $allocation->quantity);
             $lot->update(['current_quantity' => round((float) $lot->current_quantity + $lotQuantity, 4)]);
             $restoredAllocations[] = [
@@ -70,7 +71,7 @@ class RestoreMaterialIssueItemAction
 
         $stock->update(['quantity' => $after]);
         $source->update(['issued_quantity' => round((float) $source->issued_quantity - $quantity, 4)]);
-        $orderMaterial->update(['issued_quantity' => $nextOrderIssued]);
+        $orderMaterial?->update(['issued_quantity' => $nextOrderIssued]);
 
         $number = $item->document->number;
         $movement->update([

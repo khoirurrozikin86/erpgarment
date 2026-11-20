@@ -13,10 +13,19 @@ class MaterialIssuesExport implements FromQuery, WithHeadings, WithMapping, Shou
 {
     private int $row = 0;
     public function __construct(private readonly int $companyId, private readonly ?string $fromDate = null, private readonly ?string $toDate = null) {}
-    public function query(): Builder { return (new MaterialIssueTableQuery())->history($this->companyId, $this->fromDate, $this->toDate); }
-    public function headings(): array { return ['No.', 'No. MIS', 'Tanggal MIS', 'No. Permintaan Produksi', 'No. MO', 'Kode Barang', 'Nama Barang', 'Satuan', 'Jumlah Kirim']; }
+    public function query(): Builder { return (new MaterialIssueTableQuery())->historyDocuments($this->companyId, $this->fromDate, $this->toDate); }
+    public function headings(): array { return ['No.', 'No. MIS', 'Tanggal MIS', 'No. Permintaan Produksi', 'No. MO', 'Detail Barang']; }
     public function map($item): array
     {
-        return [++$this->row, $item->document?->number, $item->document?->issue_date?->format('Y-m-d'), $item->rawMaterialOrderItem?->number ?: $item->document?->request?->number, $item->rawMaterialOrderItem?->sourceMaterial?->productionOrder?->number ?: $item->document?->rawMaterialOrder?->production_order_number ?: $item->document?->request?->productionOrder?->number, $item->product?->code, $item->product?->name, $item->product?->unit?->symbol ?: $item->product?->unit?->name, (float) $item->quantity];
+        $mo = $item->items
+            ->map(fn ($line) => $line->rawMaterialOrderItem?->sourceMaterial?->productionOrder?->number)
+            ->filter()->unique()->implode(', ');
+        $details = $item->items->map(function ($line) {
+            $unit = $line->product?->unit?->symbol ?: $line->product?->unit?->name ?: '—';
+            $color = $line->issued_color ?? '—';
+            $size = $line->issued_size ?? '—';
+            return ($line->product?->code ?: '—').' — '.($line->product?->name ?: '—').' / '.$color.' / '.$size.' / '.number_format((float) $line->quantity, 4, '.', '').' '.$unit;
+        })->implode("\n");
+        return [++$this->row, $item->number, $item->issue_date?->format('Y-m-d'), $item->rawMaterialOrder?->number ?: $item->request?->number ?: '—', $mo ?: $item->rawMaterialOrder?->production_order_number ?: $item->request?->productionOrder?->number ?: '—', $details];
     }
 }

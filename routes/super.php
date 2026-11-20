@@ -10,7 +10,6 @@ use App\Http\Controllers\Admin\{
     EmailSettingController,
     DocumentNumberingController,
     CategoryController,
-    StyleController,
     UnitController,
     SupplierController,
     ImporterController,
@@ -303,13 +302,7 @@ Route::middleware(['auth'])
             });
 
 
-        Route::prefix('styles')->name('styles.')->group(function () {
-            Route::middleware('permission:styles.view')->get('/', [StyleController::class, 'index'])->name('index');
-            Route::middleware('permission:styles.view')->get('/dt', [StyleController::class, 'dt'])->name('dt');
-            Route::middleware('permission:styles.create')->post('/', [StyleController::class, 'store'])->name('store');
-            Route::middleware('permission:styles.update')->put('/{style}', [StyleController::class, 'update'])->name('update');
-            Route::middleware('permission:styles.delete')->delete('/{style}', [StyleController::class, 'destroy'])->name('destroy');
-        });
+
 
 
         Route::prefix('units')->name('units.')->group(function () {
@@ -404,6 +397,7 @@ Route::middleware(['auth'])
 
         Route::prefix('material-requests')->name('material-requests.')->group(function () {
             Route::middleware('permission:material-requests.view')->get('/', [MaterialRequestController::class, 'index'])->name('index');
+            Route::middleware('permission:material-requests.create')->get('/create', [MaterialRequestController::class, 'index'])->name('create');
             Route::middleware('permission:material-requests.view')->get('/dt', [MaterialRequestController::class, 'dt'])->name('dt');
             Route::middleware('permission:material-requests.view')->get('/export', [MaterialRequestController::class, 'export'])->name('export');
             Route::middleware('permission:material-requests.create')->get('/bom-requirements', [MaterialRequestController::class, 'bomRequirements'])->name('bom-requirements');
@@ -412,6 +406,7 @@ Route::middleware(['auth'])
             Route::middleware('permission:material-requests.view')->get('/{materialRequest}/pdf', [MaterialRequestController::class, 'pdf'])->name('pdf');
             Route::middleware('permission:material-requests.view')->get('/{materialRequest}/pdf/download', [MaterialRequestController::class, 'downloadPdf'])->name('pdf.download');
             Route::middleware('permission:material-requests.create')->post('/', [MaterialRequestController::class, 'store'])->name('store');
+            Route::middleware('permission:material-requests.delete')->delete('/{materialRequest}', [MaterialRequestController::class, 'destroy'])->name('destroy');
             Route::middleware('permission:material-requests.approve')->put('/{materialRequest}/approve', [MaterialRequestController::class, 'approve'])->name('approve');
             Route::middleware('permission:material-requests.approve')->put('/{materialRequest}/reject', [MaterialRequestController::class, 'reject'])->name('reject');
             Route::middleware('permission:material-requests.issue')->put('/{materialRequest}/issue', [MaterialRequestController::class, 'issue'])->name('issue');
@@ -420,6 +415,12 @@ Route::middleware(['auth'])
         Route::prefix('material-orders')->name('material-orders.')->group(function () {
             Route::middleware('permission:production-orders.view')->get('/', [ProductionOrderController::class, 'index'])->name('index');
             Route::middleware('permission:production-orders.view')->get('/export', [ProductionOrderController::class, 'export'])->name('export');
+            Route::middleware('permission:production-orders.create')->get('/import-template', [ProductionOrderController::class, 'importTemplate'])->name('import-template');
+            Route::middleware('permission:production-orders.create')->post('/import-lines', [ProductionOrderController::class, 'importLines'])->name('import-lines');
+            Route::middleware('permission:production-orders.create')->get('/full-import-template', [ProductionOrderController::class, 'fullImportTemplate'])->name('full-import-template');
+            Route::middleware('permission:production-orders.create')->post('/full-import', [ProductionOrderController::class, 'fullImport'])->name('full-import');
+            Route::middleware('permission:production-orders.create')->get('/create', [ProductionOrderController::class, 'create'])->name('create');
+            Route::middleware('permission:production-orders.update')->get('/{productionOrder}/edit', [ProductionOrderController::class, 'edit'])->name('edit');
             Route::middleware('permission:production-orders.view')->get('/{productionOrder}', [ProductionOrderController::class, 'show'])->name('show');
             Route::middleware('permission:production-orders.update')->post('/{productionOrder}/stages', [ProductionOrderController::class, 'recordStage'])->name('stages.store');
             Route::middleware('permission:production-orders.create')->post('/', [ProductionOrderController::class, 'store'])->name('store');
@@ -433,6 +434,8 @@ Route::middleware(['auth'])
             Route::middleware('permission:support-material-orders.view')->get('/dt', [SupportMaterialOrderController::class, 'dt'])->name('dt');
             Route::middleware('permission:support-material-orders.view')->get('/export', [SupportMaterialOrderController::class, 'export'])->name('export');
             Route::middleware('permission:support-material-orders.view')->get('/products/dt', [SupportMaterialOrderController::class, 'productsDt'])->name('products.dt');
+            Route::middleware('permission:support-material-orders.create')->get('/create', [SupportMaterialOrderController::class, 'create'])->name('create');
+            Route::middleware('permission:support-material-orders.update')->get('/items/{item}/edit', [SupportMaterialOrderController::class, 'edit'])->name('edit');
             Route::middleware('permission:support-material-orders.create')->get('/number-preview', [SupportMaterialOrderController::class, 'numberPreview'])->name('number-preview');
             Route::middleware('permission:support-material-orders.create')->post('/items', [SupportMaterialOrderController::class, 'store'])->name('store');
             Route::middleware('permission:support-material-orders.update')->put('/items/{item}', [SupportMaterialOrderController::class, 'update'])->name('update');
@@ -443,21 +446,26 @@ Route::middleware(['auth'])
             Route::middleware('permission:cutting.view')->get('/', [CuttingController::class,'index'])->name('index');
             Route::middleware('permission:cutting.view')->get('/dt', [CuttingController::class,'dt'])->name('dt');
             Route::middleware('permission:cutting.view')->get('/export', [CuttingController::class,'export'])->name('export');
+            Route::middleware('permission:cutting.create')->get('/create', [CuttingController::class,'create'])->name('create');
             Route::middleware('permission:cutting.create')->get('/number-preview', [CuttingController::class,'preview'])->name('number-preview');
             Route::middleware('permission:cutting.create')->get('/production-orders/dt', [CuttingController::class,'ordersDt'])->name('production-orders.dt');
             Route::middleware('permission:cutting.create')->get('/materials/dt', [CuttingController::class,'materialsDt'])->name('materials.dt');
             Route::middleware('permission:cutting.create')->post('/', [CuttingController::class,'store'])->name('store');
             Route::middleware('permission:cutting.update')->put('/{entry}', [CuttingController::class,'update'])->name('update');
+            Route::middleware('permission:cutting.update')->get('/{entry}/edit', [CuttingController::class,'edit'])->name('edit');
             Route::middleware('permission:cutting.delete')->delete('/{entry}', [CuttingController::class,'destroy'])->name('destroy');
         });
 
         Route::prefix('sewing')->name('sewing.')->group(function () {
             Route::middleware('permission:sewing.view')->get('/', [SewingController::class,'index'])->name('index');
+            Route::middleware('permission:sewing.create')->get('/create', [SewingController::class,'create'])->name('create');
             Route::middleware('permission:sewing.view')->get('/dt', [SewingController::class,'dt'])->name('dt');
+            Route::middleware('permission:sewing.view')->get('/summary/dt', [SewingController::class,'summaryDt'])->name('summary.dt');
             Route::middleware('permission:sewing.view')->get('/export', [SewingController::class,'export'])->name('export');
             Route::middleware('permission:sewing.create')->get('/number-preview', [SewingController::class,'preview'])->name('number-preview');
             Route::middleware('permission:sewing.create')->get('/production-orders/dt', [SewingController::class,'ordersDt'])->name('production-orders.dt');
             Route::middleware('permission:sewing.create|sewing.update')->get('/materials/dt', [SewingController::class,'materialsDt'])->name('materials.dt');
+            Route::middleware('permission:sewing.create')->get('/production-orders/{order}/details', [SewingController::class,'orderDetails'])->name('production-orders.details');
             Route::middleware('permission:sewing.create')->post('/', [SewingController::class,'store'])->name('store');
             Route::middleware('permission:sewing.update')->put('/{entry}', [SewingController::class,'update'])->name('update');
             Route::middleware('permission:sewing.delete')->delete('/{entry}', [SewingController::class,'destroy'])->name('destroy');
@@ -466,7 +474,10 @@ Route::middleware(['auth'])
         Route::prefix('packing')->name('packing.')->group(function () {
             Route::middleware('permission:packing.view')->get('/', [PackingController::class,'index'])->name('index');
             Route::middleware('permission:packing.view')->get('/dt', [PackingController::class,'dt'])->name('dt');
+            Route::middleware('permission:packing.view')->get('/summary/dt', [PackingController::class,'summaryDt'])->name('summary.dt');
             Route::middleware('permission:packing.view')->get('/export', [PackingController::class,'export'])->name('export');
+            Route::middleware('permission:packing.create')->get('/create', [PackingController::class, 'create'])->name('create');
+            Route::middleware('permission:packing.update')->get('/{entry}/edit', [PackingController::class, 'edit'])->name('edit');
             Route::middleware('permission:packing.create')->get('/number-preview', [PackingController::class,'preview'])->name('number-preview');
             Route::middleware('permission:packing.create')->get('/production-orders/dt', [PackingController::class,'ordersDt'])->name('production-orders.dt');
             Route::middleware('permission:packing.create|packing.update')->get('/materials/dt', [PackingController::class,'materialsDt'])->name('materials.dt');
@@ -479,6 +490,9 @@ Route::middleware(['auth'])
             Route::middleware('permission:finished-goods.view')->get('/', [FinishedGoodsController::class, 'index'])->name('index');
             Route::middleware('permission:finished-goods.view')->get('/dt', [FinishedGoodsController::class, 'dt'])->name('dt');
             Route::middleware('permission:finished-goods.view')->get('/export', [FinishedGoodsController::class, 'export'])->name('export');
+            Route::middleware('permission:finished-goods.create')->get('/create', [FinishedGoodsController::class, 'create'])->name('create');
+            Route::middleware('permission:finished-goods.update')->get('/{entry}/edit', [FinishedGoodsController::class, 'edit'])->name('edit');
+            Route::middleware('permission:finished-goods.view')->get('/{entry}/materials', [FinishedGoodsController::class, 'materials'])->name('materials');
             Route::middleware('permission:finished-goods.create')->get('/number-preview', [FinishedGoodsController::class, 'preview'])->name('number-preview');
             Route::middleware('permission:finished-goods.create')->get('/orders/dt', [FinishedGoodsController::class, 'ordersDt'])->name('orders.dt');
             Route::middleware('permission:finished-goods.create')->post('/', [FinishedGoodsController::class, 'store'])->name('store');
@@ -676,6 +690,7 @@ Route::middleware(['auth'])
         });
         Route::prefix('reports/inventory')->name('reports.inventory.')->group(function () {
             Route::middleware('permission:inventory-report.view')->get('/', [InventoryReportController::class, 'index'])->name('index');
+            Route::middleware('permission:inventory-report.view')->get('/dt', [InventoryReportController::class, 'dt'])->name('dt');
             Route::middleware('permission:inventory-report.view')->get('/export', [InventoryReportController::class, 'export'])->name('export');
         });
         Route::prefix('reports/cash-bank')->name('reports.cash-bank.')->group(function () {
@@ -1001,9 +1016,11 @@ Route::middleware(['auth'])
             Route::middleware('permission:raw-material-orders.view')->get('/', [RawMaterialOrderController::class, 'index'])->name('index');
             Route::middleware('permission:raw-material-orders.view')->get('/dt', [RawMaterialOrderController::class, 'dt'])->name('dt');
             Route::middleware('permission:raw-material-orders.view')->get('/export', [RawMaterialOrderController::class, 'export'])->name('export');
+            Route::middleware('permission:raw-material-orders.view')->get('/{document}/pdf', [RawMaterialOrderController::class, 'pdf'])->name('pdf');
             Route::middleware('permission:raw-material-orders.create')->get('/create', [RawMaterialOrderController::class, 'create'])->name('create');
             Route::middleware('permission:raw-material-orders.create')->get('/mo/dt', [RawMaterialOrderController::class, 'mosDt'])->name('mos.dt');
             Route::middleware('permission:raw-material-orders.create')->get('/mo/materials', [RawMaterialOrderController::class, 'moMaterials'])->name('materials');
+            Route::middleware('permission:raw-material-orders.create')->get('/manual-products/dt', [RawMaterialOrderController::class, 'manualProducts'])->name('manual-products.dt');
             Route::middleware('permission:raw-material-orders.create')->post('/', [RawMaterialOrderController::class, 'store'])->name('store');
             Route::middleware('permission:raw-material-orders.update')->get('/{document}/edit', [RawMaterialOrderController::class, 'edit'])->name('edit');
             Route::middleware('permission:raw-material-orders.update')->put('/{document}', [RawMaterialOrderController::class, 'update'])->name('update');
@@ -1107,9 +1124,7 @@ Route::middleware(['auth'])
                     ->get('/dt', [ProductController::class, 'dt'])
                     ->name('dt');
 
-                Route::middleware('permission:products.view')
-                    ->get('/style-options', [ProductController::class, 'styleOptions'])
-                    ->name('style-options');
+                Route::middleware('permission:products.view')->get('/{product}/variants', [ProductController::class, 'variants'])->name('variants');
 
                 Route::middleware('permission:products.view')
                     ->get('/export', [ProductController::class, 'export'])
@@ -1136,8 +1151,16 @@ Route::middleware(['auth'])
                     ->name('destroy');
             });
 
+        Route::prefix('variant-dimensions')->name('variant-dimensions.')->group(function () {
+            Route::middleware('permission:products.view')->get('/{kind}', [\App\Http\Controllers\Admin\VariantDimensionController::class, 'index'])->whereIn('kind', ['color', 'size'])->name('index');
+            Route::middleware('permission:products.create')->post('/{kind}', [\App\Http\Controllers\Admin\VariantDimensionController::class, 'save'])->whereIn('kind', ['color', 'size'])->name('store');
+            Route::middleware('permission:products.update')->put('/{kind}/{id}', [\App\Http\Controllers\Admin\VariantDimensionController::class, 'save'])->whereIn('kind', ['color', 'size'])->whereNumber('id')->name('update');
+        });
+
         Route::prefix('boms')->name('boms.')->group(function () {
             Route::middleware('permission:boms.view')->get('/', [BillOfMaterialController::class, 'index'])->name('index');
+            Route::middleware('permission:boms.view')->get('/styles', [BillOfMaterialController::class, 'styles'])->name('styles');
+            Route::middleware(['permission:boms.view', 'permission:styles.delete'])->delete('/styles/{style}', [BillOfMaterialController::class, 'destroyStyle'])->name('styles.destroy');
             Route::middleware('permission:boms.view')->get('/export', [BillOfMaterialController::class, 'export'])->name('export');
             Route::middleware('permission:boms.create')->get('/create', [BillOfMaterialController::class, 'create'])->name('create');
             Route::middleware('permission:boms.create')->post('/', [BillOfMaterialController::class, 'store'])->name('store');

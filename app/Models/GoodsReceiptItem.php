@@ -14,6 +14,20 @@ class GoodsReceiptItem extends Model
         return ['quantity' => 'decimal:4', 'returned_quantity' => 'decimal:4', 'unit_price' => 'decimal:2', 'line_total' => 'decimal:2'];
     }
 
+    public function getReceivedColorAttribute(): ?string
+    {
+        $color = $this->purchaseOrderItem?->purchaseRequestItem?->materialRequestItem?->color;
+
+        return filled($color) ? $color : $this->product?->color;
+    }
+
+    public function getReceivedSizeAttribute(): ?string
+    {
+        $size = $this->purchaseOrderItem?->purchaseRequestItem?->materialRequestItem?->size;
+
+        return filled($size) ? $size : $this->product?->size;
+    }
+
     public function goodsReceipt(): BelongsTo
     {
         return $this->belongsTo(GoodsReceipt::class);

@@ -50,11 +50,12 @@
                         </div>
 
                         <div class="alert alert-info py-2">{{ __('ui.workflow.po_source_guidance') }}</div>
+                        <div id="po-production-summary" class="alert alert-light border py-2 d-none"></div>
                         <div class="table-responsive mb-3">
                             <table class="table table-sm table-bordered align-middle">
-                                <thead><tr><th>{{ __('ui.common.item') }}</th><th class="text-end">{{ __('ui.common.quantity') }}</th><th class="text-end">{{ __('ui.common.unit_price') }}</th><th class="text-end">{{ __('ui.common.subtotal') }}</th></tr></thead>
-                                <tbody id="purchase-order-items"><tr><td colspan="4" class="text-center text-muted py-4">{{ __('ui.workflow.load_pr_items_prompt') }}</td></tr></tbody>
-                                <tfoot><tr><th colspan="3" class="text-end">{{ __('ui.common.order_total') }}</th><th class="text-end" id="purchase-order-total">Rp 0</th></tr></tfoot>
+                                <thead><tr><th>{{ __('ui.common.item') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th class="text-end">{{ __('ui.common.quantity') }}</th><th class="text-end">{{ __('ui.common.unit_price') }}</th><th class="text-end">{{ __('ui.common.subtotal') }}</th></tr></thead>
+                                <tbody id="purchase-order-items"><tr><td colspan="6" class="text-center text-muted py-4">{{ __('ui.workflow.load_pr_items_prompt') }}</td></tr></tbody>
+                                <tfoot><tr><th colspan="5" class="text-end">{{ __('ui.common.order_total') }}</th><th class="text-end" id="purchase-order-total">Rp 0</th></tr></tfoot>
                             </table>
                         </div>
                         <div class="mb-0">
@@ -112,15 +113,22 @@
                 $('#po_purchase_request_id').val(id);
                 $('#po_purchase_request_number').val(number);
                 $('#submitPurchaseOrder').prop('disabled', true);
-                $('#purchase-order-items').html('<tr><td colspan="4" class="text-center text-muted">{{ __('ui.workflow.loading_pr_details') }}</td></tr>');
+                $('#purchase-order-items').html('<tr><td colspan="6" class="text-center text-muted">{{ __('ui.workflow.loading_pr_details') }}</td></tr>');
                 const sourceUrl = @json(route('super.purchase-orders.source', ['purchaseRequestId' => '__ID__']));
                 $.get(sourceUrl.replace('__ID__', encodeURIComponent(id)))
                     .done(function(source) {
                         $('#po_supplier').val(source.supplier);
+                        const productionRows = (source.production_details || []).map(detail => {
+                            const quantity = detail.quantity === null ? '—' : Number(detail.quantity).toLocaleString('id-ID', { maximumFractionDigits: 4 });
+                            return `<span class="text-nowrap me-3"><strong>${$('<div>').text(detail.style || '—').html()}</strong> / ${$('<div>').text(detail.color || '—').html()} / ${$('<div>').text(detail.size || '—').html()} / ${quantity}</span>`;
+                        }).join('');
+                        $('#po-production-summary').toggleClass('d-none', !productionRows).html(productionRows);
                         const body = $('#purchase-order-items').empty();
                         source.items.forEach(item => {
                             body.append($('<tr>').append(
                                 $('<td>').text(`${item.code} — ${item.name}`),
+                                $('<td>').text(item.color || '—'),
+                                $('<td>').text(item.size || '—'),
                                 $('<td class="text-end">').text(`${item.quantity} ${item.unit}`),
                                 $('<td class="text-end">').text(money(item.unit_price)),
                                 $('<td class="text-end">').text(money(item.line_total))
@@ -131,7 +139,7 @@
                     })
                     .fail(xhr => {
                         $('#po_supplier').val('');
-                        $('#purchase-order-items').html('<tr><td colspan="4" class="text-center text-danger">{{ __('ui.workflow.pr_unavailable') }}</td></tr>');
+                        $('#purchase-order-items').html('<tr><td colspan="6" class="text-center text-danger">{{ __('ui.workflow.pr_unavailable') }}</td></tr>');
                         Swal.fire({ icon: 'error', title: '{{ __('ui.workflow.failure') }}', text: xhr.responseJSON?.message || '{{ __('ui.workflow.pr_cannot_make_po') }}' });
                     });
             }

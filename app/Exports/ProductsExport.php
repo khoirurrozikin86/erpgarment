@@ -17,7 +17,7 @@ class ProductsExport implements FromQuery, WithHeadings, WithMapping, ShouldAuto
 
     public function headings(): array
     {
-        return ['Kategori', 'Kode Barang', 'Nama Barang', 'Satuan', 'Kode Style', 'Warna', 'Ukuran', 'Available'];
+        return ['Kategori', 'Kode Barang', 'Nama Barang', 'Satuan', 'Warna', 'Ukuran', 'Available'];
     }
 
     public function map($product): array
@@ -29,7 +29,6 @@ class ProductsExport implements FromQuery, WithHeadings, WithMapping, ShouldAuto
             $product->unit
                 ? $product->unit->name . ($product->unit->symbol ? " ({$product->unit->symbol})" : '')
                 : null,
-            $product->style_code,
             $product->color,
             $product->size,
             $product->is_available ? 'Available' : 'Unavailable',

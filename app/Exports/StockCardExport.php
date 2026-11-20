@@ -15,18 +15,22 @@ class StockCardExport implements FromQuery, WithHeadings, WithMapping, ShouldAut
         private int $productId,
         private ?string $fromDate,
         private ?string $toDate,
+        private bool $family = false,
     ) {}
 
     public function query()
     {
-        return app(StockCardQuery::class)->movements($this->productId, $this->fromDate, $this->toDate);
+        return app(StockCardQuery::class)->movements($this->productId, $this->fromDate, $this->toDate, $this->family);
     }
 
     public function headings(): array
     {
         return [
             'Tanggal Pencatatan',
-            'Kode Barang',
+            __('variants.stock_parent_code'),
+            __('variants.stock_sku'),
+            __('ui.workflow.color'),
+            __('ui.workflow.size'),
             'Nama Barang',
             'No. Dokumen',
             'Lot / Roll',
@@ -44,7 +48,10 @@ class StockCardExport implements FromQuery, WithHeadings, WithMapping, ShouldAut
         /** @var StockMovement $movement */
         return [
             $movement->created_at?->format('Y-m-d H:i:s'),
+            $movement->product?->parentProduct?->code ?? $movement->product?->code,
             $movement->product?->code,
+            $movement->product?->color,
+            $movement->product?->size,
             $movement->product?->name,
             $movement->subcontractMaterialIssueDocument?->number ?? $movement->goodsReceipt?->number ?? $movement->purchaseReturn?->number ?? $movement->stockOpname?->number ?? $movement->materialIssueDocument?->number ?? $movement->nonProductionMaterialUsageDocument?->number ?? $movement->wipIssueDocument?->number ?? $movement->scrapReceiptDocument?->number ?? $movement->productionReturnDocument?->number,
             $movement->lotAllocations->map(fn ($allocation) => ($allocation->inventoryLot?->lot_number ?? '—') . ' (' . abs((float) $allocation->quantity) . ')')->implode(', '),

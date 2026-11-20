@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Domain\Inventory\Queries\InventoryReportQuery;
 use App\Domain\Inventory\Queries\StockCardQuery;
+use App\Domain\Inventory\Queries\StockFamilyPage;
 use App\Exports\StockCardExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Admin\StockFamilyTableRequest;
 use App\Models\Product;
 use App\Models\StockMovement;
 use Illuminate\Http\JsonResponse;
@@ -20,25 +23,42 @@ class StockCardController extends Controller
         if ($request->filled('product_id')) {
             $product = Product::query()
                 ->where('track_stock', true)
+                ->with('parentProduct:id,code')
                 ->find($request->integer('product_id'));
         }
 
         return view('super.stock-card.index', ['initialProduct' => $product]);
     }
 
-    public function productsDt(StockCardQuery $query): JsonResponse
+    public function productsDt(StockFamilyTableRequest $request, StockFamilyPage $families): JsonResponse
     {
-        return DataTables::eloquent($query->products())
-            ->addColumn('unit_label', fn(Product $product) => $product->unit?->symbol ?: $product->unit?->name ?: '—')
-            ->addColumn('actions', fn(Product $product) => '<button type="button" class="btn btn-sm btn-primary btn-select-stock-product" data-id="' . (int) $product->id . '" data-code="' . e($product->code) . '" data-name="' . e($product->name) . '" data-unit="' . e($product->unit?->symbol ?: $product->unit?->name ?: '') . '"><i data-feather="check" class="icon-sm me-1"></i>Pilih</button>')
-            ->rawColumns(['actions'])
-            ->toJson();
+        $inputs = $request->validated();
+        $page = $families->get($inputs['start'], $inputs['length'], trim($inputs['search']['value'] ?? ''), searchDimensions: true);
+        $rows = $families->productGroups($page['ids']->all())->map(function ($products) {
+            $first = $products->first();
+            $parent = $first->parentProduct ?? $first;
+            return [
+                'code' => $parent->code,
+                'id' => $parent->id,
+                'name' => $parent->name,
+                'unit' => $first->unit?->symbol ?: $first->unit?->name,
+                'detail_html' => view('super.stocks.partials.product-skus', compact('parent', 'products'))->render(),
+            ];
+        });
+
+        return response()->json([
+            'draw' => (int) $inputs['draw'],
+            'recordsTotal' => $page['total'],
+            'recordsFiltered' => $page['filtered'],
+            'data' => $rows,
+        ]);
     }
 
     public function dt(Request $request, StockCardQuery $query): JsonResponse
     {
         $filters = $request->validate([
             'product_id' => ['nullable', 'integer', 'exists:products,id'],
+            'family' => ['sometimes', 'boolean'],
             ...$this->dateRules($request),
         ]);
 
@@ -46,7 +66,11 @@ class StockCardController extends Controller
             isset($filters['product_id']) ? (int) $filters['product_id'] : null,
             $filters['from_date'] ?? now()->startOfMonth()->toDateString(),
             $filters['to_date'] ?? now()->toDateString(),
+            (bool) ($filters['family'] ?? false),
         ))
+            ->addColumn('sku_code', fn (StockMovement $movement) => $movement->product?->code ?? '—')
+            ->addColumn('sku_color', fn (StockMovement $movement) => $movement->product?->color ?? '—')
+            ->addColumn('sku_size', fn (StockMovement $movement) => $movement->product?->size ?? '—')
             ->addColumn('reference_number', fn(StockMovement $movement) => $movement->subcontractMaterialIssueDocument?->number ?? $movement->goodsReceipt?->number ?? $movement->purchaseReturn?->number ?? $movement->stockOpname?->number ?? $movement->damagedItemDocument?->number ?? $movement->lostItemDocument?->number ?? $movement->materialRequestItem?->request?->number ?? $movement->materialIssueDocument?->number ?? $movement->nonProductionMaterialUsageDocument?->number ?? $movement->wipIssueDocument?->number ?? $movement->scrapReceiptDocument?->number ?? $movement->scrapIssueDocument?->number ?? $movement->productionReturnDocument?->number ?? $movement->productionOrderStageEntry?->packing_number ?? $movement->productionOrderStageEntry?->sewing_number ?? $movement->productionOrderStageEntry?->cutting_number ?? $movement->productionOrderStageEntry?->productionOrder?->number ?? '—')
             ->addColumn('movement_label', fn(StockMovement $movement) => match ($movement->movement_type) {
                 'purchase_receipt' => '<span class="badge bg-success">Penerimaan Barang</span>',
@@ -86,18 +110,28 @@ class StockCardController extends Controller
             ->toJson();
     }
 
-    public function summary(Request $request, StockCardQuery $query): JsonResponse
+    public function summary(Request $request, StockCardQuery $query, InventoryReportQuery $report): JsonResponse
     {
         $filters = $request->validate([
             'product_id' => ['required', 'integer', 'exists:products,id'],
+            'family' => ['sometimes', 'boolean'],
             ...$this->dateRules($request),
         ]);
-        $product = Product::query()->where('track_stock', true)->findOrFail($filters['product_id']);
+        $family = (bool) ($filters['family'] ?? false);
+        $product = $this->selectedProduct($filters['product_id'], $family);
+        $from = $filters['from_date'] ?? now()->startOfMonth()->toDateString();
+        $to = $filters['to_date'] ?? now()->toDateString();
+        $details = $family ? collect($query->familyDetails($product, $from, $to, $report)) : null;
+        $balances = $family
+            ? collect(['opening_balance', 'quantity_in', 'quantity_out', 'current_balance'])
+                ->mapWithKeys(fn (string $field) => [$field => round($details->sum($field), 4)])->all()
+            : $query->summary($product, $from, $to);
 
         return response()->json([
             'product' => trim($product->code . ' — ' . $product->name),
             'unit' => $product->unit?->symbol ?: $product->unit?->name ?: '',
-            ...$query->summary($product, $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()),
+            ...$balances,
+            'details' => $details,
         ]);
     }
 
@@ -105,9 +139,11 @@ class StockCardController extends Controller
     {
         $filters = $request->validate([
             'product_id' => ['required', 'integer', 'exists:products,id'],
+            'family' => ['sometimes', 'boolean'],
             ...$this->dateRules($request),
         ]);
-        $product = Product::query()->where('track_stock', true)->findOrFail($filters['product_id']);
+        $family = (bool) ($filters['family'] ?? false);
+        $product = $this->selectedProduct($filters['product_id'], $family);
 
         $filenamePart = trim((string) preg_replace('/[^A-Za-z0-9._-]+/', '-', $product->code), '-_.') ?: 'barang';
 
@@ -116,9 +152,19 @@ class StockCardController extends Controller
                 (int) $product->id,
                 $filters['from_date'] ?? now()->startOfMonth()->toDateString(),
                 $filters['to_date'] ?? now()->toDateString(),
+                $family,
             ),
             'stock-card-' . $filenamePart . '-' . now()->format('Y-m-d-His') . '.xlsx',
         );
+    }
+
+    private function selectedProduct(int $id, bool $family): Product
+    {
+        return Product::query()->with('unit:id,name,symbol')
+            ->when($family, fn ($product) => $product->whereNull('parent_product_id')->where(fn ($items) =>
+                $items->where('track_stock', true)->orWhereHas('variants', fn ($variants) => $variants->where('track_stock', true))),
+                fn ($product) => $product->where('track_stock', true))
+            ->findOrFail($id);
     }
 
     private function dateRules(Request $request): array

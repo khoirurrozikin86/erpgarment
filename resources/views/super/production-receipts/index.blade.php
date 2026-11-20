@@ -10,8 +10,8 @@
 <th>{{ __('ui.common.no') }}</th><th>{{ __('ui.common.action') }}</th><th>{{ __('ui.production_receipt.approval_status') }}</th><th>{{ __('ui.production_receipt.delivery_number') }}</th><th>{{ __('ui.production_receipt.date') }}</th><th>{{ __('ui.production_receipt.order_number') }}</th>
 </tr></thead></table></div></div></div>
 <div class="card"><div class="card-header bg-white"><h6 id="receiptDetailTitle" class="mb-0">{{ __('ui.production_receipt.details_title') }}</h6></div><div class="card-body"><div id="receiptApprovalMeta" class="small text-muted mb-3"></div><div class="table-responsive"><table id="productionReceiptItemsTable" class="table table-sm table-bordered align-middle w-100"><thead><tr>
-<th>{{ __('ui.common.no') }}</th><th>{{ __('ui.production_receipt.po_supplier') }}</th><th>{{ __('ui.production_receipt.item_code') }}</th><th>{{ __('ui.production_receipt.item_name') }}</th><th>{{ __('ui.production_receipt.unit') }}</th><th>{{ __('ui.production_receipt.style') }}</th><th class="text-end">{{ __('ui.production_receipt.quantity_received') }}</th>
-</tr></thead><tbody><tr><td colspan="7" class="text-center text-muted">{{ __('ui.common.select') }}</td></tr></tbody></table></div></div></div>
+<th>{{ __('ui.common.no') }}</th><th>{{ __('ui.production_receipt.po_supplier') }}</th><th>{{ __('ui.production_receipt.item_code') }}</th><th>{{ __('ui.production_receipt.item_name') }}</th><th>{{ __('ui.production_receipt.unit') }}</th><th>{{ __('ui.production_receipt.style') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th class="text-end">{{ __('ui.production_receipt.quantity_received') }}</th>
+</tr></thead><tbody><tr><td colspan="9" class="text-center text-muted">{{ __('ui.common.select') }}</td></tr></tbody></table></div></div></div>
 @endsection
 @push('scripts')
 <script>
@@ -32,8 +32,8 @@ $(function(){
         $.get($(this).data('url')).done(doc=>{
             $('#receiptDetailTitle').text(`{{ __('ui.production_receipt.details_title') }}: ${doc.number}`);
             $('#receiptApprovalMeta').text(doc.status==='received'?`{{ __('ui.production_receipt.received_by') }}: ${doc.received_by||'—'} · {{ __('ui.production_receipt.received_at') }}: ${doc.received_at||'—'}`:'');
-            const rows=doc.items.map((item,index)=>`<tr><td>${index+1}</td><td>${esc(item.purchase_order||'—')}</td><td>${esc(item.code)}</td><td>${esc(item.name)}</td><td>${esc(item.unit)}</td><td>${esc(item.style)}</td><td class="text-end">${qty(item.quantity)}</td></tr>`).join('');
-            $('#productionReceiptItemsTable tbody').html(rows||'<tr><td colspan="7" class="text-center text-muted">{{ __('ui.common.no_matching_records') }}</td></tr>');
+            const rows=doc.items.map((item,index)=>`<tr><td>${index+1}</td><td>${esc(item.purchase_order||'—')}</td><td>${esc(item.code)}</td><td>${esc(item.name)}</td><td>${esc(item.unit)}</td><td>${esc(item.style)}</td><td>${esc(item.color)}</td><td>${esc(item.size)}</td><td class="text-end">${qty(item.quantity)}</td></tr>`).join('');
+            $('#productionReceiptItemsTable tbody').html(rows||'<tr><td colspan="9" class="text-center text-muted">{{ __('ui.common.no_matching_records') }}</td></tr>');
             document.getElementById('receiptDetailTitle').scrollIntoView({behavior:'smooth',block:'center'});
         });
     });

@@ -16,7 +16,7 @@ class FinishedGoodsStockCardQuery
                 ->where('code', 'FG')
                 ->orWhereRaw('LOWER(name) = ?', ['finished goods']))
             ->with('unit:id,name,symbol')
-            ->select(['id', 'code', 'name', 'unit_id', 'track_stock'])
+            ->select(['id', 'code', 'name', 'unit_id', 'track_stock', 'color', 'size', 'parent_product_id'])
             ->orderBy('code');
     }
 

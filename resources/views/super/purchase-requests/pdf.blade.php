@@ -21,7 +21,7 @@
         .meta .label { width: 145px; color: #667085; }
         .section-title { font-size: 12px; font-weight: bold; margin: 16px 0 8px; }
         table.items { border-collapse: collapse; width: 100%; }
-        .items th, .items td { border: 1px solid #cfd5df; padding: 7px 8px; }
+        .items th, .items td { border: 1px solid #cfd5df; padding: 6px 5px; }
         .items th { background: #f1f4f8; text-align: left; }
         .right { text-align: right; }
         .center { text-align: center; }
@@ -48,24 +48,38 @@
         <tr><td class="label">{{ __('ui.common.review_time') }}</td><td>{{ $purchaseRequest->reviewed_at?->format('d/m/Y H:i') ?? '—' }}</td><td class="label">Catatan Review</td><td>{{ $purchaseRequest->review_note ?: '—' }}</td></tr>
     </table>
 
+    @if ($productionDetails->isNotEmpty())
+        <div class="section-title">{{ __('ui.nav.styles') }} / {{ __('ui.workflow.order_quantity') }}</div>
+        <table class="items">
+            <thead><tr><th>{{ __('ui.nav.styles') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th class="right">{{ __('ui.workflow.order_quantity') }}</th></tr></thead>
+            <tbody>
+                @foreach ($productionDetails as $detail)
+                    <tr><td>{{ $detail['style'] ?: '—' }}</td><td>{{ $detail['color'] ?: '—' }}</td><td>{{ $detail['size'] ?: '—' }}</td><td class="right">{{ $detail['quantity'] === null ? '—' : number_format((float) $detail['quantity'], 4, ',', '.') }}</td></tr>
+                @endforeach
+            </tbody>
+        </table>
+    @endif
+
     <div class="section-title">Rincian Pembelian</div>
     <table class="items">
-        <thead><tr><th class="center" style="width:32px">{{ __('ui.common.no') }}</th><th style="width:105px">{{ __('ui.common.code') }}</th><th>{{ __('ui.common.item_name') }}</th><th class="right" style="width:75px">{{ __('ui.common.quantity') }}</th><th style="width:65px">{{ __('ui.common.unit') }}</th><th class="right" style="width:105px">{{ __('ui.common.unit_price') }}</th><th class="right" style="width:110px">{{ __('ui.common.subtotal') }}</th></tr></thead>
+        <thead><tr><th class="center" style="width:24px">{{ __('ui.common.no') }}</th><th style="width:70px">{{ __('ui.common.code') }}</th><th>{{ __('ui.common.item_name') }}</th><th style="width:48px">{{ __('ui.workflow.color') }}</th><th style="width:36px">{{ __('ui.workflow.size') }}</th><th class="right" style="width:58px">{{ __('ui.common.quantity') }}</th><th style="width:40px">{{ __('ui.common.unit') }}</th><th class="right" style="width:75px">{{ __('ui.common.unit_price') }}</th><th class="right" style="width:80px">{{ __('ui.common.subtotal') }}</th></tr></thead>
         <tbody>
             @forelse ($purchaseRequest->items as $item)
                 <tr>
                     <td class="center">{{ $loop->iteration }}</td>
                     <td>{{ $item->product?->code ?? '—' }}</td>
-                    <td>{{ $item->product?->variant_display_name ?? 'Barang dihapus' }}</td>
+                    <td>{{ $item->product?->name ?? 'Barang dihapus' }}</td>
+                    <td>{{ $item->materialRequestItem?->color ?: $item->product?->color ?: '—' }}</td>
+                    <td>{{ $item->materialRequestItem?->size ?: $item->product?->size ?: '—' }}</td>
                     <td class="right">{{ number_format((float) $item->quantity, 4, ',', '.') }}</td>
                     <td>{{ $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—' }}</td>
                     <td class="right">Rp {{ number_format((float) $item->unit_price, 2, ',', '.') }}</td>
                     <td class="right">Rp {{ number_format((float) $item->line_total, 2, ',', '.') }}</td>
                 </tr>
             @empty
-                <tr><td colspan="7" class="center">{{ __('ui.common.no_items') }}</td></tr>
+                <tr><td colspan="9" class="center">{{ __('ui.common.no_items') }}</td></tr>
             @endforelse
-            <tr class="total"><td colspan="6" class="right">{{ __('ui.common.estimated_total') }}</td><td class="right">Rp {{ number_format((float) $purchaseRequest->total_amount, 2, ',', '.') }}</td></tr>
+            <tr class="total"><td colspan="8" class="right">{{ __('ui.common.estimated_total') }}</td><td class="right">Rp {{ number_format((float) $purchaseRequest->total_amount, 2, ',', '.') }}</td></tr>
         </tbody>
     </table>
 

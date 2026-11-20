@@ -47,8 +47,26 @@ class ProductionReceiptController extends Controller
     {
         $receipt = MaterialIssueDocument::query()->where('company_id', $company->id())
             ->whereNotNull('raw_material_order_document_id')
-            ->with(['rawMaterialOrder:id,number', 'productionReceiver:id,name', 'items.product.unit', 'items.rawMaterialOrderItem'])
+            ->with(['rawMaterialOrder:id,number', 'productionReceiver:id,name', 'items.product.unit', 'items.rawMaterialOrderItem.sourceMaterial', 'items.requestItem:id,color,size'])
             ->findOrFail($document);
+
+        $items = $receipt->items->map(fn ($item) => [
+            'code' => $item->product?->code ?: '—',
+            'name' => $item->product?->name ?: '—',
+            'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
+            'style' => $item->rawMaterialOrderItem?->style_code ?: '—',
+            'color' => $item->issued_color ?? '—',
+            'size' => $item->issued_size ?? '—',
+            'purchase_order' => null,
+            'quantity' => (float) $item->quantity,
+        ])->groupBy(fn (array $item) => json_encode([
+            $item['code'], $item['name'], $item['unit'], $item['style'], $item['color'], $item['size'], $item['purchase_order'],
+        ]))->map(function ($lines) {
+            $item = $lines->first();
+            $item['quantity'] = round($lines->sum('quantity'), 4);
+
+            return $item;
+        })->values();
 
         return response()->json([
             'number' => $receipt->number,
@@ -57,14 +75,7 @@ class ProductionReceiptController extends Controller
             'status' => $receipt->production_receipt_status,
             'received_by' => $receipt->productionReceiver?->name,
             'received_at' => $receipt->production_received_at?->format('d-m-Y H:i'),
-            'items' => $receipt->items->map(fn ($item) => [
-                'code' => $item->product?->code ?: '—',
-                'name' => $item->product?->name ?: '—',
-                'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
-                'style' => $item->rawMaterialOrderItem?->style_code ?: '—',
-                'purchase_order' => null,
-                'quantity' => (float) $item->quantity,
-            ]),
+            'items' => $items,
         ]);
     }
 
