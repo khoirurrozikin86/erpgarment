@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'group' => 'BC IN',
+    'group' => 'BC In',
     'title' => 'BC 2.3 Data',
     'form' => 'BC 2.3 Form',
     'add' => 'Data Administration',

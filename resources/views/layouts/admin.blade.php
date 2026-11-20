@@ -109,7 +109,8 @@
    CATEGORY
    ========================================================= */
 
-        .sidebar .nav-category {
+        .sidebar .sidebar-body .nav .nav-item.nav-category {
+            text-transform: none;
             color: #82a08e !important;
 
             font-size: 10px;
@@ -362,6 +363,16 @@
             overflow-wrap: anywhere;
             line-height: 1.4;
         }
+        .sidebar-group > summary {
+            cursor: pointer;
+            list-style: none;
+        }
+        .sidebar-group > summary::-webkit-details-marker {display: none}
+        .sidebar-group[open] > summary .link-arrow {transform: rotate(180deg)}
+        :is(body:not(.sidebar-folded), body.open-sidebar-folded) .sidebar .sidebar-body .sidebar-group .sub-menu {
+            padding: 0 0 4px 8px;
+        }
+        .sidebar .sidebar-group .sub-menu .nav-link::before {display:none}
         .sidebar-search {flex:0 0 auto;padding:12px 14px 0;background:#fff}
         .sidebar-search .form-control {min-width:0}
         .sidebar [hidden] {display:none !important}
@@ -444,7 +455,7 @@
 
 
     {{-- NobleUI --}}
-    <script src="{{ asset('vendor/nobleui/assets/js/template.js') }}"></script>
+    <script src="{{ asset('vendor/nobleui/assets/js/template.js') }}?v={{ filemtime(public_path('vendor/nobleui/assets/js/template.js')) }}"></script>
 
 
     {{-- SweetAlert custom --}}
@@ -457,57 +468,6 @@
 
     {{-- Script khusus halaman --}}
     @stack('scripts')
-
-
-
-    <script>
-        (function exactActiveSidebar() {
-            function normalizePath(u) {
-                try {
-                    const url = new URL(u, location.origin);
-                    return (url.pathname || '/').replace(/\/+$/, '') || '/';
-                } catch {
-                    return '/';
-                }
-            }
-
-            function run() {
-                const current = normalizePath(location.href);
-
-                // Hanya di sidebar
-                const $sidebar = $('.sidebar, .sidebar-body, nav.sidebar'); // sesuaikan wrapper sidebarmu
-                if (!$sidebar.length) return;
-
-                // Bersihkan state auto-active bawaan tema
-                $sidebar.find('.nav-link.active').removeClass('active');
-                $sidebar.find('.nav-item.active').removeClass('active');
-                $sidebar.find('.collapse.show').removeClass('show');
-
-                // Set active berdasar exact path
-                $sidebar.find('.nav-link[href]').each(function() {
-                    const $a = $(this);
-                    const hrefPath = normalizePath($a.attr('href'));
-                    if (hrefPath === current) {
-                        $a.addClass('active');
-                        $a.closest('.collapse').addClass('show');
-                        $a.parents('.nav-item').last().addClass('active');
-                    }
-                });
-
-                // Opsional: kalau mau grup terbuka saat di area /super/xxx/*
-                // tinggal tambahkan aturan startsWith di sini per grup bila perlu.
-            }
-
-            // Jalankan setelah vendor inisialisasi
-            if (document.readyState === 'complete') setTimeout(run, 0);
-            else window.addEventListener('load', () => setTimeout(run, 0));
-
-            // Ulangi bila SPA/Livewire/Turbo
-            document.addEventListener('turbo:load', run);
-            document.addEventListener('pjax:end', run);
-            document.addEventListener('livewire:navigated', run);
-        })();
-    </script>
 
 </body>
 
