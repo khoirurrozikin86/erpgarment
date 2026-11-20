@@ -3,7 +3,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Domain\Companies\Services\CompanyContext;
 use App\Domain\Subcontract\Actions\SaveSubcontractMaterialIssueAction;
-use App\Domain\Subcontract\Queries\SubcontractMaterialIssueQuery;
+use App\Domain\Subcontract\Queries\{SubcontractMaterialIssueQuery, SubcontractProductColumns};
 use App\Domain\Settings\Services\DocumentNumberService;
 use App\Exports\SubcontractMaterialIssueExport;
 use App\Http\Controllers\Controller;
@@ -43,9 +43,14 @@ class SubcontractMaterialIssueController extends Controller
     {
         return Excel::download(new SubcontractMaterialIssueExport($c->id(),$this->filters($r),$this->issueKind),$this->issueKind.'-subcontract-issues.xlsx');
     }
-    public function create(CompanyContext $c,DocumentNumberService $numbers)
+    public function create(Request $request, CompanyContext $c, DocumentNumberService $numbers)
     {
-        return $this->form(null,$c,$numbers);
+        $filters = $request->validate(['contract_id' => ['nullable', 'integer', 'min:1']]);
+        $selectedContract = isset($filters['contract_id'])
+            ? SubcontractContract::where('company_id', $c->id())->findOrFail($filters['contract_id'])
+            : null;
+
+        return $this->form(null, $c, $numbers, $selectedContract);
     }
     public function edit(SubcontractMaterialIssueDocument $document,CompanyContext $c,DocumentNumberService $numbers)
     {
@@ -53,23 +58,36 @@ class SubcontractMaterialIssueController extends Controller
         if($document->status!=='draft')return redirect()->route($this->routePrefix.'.index')->withErrors(['document'=>__($this->translation.'.locked')]);
         return $this->form($document,$c,$numbers);
     }
-    private function form(?SubcontractMaterialIssueDocument $document,CompanyContext $c,DocumentNumberService $numbers)
+    private function form(?SubcontractMaterialIssueDocument $document,CompanyContext $c,DocumentNumberService $numbers, ?SubcontractContract $selectedContract = null)
     {
         $contracts=SubcontractContract::where('company_id',$c->id())->whereHas('subcontractor',fn($q)=>$q->where('company_id',$c->id())->where('is_active',true))->with('subcontractor')->orderBy('contract_number')->get();
         $subcontractors=$this->issueKind==='receipt'?\App\Models\Subcontractor::where('company_id',$c->id())->where('is_active',true)->orderBy('name')->get(['id','name']):collect();
         $document?->load(['items.product.unit','contract']);
         $number=$document?->number??$numbers->preview($this->numberingType);
         $lines=array_values(old('items',$document?->items->map->only(['product_id','quantity','style','description'])->all()??[]));
-        $products=Product::with('unit')->whereIn('id',collect($lines)->pluck('product_id')->filter())->get()->keyBy('id');
-        $productOptions=$products->map(fn($p)=>['id'=>$p->id,'code'=>$p->code,'name'=>$p->name,'unit'=>$p->unit?->symbol?:$p->unit?->name]);
-        return view('super.subcontract-material-issues.form',array_merge(compact('document','contracts','number','lines','productOptions','subcontractors'),$this->navigation()));
+        $products=Product::with(['unit', ...SubcontractProductColumns::RELATIONS])->whereIn('id',collect($lines)->pluck('product_id')->filter())->get()->keyBy('id');
+        $productOptions=$products->map(fn($p)=>['id' => $p->id, ...SubcontractProductColumns::values($p), 'unit' => $p->unit?->symbol ?: $p->unit?->name]);
+        return view('super.subcontract-material-issues.form',array_merge(compact('document','contracts','number','lines','productOptions','subcontractors','selectedContract'),$this->navigation()));
     }
     public function products(Request $r)
     {
         if ($r->has('draw')) {
-            return \Yajra\DataTables\Facades\DataTables::eloquent($this->query()->products()->reorder())
-                ->addColumn('unit_label', fn ($product) => $product->unit?->symbol ?: $product->unit?->name)
-                ->toJson();
+            $table = \Yajra\DataTables\Facades\DataTables::eloquent($this->query()->products()->reorder())
+                ->addColumn('unit_label', fn (Product $product) => $product->unit?->symbol ?: $product->unit?->name);
+            foreach (['parent_code', 'sku_code', 'category_name'] as $key) {
+                $table->addColumn($key, fn (Product $product) => SubcontractProductColumns::values($product)[$key]);
+            }
+
+            $table->filterColumn('parent_code', fn ($query, $keyword) => $query->where(function ($query) use ($keyword) {
+                    $query->whereHas('parentProduct', fn ($parent) => $parent->where('code', 'like', "%{$keyword}%"))
+                        ->orWhere(fn ($main) => $main->whereNull('parent_product_id')->where('code', 'like', "%{$keyword}%"));
+                }))
+                ->filterColumn('category_name', fn ($query, $keyword) =>
+                    $query->whereHas('category', fn ($category) => $category->where('name', 'like', "%{$keyword}%")));
+
+            return $table->editColumn('color', fn (Product $product) => SubcontractProductColumns::values($product)['color'])
+                ->editColumn('size', fn (Product $product) => SubcontractProductColumns::values($product)['size'])
+                ->escapeColumns([])->toJson();
         }
         $f=$r->validate(['search'=>['nullable','string','max:100']]);$search=$f['search']??'';
         return response()->json($this->query()->products()->when($search,fn($q)=>$q->where(fn($q)=>$q->where('code','like',"%{$search}%")->orWhere('name','like',"%{$search}%")))->limit(50)->get()->map(fn($p)=>['id'=>$p->id,'code'=>$p->code,'name'=>$p->name,'unit'=>$p->unit?->symbol?:$p->unit?->name,'style'=>$p->style_code]));

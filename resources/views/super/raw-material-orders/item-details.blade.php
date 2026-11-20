@@ -2,7 +2,7 @@
     —
 @else
     @php
-        $format = fn ($quantity) => rtrim(rtrim(number_format($quantity, 4, ',', '.'), '0'), ',');
+        $format = fn ($quantity) => \App\Support\DisplayNumber::format($quantity, 4);
     @endphp
     <table class="table table-sm table-bordered align-middle mb-0">
         <thead class="table-light">

@@ -22,28 +22,30 @@
         @if ($entry)
             @method('PUT')
         @endif
-        <div class="card-header bg-white">
-            <h5 class="mb-0">{{ $entry ? __('ui.common.edit').' – '.__('ui.finished_goods.title') : __('ui.finished_goods.new') }}</h5>
-        </div>
-        <div class="card-body">
+        <div class="card-header d-flex justify-content-between align-items-center gap-2">
+    <h5 class="mb-0">{{ $entry ? __('ui.common.edit').' – '.__('ui.finished_goods.title') : __('ui.finished_goods.new') }}</h5>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ route('super.finished-goods.index') }}">{{ __('ui.common.back') }}</a>
+</div>
+<div class="card-body">
             <div class="row gx-lg-5 gy-3">
                 <div class="col-lg-6">
+<h6 class="text-primary mb-3">{{ __('ui.common.document_details') }}</h6>
                     <div class="row g-2 align-items-center mb-2">
-                        <label for="finishedNumber" class="col-5 col-form-label col-form-label-sm">{{ __('ui.finished_goods.number') }}</label>
-                        <div class="col-7">
+                        <label for="finishedNumber" class="col-sm-4 col-form-label col-form-label-sm">{{ __('ui.finished_goods.number') }}</label>
+                        <div class="col-sm-8">
                             <input id="finishedNumber" class="form-control form-control-sm" value="{{ $number }}" readonly>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
-                        <label for="finishedDate" class="col-5 col-form-label col-form-label-sm">{{ __('ui.finished_goods.date') }}</label>
-                        <div class="col-7">
+                        <label for="finishedDate" class="col-sm-4 col-form-label col-form-label-sm">{{ __('ui.finished_goods.date') }}</label>
+                        <div class="col-sm-8">
                             <input id="finishedDate" type="date" name="finished_goods_date" class="form-control form-control-sm"
                                 value="{{ $entry?->processed_at?->toDateString() ?? now()->toDateString() }}" required>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
-                        <label for="finishedMoLabel" class="col-5 col-form-label col-form-label-sm">{{ __('ui.finished_goods.mo') }}</label>
-                        <div class="col-7">
+                        <label for="finishedMoLabel" class="col-sm-4 col-form-label col-form-label-sm">{{ __('ui.finished_goods.mo') }}</label>
+                        <div class="col-sm-8">
                             <div class="input-group input-group-sm">
                                 <input id="finishedMoLabel" class="form-control" value="{{ $order?->number }}" readonly>
                                 @if (!$entry)
@@ -58,14 +60,15 @@
                         'finishedStyle' => [__('ui.finished_goods.style'), $order?->model_style],
                     ] as $id => [$label, $value])
                         <div class="row g-2 align-items-center mb-2">
-                            <label for="{{ $id }}" class="col-5 col-form-label col-form-label-sm">{{ $label }}</label>
-                            <div class="col-7">
+                            <label for="{{ $id }}" class="col-sm-4 col-form-label col-form-label-sm">{{ $label }}</label>
+                            <div class="col-sm-8">
                                 <input id="{{ $id }}" class="form-control form-control-sm" value="{{ $value }}" readonly>
                             </div>
                         </div>
                     @endforeach
                 </div>
                 <div class="col-lg-6">
+<h6 class="text-primary mb-3">{{ __('ui.common.item_details') }}</h6>
                     @foreach ([
                         'finishedCode' => [__('ui.finished_goods.item_code'), $product?->code],
                         'finishedName' => [__('ui.finished_goods.item_name'), $product?->variant_display_name],
@@ -73,23 +76,23 @@
                         'finishedAvailable' => [__('ui.finished_goods.available_from_packing'), $available],
                     ] as $id => [$label, $value])
                         <div class="row g-2 align-items-center mb-2">
-                            <label for="{{ $id }}" class="col-5 col-form-label col-form-label-sm">{{ $label }}</label>
-                            <div class="col-7">
+                            <label for="{{ $id }}" class="col-sm-4 col-form-label col-form-label-sm">{{ $label }}</label>
+                            <div class="col-sm-8">
                                 <input id="{{ $id }}" class="form-control form-control-sm" value="{{ $value }}" readonly>
                             </div>
                         </div>
                     @endforeach
                     <div class="row g-2 align-items-center mb-2">
-                        <label for="receivePacking" class="col-5 col-form-label col-form-label-sm">{{ __('ui.finished_goods.receive_from_packing') }}</label>
-                        <div class="col-7">
+                        <label for="receivePacking" class="col-sm-4 col-form-label col-form-label-sm">{{ __('ui.finished_goods.receive_from_packing') }}</label>
+                        <div class="col-sm-8">
                             <input id="receivePacking" type="number" name="receive_from_packing" min="0.0001" step="0.0001"
                                 @if ($available !== null) max="{{ $available }}" @endif
                                 value="{{ $entry?->input_quantity }}" class="form-control form-control-sm text-end" required>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center">
-                        <label for="finishedQty" class="col-5 col-form-label col-form-label-sm">{{ __('ui.finished_goods.finished_good_quantity') }}</label>
-                        <div class="col-7">
+                        <label for="finishedQty" class="col-sm-4 col-form-label col-form-label-sm">{{ __('ui.finished_goods.finished_good_quantity') }}</label>
+                        <div class="col-sm-8">
                             <input id="finishedQty" type="number" name="finished_good_quantity" min="0" step="0.0001"
                                 value="{{ $entry?->good_quantity }}" class="form-control form-control-sm text-end" required>
                         </div>
@@ -118,7 +121,7 @@
                                     <th>{{ __('ui.finished_goods.mo') }}</th>
                                     <th>{{ __('ui.finished_goods.po_buyer') }}</th>
                                     <th>{{ __('ui.finished_goods.style') }}</th>
-                                    <th>{{ __('ui.finished_goods.item_code') }}</th>
+                                    <th>{{ __('ui.gsn.parent_code') }}</th><th>{{ __('ui.gsn.sku_code') }}</th><th>{{ __('ui.wip_issue.category') }}</th>
                                     <th>{{ __('ui.finished_goods.item_name') }}</th>
                                     <th>{{ __('ui.finished_goods.available_from_packing') }}</th>
                                     <th>{{ __('ui.workflow.color') }}</th>
@@ -150,7 +153,7 @@
                         {data: 'number'},
                         {data: 'buyer_po_number'},
                         {data: 'style', orderable: false, searchable: false},
-                        {data: 'item_code', orderable: false, searchable: false},
+                        {data: 'parent_code', orderable: false, searchable: false}, {data: 'sku_code', orderable: false, searchable: false}, {data: 'category_label', orderable: false, searchable: false},
                         {data: 'item_name', orderable: false, searchable: false},
                         {data: 'available_packing_quantity', className: 'text-end'},
                         {data: 'color', name: 'outputProduct.color'},

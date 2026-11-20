@@ -25,21 +25,23 @@
         @endif
         <input type="hidden" id="supportProductId" name="product_id" value="{{ $item?->product_id }}">
 
-        <div class="card-header bg-white">
-            <h5 class="mb-0">{{ __('ui.support_material_order.form_title') }}</h5>
-        </div>
-        <div class="card-body">
+        <div class="card-header d-flex justify-content-between align-items-center gap-2">
+    <h5 class="mb-0">{{ __('ui.support_material_order.form_title') }}</h5>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ route('super.support-material-orders.index') }}">{{ __('ui.common.back') }}</a>
+</div>
+<div class="card-body">
             <div class="row gx-lg-5 gy-3">
                 <div class="col-lg-6">
+<h6 class="text-primary mb-3">{{ __('ui.common.document_details') }}</h6>
                     <div class="row g-2 align-items-center mb-2">
-                        <label class="col-5 col-form-label col-form-label-sm" for="supportNumber">{{ __('ui.support_material_order.number') }}</label>
-                        <div class="col-7">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="supportNumber">{{ __('ui.support_material_order.number') }}</label>
+                        <div class="col-sm-8">
                             <input id="supportNumber" class="form-control form-control-sm" value="{{ $number }}" readonly>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
-                        <label class="col-5 col-form-label col-form-label-sm" for="supportDate">{{ __('ui.support_material_order.date') }}</label>
-                        <div class="col-7">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="supportDate">{{ __('ui.support_material_order.date') }}</label>
+                        <div class="col-sm-8">
                             <input type="date" id="supportDate" name="order_date" class="form-control form-control-sm"
                                 value="{{ $document?->order_date?->toDateString() ?? now()->toDateString() }}" required>
                         </div>
@@ -49,8 +51,8 @@
                         'style' => [__('ui.support_material_order.style'), $item?->style],
                     ] as $field => [$label, $value])
                         <div class="row g-2 align-items-center mb-2">
-                            <label class="col-5 col-form-label col-form-label-sm" for="support-{{ $field }}">{{ $label }}</label>
-                            <div class="col-7">
+                            <label class="col-sm-4 col-form-label col-form-label-sm" for="support-{{ $field }}">{{ $label }}</label>
+                            <div class="col-sm-8">
                                 <input id="support-{{ $field }}" name="{{ $field }}" maxlength="100"
                                     class="form-control form-control-sm" value="{{ $value }}">
                             </div>
@@ -58,31 +60,32 @@
                     @endforeach
                 </div>
                 <div class="col-lg-6">
+<h6 class="text-primary mb-3">{{ __('ui.common.item_details') }}</h6>
                     <div class="row g-2 align-items-center mb-2">
-                        <label class="col-5 col-form-label col-form-label-sm" for="supportProductLabel">{{ __('ui.support_material_order.item_code') }}</label>
-                        <div class="col-7">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="supportProductLabel">{{ __('ui.support_material_order.item_code') }}</label>
+                        <div class="col-sm-8">
                             <div class="input-group input-group-sm">
                                 <input id="supportProductLabel" class="form-control" value="{{ $product?->code }}" readonly>
                                 <button type="button" id="chooseSupportProduct" class="btn btn-outline-primary" aria-controls="supportProducts"
-                                    aria-expanded="false">{{ __('ui.common.search') }}</button>
+                                    aria-haspopup="dialog">{{ __('ui.common.search') }}</button>
                             </div>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
-                        <label class="col-5 col-form-label col-form-label-sm" for="supportProductName">{{ __('ui.support_material_order.item_name') }}</label>
-                        <div class="col-7">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="supportProductName">{{ __('ui.support_material_order.item_name') }}</label>
+                        <div class="col-sm-8">
                             <input id="supportProductName" class="form-control form-control-sm" value="{{ $product?->name }}" readonly>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center mb-2">
-                        <label class="col-5 col-form-label col-form-label-sm" for="supportUnit">{{ __('ui.support_material_order.unit') }}</label>
-                        <div class="col-7">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="supportUnit">{{ __('ui.support_material_order.unit') }}</label>
+                        <div class="col-sm-8">
                             <input id="supportUnit" class="form-control form-control-sm" value="{{ $product?->unit?->symbol ?: $product?->unit?->name }}" readonly>
                         </div>
                     </div>
                     <div class="row g-2 align-items-center">
-                        <label class="col-5 col-form-label col-form-label-sm" for="supportQuantity">{{ __('ui.support_material_order.quantity') }}</label>
-                        <div class="col-7">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="supportQuantity">{{ __('ui.support_material_order.quantity') }}</label>
+                        <div class="col-sm-8">
                             <input id="supportQuantity" name="quantity" type="number" min="0.0001" step="0.0001"
                                 class="form-control form-control-sm text-end" value="{{ $item?->quantity }}" required>
                         </div>
@@ -90,19 +93,6 @@
                 </div>
             </div>
 
-            <section id="supportProducts" class="border-top mt-3 pt-3 d-none" aria-labelledby="supportProductsTitle">
-                <h6 id="supportProductsTitle">{{ __('ui.support_material_order.select_item') }}</h6>
-                <div class="table-responsive">
-                    <table id="supportProductsTable" class="table table-sm table-bordered align-middle w-100">
-                        <thead><tr>
-                            <th>{{ __('ui.support_material_order.item_code') }}</th>
-                            <th>{{ __('ui.support_material_order.item_name') }}</th>
-                            <th>{{ __('ui.support_material_order.unit') }}</th>
-                            <th>{{ __('ui.common.action') }}</th>
-                        </tr></thead>
-                    </table>
-                </div>
-            </section>
         </div>
         <div class="card-footer d-flex justify-content-end gap-2 py-2">
             <a href="{{ route('super.support-material-orders.index') }}" class="btn btn-light btn-sm">{{ $document && !$item ? __('ui.common.back') : __('ui.common.cancel') }}</a>
@@ -139,6 +129,28 @@
             </div>
         </div>
     @endif
+    <div class="modal fade" id="supportProducts" tabindex="-1" aria-labelledby="supportProductsTitle" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="supportProductsTitle">{{ __('ui.support_material_order.select_item') }}</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="table-responsive">
+                        <table id="supportProductsTable" class="table table-sm table-bordered align-middle w-100">
+                            <thead><tr>
+                                <th>{{ __('ui.gsn.parent_code') }}</th><th>{{ __('ui.gsn.sku_code') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th>{{ __('ui.wip_issue.category') }}</th>
+                                <th>{{ __('ui.support_material_order.item_name') }}</th>
+                                <th>{{ __('ui.support_material_order.unit') }}</th>
+                                <th>{{ __('ui.common.action') }}</th>
+                            </tr></thead>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
 
 @push('scripts')
@@ -146,13 +158,12 @@
         $(function () {
             let products;
             const picker = $('#supportProducts');
+            const modal = bootstrap.Modal.getOrCreateInstance(picker[0]);
             const choose = $('#chooseSupportProduct');
+            let itemSelected = false;
 
-            choose.on('click', () => {
-                const opening = picker.hasClass('d-none');
-                picker.toggleClass('d-none', !opening);
-                choose.attr('aria-expanded', opening);
-                if (!opening) return;
+            choose.on('click', () => modal.show());
+            picker.on('shown.bs.modal', () => {
 
                 if (!products) {
                     products = $('#supportProductsTable').DataTable({
@@ -160,7 +171,7 @@
                         serverSide: true,
                         ajax: @json(route('super.support-material-orders.products.dt')),
                         columns: [
-                            {data: 'code', name: 'code'},
+                            {data: 'parent_code', orderable: false, searchable: false}, {data: 'sku_code', name: 'code', orderable: false}, {data: 'color', orderable: false, searchable: true}, {data: 'size', orderable: false, searchable: true}, {data: 'category_label', orderable: false, searchable: false},
                             {data: 'name', name: 'name'},
                             {data: 'unit_label', orderable: false, searchable: false},
                             {data: 'actions', orderable: false, searchable: false}
@@ -176,9 +187,14 @@
                 $('#supportProductLabel').val(selected.attr('data-code'));
                 $('#supportProductName').val(selected.attr('data-name'));
                 $('#supportUnit').val(selected.attr('data-unit'));
-                picker.addClass('d-none');
-                choose.attr('aria-expanded', false);
-                $('#supportQuantity').focus();
+                itemSelected = true;
+                modal.hide();
+            });
+
+            picker.on('hidden.bs.modal', () => {
+                const nextField = itemSelected ? '#supportQuantity' : '#chooseSupportProduct';
+                $(nextField).trigger('focus');
+                itemSelected = false;
             });
 
             $('#supportOrderForm').on('submit', function (event) {

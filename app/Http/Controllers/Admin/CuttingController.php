@@ -52,7 +52,10 @@ class CuttingController extends Controller
  public function ordersDt(CompanyContext $company,CuttingTableQuery $query):JsonResponse
  {
   return DataTables::eloquent($query->productionOrders($company->id()))
-   ->addColumn('style',fn($o)=>$o->model_style?:'—')
+            ->addColumn('parent_code', fn ($o) => $o->outputProduct?->parentProduct?->code ?? $o->outputProduct?->code ?? '—')
+            ->addColumn('sku_code', fn ($o) => $o->outputProduct?->parent_product_id ? $o->outputProduct->code : '—')
+            ->addColumn('category_label', fn ($o) => $o->outputProduct?->category?->name ?? '—')
+            ->addColumn('style',fn($o)=>$o->model_style?:'—')
    ->addColumn('product_code',fn($o)=>$o->outputProduct?->parentProduct?->code ?: $o->outputProduct?->code ?: '—')
    ->addColumn('product_name',fn($o)=>$o->outputProduct?->name ?: '—')
    ->addColumn('color', fn ($o) => $o->outputProduct?->color ?: '—')
@@ -75,13 +78,13 @@ class CuttingController extends Controller
      $color = e($variant['color'] ?: '—');
      $size = e($variant['size'] ?: '—');
      $unit = e($o->outputProduct?->unit?->symbol ?: $o->outputProduct?->unit?->name ?: '—');
-     $qty = rtrim(rtrim(number_format((float)$variant['quantity'],4,',','.'),'0'),',');
+     $qty = \App\Support\DisplayNumber::format((float)$variant['quantity'], 4);
      return '<span class="d-block text-nowrap">'.$code.' — '.$name.' / '.$style.' / '.$color.' / '.$size.' / '.$qty.' '.$unit.'</span>';
     })->implode('');
    })
    ->addColumn('total_quantity', function ($o) use ($company) {
     $total = $this->fabricVariantQuantities($company->id(), $o->number)->sum('quantity');
-    return rtrim(rtrim(number_format((float)$total,4,',','.'),'0'),',');
+    return \App\Support\DisplayNumber::format((float)$total, 4);
    })
    ->addColumn('actions', function ($o) use ($company) {
     $variantPayload = $this->fabricVariantQuantities($company->id(), $o->number)->values();
@@ -120,7 +123,7 @@ class CuttingController extends Controller
   return DataTables::collection($materials)
    ->addColumn('code',fn($x)=>$x->product?->code)->addColumn('name',fn($x)=>$x->product?->name)
    ->addColumn('unit',fn($x)=>$x->product?->unit?->symbol?:$x->product?->unit?->name?:'—')
-   ->addColumn('fabric_total_quantity',fn($x)=>rtrim(rtrim(number_format((float)$x->fabric_total_quantity,4,',','.'),'0'),','))
+   ->addColumn('fabric_total_quantity',fn($x)=>\App\Support\DisplayNumber::format((float)$x->fabric_total_quantity, 4))
    ->addColumn('actions',fn($x)=>'<button class="btn btn-sm btn-primary btn-select-cutting-material" data-id="'.$x->product_id.'" data-label="'.e($x->product?->code.' — '.$x->product?->name).'" data-unit="'.e($x->product?->unit?->symbol?:$x->product?->unit?->name).'" data-total="'.e($x->fabric_total_quantity).'" data-color-quantities="'.e(json_encode($order ? $this->fabricVariantQuantities($company->id(),$order->number,(int)$x->product_id) : [],JSON_UNESCAPED_UNICODE)).'">'.e(__('ui.common.select')).'</button>')
    ->rawColumns(['actions'])->toJson();
  }

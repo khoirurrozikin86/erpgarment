@@ -21,7 +21,7 @@
                     <td>{{ $sku['color'] }}</td>
                     <td>{{ $sku['size'] }}</td>
                     @foreach (['opening', 'incoming', 'outgoing', 'closing'] as $balance)
-                        <td class="text-end">{{ number_format($sku[$balance], 4, ',', '.') }}</td>
+                        <td class="text-end">{{ \App\Support\DisplayNumber::format($sku[$balance], 4) }}</td>
                     @endforeach
                     <td><span class="badge {{ $statusClasses[$sku['status']] }}">{{ __('ui.modules.'.$sku['status']) }}</span></td>
                 </tr>

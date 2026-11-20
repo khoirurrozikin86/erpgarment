@@ -45,7 +45,11 @@ class SewingController extends Controller
 
     public function ordersDt(CompanyContext $company, SewingTableQuery $query): JsonResponse
     {
-        return DataTables::eloquent($query->productionOrders($company->id()))->addColumn('style', fn ($o) => $o->model_style ?: '—')
+        return DataTables::eloquent($query->productionOrders($company->id()))
+            ->addColumn('parent_code', fn ($o) => $o->outputProduct?->parentProduct?->code ?? $o->outputProduct?->code ?? '—')
+            ->addColumn('sku_code', fn ($o) => $o->outputProduct?->parent_product_id ? $o->outputProduct->code : '—')
+            ->addColumn('category_label', fn ($o) => $o->outputProduct?->category?->name ?? '—')
+            ->addColumn('style', fn ($o) => $o->model_style ?: '—')
             ->addColumn('product_code', fn ($o) => $o->stageProductCode('finished_good'))->addColumn('product_name', fn ($o) => $o->outputProduct?->name)->addColumn('color', fn ($o) => $o->outputProduct?->color ?: '—')->addColumn('size', fn ($o) => $o->outputProduct?->size ?: '—')->addColumn('order_quantity', fn ($o) => $o->planned_quantity ?? 0)
             ->addColumn('unit', fn ($o) => 'PCS')
             ->addColumn('actions', fn ($o) => '<button type="button" class="btn btn-sm btn-primary btn-select-sewing-mo" data-id="'.$o->id.'" data-number="'.e($o->number).'" data-product="'.e($o->stageProductCode('finished_good').' — '.$o->outputProduct?->name).'" data-style="'.e($o->model_style).'" data-po="'.e($o->buyer_po_number).'" data-unit="PCS" data-color="'.e($o->outputProduct?->color).'" data-size="'.e($o->outputProduct?->size).'" data-available="'.e($o->available_cutting_quantity).'">'.e(__('ui.common.select')).'</button>')->rawColumns(['actions'])->toJson();

@@ -11,65 +11,76 @@
 @endsection
 
 @section('content')
-    <div class="row">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <h4 class="page-title mb-1">{{ __('ui.common.create_purchase_order') }}</h4>
-                <span class="text-muted">{{ __('ui.workflow.po_subtitle') }}</span>
-            </div>
-            <a href="{{ route('super.purchase-orders.index') }}" class="btn btn-outline-secondary btn-sm"><i data-feather="arrow-left" class="icon-sm me-1"></i>{{ __('ui.common.back') }}</a>
+    <div class="card">
+        <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+            <h5 class="mb-0">{{ __('ui.common.create_purchase_order') }}</h5>
+            <a href="{{ route('super.purchase-orders.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('ui.common.back') }}</a>
         </div>
-
-        <div class="col-12">
-            <div class="card">
-                <div class="card-header"><h6 class="card-title mb-0">{{ __('ui.workflow.order_details') }}</h6></div>
-                <form id="purchaseOrderForm">
-                    @csrf
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ __('ui.common.purchase_request') }}<span class="text-danger">*</span></label>
-                                <div class="input-group">
-                                    <input type="hidden" id="po_purchase_request_id" name="purchase_request_id" value="{{ $initialPurchaseRequest?->id }}">
-                                    <input type="text" class="form-control" id="po_purchase_request_number" placeholder="{{ __('ui.common.choose_purchase_request') }}" value="{{ $initialPurchaseRequest?->number }}" readonly required>
-                                    <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#purchaseRequestPicker"><i data-feather="search" class="icon-sm me-1"></i>{{ __('ui.workflow.search_pr') }}</button>
+        <form id="purchaseOrderForm">
+            @csrf
+            <div class="card-body">
+                <section aria-labelledby="po-document-title">
+                    <h6 id="po-document-title" class="text-primary mb-3">{{ __('ui.workflow.order_details') }}</h6>
+                    <div class="row g-3 g-xl-4">
+                        <div class="col-lg-6">
+                            <div class="row g-2 align-items-center mb-2">
+                                <label for="po_purchase_request_number" class="col-md-4 col-form-label col-form-label-sm">{{ __('ui.common.purchase_request') }}<span class="text-danger">*</span></label>
+                                <div class="col-md-8">
+                                    <div class="input-group input-group-sm">
+                                        <input type="hidden" id="po_purchase_request_id" name="purchase_request_id" value="{{ $initialPurchaseRequest?->id }}">
+                                        <input type="text" class="form-control" id="po_purchase_request_number" placeholder="{{ __('ui.common.choose_purchase_request') }}" value="{{ $initialPurchaseRequest?->number }}" readonly required>
+                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#purchaseRequestPicker"><i data-feather="search" class="icon-sm me-1"></i>{{ __('ui.workflow.search_pr') }}</button>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="col-md-6 mb-3">
-                                <label class="form-label">{{ __('ui.common.supplier') }}</label>
-                                <input type="text" class="form-control" id="po_supplier" value="" readonly placeholder="{{ __('ui.common.filled_from_request') }}">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="po_expected_delivery" class="form-label">{{ __('ui.workflow.expected_delivery_date') }}</label>
-                                <input type="date" class="form-control" id="po_expected_delivery" name="expected_delivery_at" min="{{ now()->toDateString() }}">
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="po_payment_terms" class="form-label">{{ __('ui.common.payment_terms') }}</label>
-                                <input type="text" class="form-control" id="po_payment_terms" name="payment_terms" maxlength="2000" placeholder="{{ __('ui.workflow.payment_example') }}">
+                            <div class="row g-2 align-items-center mb-2">
+                                <label for="po_supplier" class="col-md-4 col-form-label col-form-label-sm">{{ __('ui.common.supplier') }}</label>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control form-control-sm" id="po_supplier" value="" readonly placeholder="{{ __('ui.common.filled_from_request') }}">
+                                </div>
                             </div>
                         </div>
+                        <div class="col-lg-6">
+                            <div class="row g-2 align-items-center mb-2">
+                                <label for="po_expected_delivery" class="col-md-4 col-form-label col-form-label-sm">{{ __('ui.workflow.expected_delivery_date') }}</label>
+                                <div class="col-md-8">
+                                    <input type="date" class="form-control form-control-sm" id="po_expected_delivery" name="expected_delivery_at" min="{{ now()->toDateString() }}">
+                                </div>
+                            </div>
+                            <div class="row g-2 align-items-center mb-2">
+                                <label for="po_payment_terms" class="col-md-4 col-form-label col-form-label-sm">{{ __('ui.common.payment_terms') }}</label>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control form-control-sm" id="po_payment_terms" name="payment_terms" maxlength="2000" placeholder="{{ __('ui.workflow.payment_example') }}">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
+                <section class="border-top mt-3 pt-3" aria-labelledby="po-items-title">
+                    <h6 id="po-items-title" class="text-primary mb-2">{{ __('ui.raw_material_order.item_details') }}</h6>
                         <div class="alert alert-info py-2">{{ __('ui.workflow.po_source_guidance') }}</div>
                         <div id="po-production-summary" class="alert alert-light border py-2 d-none"></div>
                         <div class="table-responsive mb-3">
                             <table class="table table-sm table-bordered align-middle">
                                 <thead><tr><th>{{ __('ui.common.item') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th class="text-end">{{ __('ui.common.quantity') }}</th><th class="text-end">{{ __('ui.common.unit_price') }}</th><th class="text-end">{{ __('ui.common.subtotal') }}</th></tr></thead>
-                                <tbody id="purchase-order-items"><tr><td colspan="6" class="text-center text-muted py-4">{{ __('ui.workflow.load_pr_items_prompt') }}</td></tr></tbody>
+                                <tbody id="purchase-order-items"><tr><td colspan="6" class="text-center text-muted py-2">{{ __('ui.workflow.load_pr_items_prompt') }}</td></tr></tbody>
                                 <tfoot><tr><th colspan="5" class="text-end">{{ __('ui.common.order_total') }}</th><th class="text-end" id="purchase-order-total">Rp 0</th></tr></tfoot>
                             </table>
                         </div>
-                        <div class="mb-0">
-                            <label for="po_notes" class="form-label">{{ __('ui.common.notes') }}</label>
-                            <textarea class="form-control" id="po_notes" name="notes" rows="3" maxlength="5000" placeholder="{{ __('ui.common.notes_for_supplier') }}"></textarea>
+                    <div class="row g-2 align-items-start mt-2">
+                        <label for="po_notes" class="col-md-2 col-form-label col-form-label-sm">{{ __('ui.common.notes') }}</label>
+                        <div class="col-md-10">
+                            <textarea class="form-control form-control-sm" id="po_notes" name="notes" rows="2" maxlength="5000" placeholder="{{ __('ui.common.notes_for_supplier') }}"></textarea>
                         </div>
                     </div>
-                    <div class="card-footer d-flex justify-content-between">
-                        <a href="{{ route('super.purchase-orders.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('ui.common.cancel') }}</a>
-                        <button type="submit" class="btn btn-primary btn-sm" id="submitPurchaseOrder" disabled><i data-feather="save" class="icon-sm me-1"></i>{{ __('ui.workflow.save_as_draft') }}</button>
-                    </div>
-                </form>
+                </section>
             </div>
-        </div>
+            <div class="card-footer d-flex flex-wrap justify-content-end gap-2">
+                <a href="{{ route('super.purchase-orders.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('ui.common.cancel') }}</a>
+                <button type="submit" class="btn btn-primary btn-sm" id="submitPurchaseOrder" disabled><i data-feather="save" class="icon-sm me-1"></i>{{ __('ui.workflow.save_as_draft') }}</button>
+            </div>
+        </form>
     </div>
 
     <div class="modal fade" id="purchaseRequestPicker" tabindex="-1" aria-hidden="true">
@@ -93,7 +104,7 @@
         $(function() {
             const pickerElement = document.getElementById('purchaseRequestPicker');
             const pickerModal = bootstrap.Modal.getOrCreateInstance(pickerElement);
-            const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 2 }).format(Number(value || 0));
+            const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(value || 0));
             const table = $('#eligible-purchase-requests').DataTable({
                 processing: true, serverSide: true, responsive: true,
                 ajax: @json(route('super.purchase-orders.eligible')),

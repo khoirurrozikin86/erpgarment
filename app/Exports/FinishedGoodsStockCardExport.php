@@ -26,22 +26,24 @@ class FinishedGoodsStockCardExport implements FromCollection, WithHeadings, With
 
     public function headings(): array
     {
-        if ($this->products) return ['Kode Barang', 'Nama Barang', 'Warna / Color', 'Ukuran / Size', 'Satuan'];
+        if ($this->products) return [__('variants.stock_parent_code'), __('variants.stock_sku'), 'Nama Barang', 'Warna / Color', 'Ukuran / Size', 'Satuan'];
 
-        return ['Kode Barang', 'Warna / Color', 'Ukuran / Size', 'Satuan', 'Tanggal', 'No Mutasi', 'Uraian', 'Jumlah', '(+/-)', 'Saldo', 'Pengguna'];
+        return [__('variants.stock_parent_code'), __('variants.stock_sku'), 'Warna / Color', 'Ukuran / Size', 'Satuan', 'Tanggal', 'No Mutasi', 'Uraian', 'Jumlah', '(+/-)', 'Saldo', 'Pengguna'];
     }
 
     public function map($row): array
     {
         if ($row instanceof Product) {
-            return [$row->code, $row->name, $row->color, $row->size, $row->unit?->symbol ?: $row->unit?->name ?: '—'];
+            return [$row->parentProduct?->code ?? $row->code, $row->parent_product_id ? $row->code : null, $row->name, $row->color, $row->size, $row->unit?->symbol ?: $row->unit?->name ?: '—'];
         }
 
         /** @var StockMovement $row */
         $query = app(FinishedGoodsStockCardQuery::class);
 
         return [
-            $this->product?->code, $this->product?->color, $this->product?->size,
+            $this->product?->parentProduct?->code ?? $this->product?->code,
+            $this->product?->parent_product_id ? $this->product->code : null,
+            $this->product?->color, $this->product?->size,
             $this->product?->unit?->symbol ?: $this->product?->unit?->name,
             $row->created_at?->format('Y-m-d'),
             $query->documentNumber($row),

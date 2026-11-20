@@ -2,7 +2,7 @@
 return [
  'ppic' => [
   ['route'=>'super.boms.index','permission'=>'boms.view','label'=>'BOM'],
-  ['route'=>'super.material-orders.index','permission'=>'production-orders.view','label'=>'ui.workflow.material_order'],
+  ['route'=>'super.material-orders.index','permission'=>'production-orders.view','label'=>'dashboard_flow.production_order'],
   ['route'=>'super.material-requests.index','permission'=>'material-requests.view','label'=>'ui.nav.material_requests'],
   ['route'=>'super.purchase-requests.index','permission'=>'purchase-requests.view','label'=>'ui.nav.purchase_requests'],
   ['route'=>'super.purchase-orders.index','permission'=>'purchase-orders.view','label'=>'ui.nav.purchase_orders'],

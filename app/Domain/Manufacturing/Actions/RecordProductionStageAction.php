@@ -46,7 +46,7 @@ class RecordProductionStageAction
             $input = round((float) $data['input_quantity'], 4);
             if ($input - $available > 0.0000001) {
                 throw ValidationException::withMessages([
-                    'input_quantity' => __('ui.workflow.stage_input_exceeds_available', ['available' => number_format($available, 4, ',', '.')]),
+                    'input_quantity' => __('ui.workflow.stage_input_exceeds_available', ['available' => \App\Support\DisplayNumber::format($available, 4)]),
                 ]);
             }
 

@@ -12,10 +12,14 @@
 @section('content')
     <div class="card">
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-            <span>{{ __('ui.finished_goods.stock_card') }} : [{{ $product->code }}] {{ $product->name }}</span>
+            <span>{{ __('ui.finished_goods.stock_card') }} — {{ $product->name }}</span>
             <a href="{{ route('super.finished-goods-stock-card.index') }}" class="btn btn-sm btn-light"><i data-feather="check-square" class="icon-sm me-1"></i>{{ __('ui.common.back') }}</a>
         </div>
         <div class="card-body">
+            <dl class="d-flex flex-wrap gap-4 small mb-2">
+                <div><dt>{{ __('variants.stock_parent_code') }}</dt><dd class="mb-0">{{ $product->parentProduct?->code ?? $product->code }}</dd></div>
+                <div><dt>{{ __('variants.stock_sku') }}</dt><dd class="mb-0">{{ $product->parent_product_id ? $product->code : '—' }}</dd></div>
+            </dl>
             <p class="small text-muted">{{ __('ui.workflow.color') }}: {{ $product->color ?: '—' }} · {{ __('ui.workflow.size') }}: {{ $product->size ?: '—' }} · {{ __('ui.common.unit') }}: {{ $product->unit?->symbol ?: $product->unit?->name ?: '—' }}</p>
             <div class="d-flex justify-content-end mb-3">
                 <a href="{{ route('super.finished-goods-stock-card.movements.export', $product) }}" class="btn btn-sm btn-outline-success"><i data-feather="download" class="icon-sm me-1"></i>{{ __('ui.common.export_excel') }}</a>

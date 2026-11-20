@@ -12,72 +12,73 @@
 @section('content')
 <form id="cuttingCreateForm" class="card">
     @csrf
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-2">
-        <h6 class="mb-0">{{ __('ui.cutting.form_title') }}</h6>
-        <a href="{{ route('super.cutting.index') }}" class="d-flex align-items-center gap-2 mb-0 small text-white text-decoration-none">
-            <input type="checkbox" class="form-check-input m-0" checked onclick="return false">
-            <span>{{ __('ui.common.back') }}</span>
-        </a>
-    </div>
-    <div class="card-body pb-2">
-        <div class="row g-2 align-items-end mb-3">
-            <div class="col-lg-3">
-                <label class="form-label mb-1">{{ __('ui.cutting.number') }}</label>
-                <input class="form-control form-control-sm" value="{{ $cuttingNumber }}" readonly>
+    <div class="card-header d-flex justify-content-between align-items-center gap-2">
+    <h5 class="mb-0">{{ __('ui.cutting.form_title') }}</h5>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ route('super.cutting.index') }}">{{ __('ui.common.back') }}</a>
+</div>
+<div class="card-body pb-2">
+        <h6 class="text-primary mb-3">{{ __('ui.common.document_details') }}</h6>
+        <div class="row gx-lg-5 gy-2">
+            <div class="col-lg-6">
+                <div class="row gx-3 gy-1 align-items-center mb-2">
+                    <label for="cuttingNumber" class="col-sm-4 col-form-label col-form-label-sm">{{ __('ui.cutting.number') }}</label>
+                    <div class="col-sm-8"><input id="cuttingNumber" class="form-control form-control-sm" value="{{ $cuttingNumber }}" readonly></div>
+                </div>
+                <div class="row gx-3 gy-1 align-items-center mb-2">
+                    <label for="cuttingDate" class="col-sm-4 col-form-label col-form-label-sm">{{ __('ui.cutting.date') }} *</label>
+                    <div class="col-sm-8"><input type="date" name="cutting_date" id="cuttingDate" class="form-control form-control-sm" value="{{ now()->toDateString() }}" required></div>
+                </div>
             </div>
-            <div class="col-lg-2">
-                <label class="form-label mb-1" for="cuttingDate">{{ __('ui.cutting.date') }} *</label>
-                <input type="date" name="cutting_date" id="cuttingDate" class="form-control form-control-sm" value="{{ now()->toDateString() }}" required>
+            <div class="col-lg-6">
+                <div class="row gx-3 gy-1 align-items-center mb-2">
+                    <label for="cuttingMoLabel" class="col-sm-4 col-form-label col-form-label-sm">{{ __('ui.cutting.mo') }} *</label>
+                    <div class="col-sm-8">
+                        <div class="input-group input-group-sm">
+                            <input id="cuttingMoLabel" class="form-control" readonly required>
+                            <button type="button" id="chooseCuttingMo" class="btn btn-outline-primary">{{ __('ui.common.search') }}</button>
+                        </div>
+                        <input type="hidden" name="production_order_id" id="cuttingMoId">
+                    </div>
+                </div>
             </div>
-            <div class="col-lg-1">
-                <button type="button" id="chooseCuttingMo" class="btn btn-primary btn-sm w-100" title="{{ __('ui.common.search') }}">
-                    <i data-feather="search" class="icon-sm"></i>
-                </button>
-            </div>
-            <div class="col-lg-6"></div>
-            <input type="hidden" name="production_order_id" id="cuttingMoId">
         </div>
-
-        <div class="border-bottom mb-2 pb-1 fw-semibold small">Detail Barang:</div>
+        <hr class="my-3">
+        <h6 class="text-primary mb-3">{{ __('ui.common.item_details') }}</h6>
         <div class="row g-3">
-            <div class="col-lg-4">
+            <div class="col-lg-6">
                 <div class="row g-2 align-items-center mb-2">
-                    <label class="col-4 col-form-label col-form-label-sm">{{ __('ui.cutting.product_code') }}</label>
-                    <div class="col-8"><input id="cuttingProduct" class="form-control form-control-sm" readonly></div>
+                    <label for="cuttingProduct" class="col-sm-4 col-form-label col-form-label-sm">{{ __('ui.cutting.product_code') }}</label>
+                    <div class="col-sm-8"><input id="cuttingProduct" class="form-control form-control-sm" readonly></div>
                 </div>
                 <div class="row g-2 align-items-center mb-2">
-                    <label class="col-4 col-form-label col-form-label-sm">{{ __('ui.cutting.product_name') }}</label>
-                    <div class="col-8"><input id="cuttingProductName" class="form-control form-control-sm" readonly></div>
+                    <label for="cuttingProductName" class="col-sm-4 col-form-label col-form-label-sm">{{ __('ui.cutting.product_name') }}</label>
+                    <div class="col-sm-8"><input id="cuttingProductName" class="form-control form-control-sm" readonly></div>
                 </div>
                 <div class="row g-2 align-items-center mb-2">
-                    <label class="col-4 col-form-label col-form-label-sm">{{ __('ui.cutting.unit') }}</label>
-                    <div class="col-8"><input id="cuttingUnit" class="form-control form-control-sm" readonly></div>
+                    <label for="cuttingUnit" class="col-sm-4 col-form-label col-form-label-sm">{{ __('ui.cutting.unit') }}</label>
+                    <div class="col-sm-8"><input id="cuttingUnit" class="form-control form-control-sm" readonly></div>
                 </div>
                 <div class="row g-2 align-items-center">
-                    <label class="col-4 col-form-label col-form-label-sm">{{ __('ui.cutting.style') }}</label>
-                    <div class="col-8"><input id="cuttingStyle" class="form-control form-control-sm" readonly></div>
+                    <label for="cuttingStyle" class="col-sm-4 col-form-label col-form-label-sm">{{ __('ui.cutting.style') }}</label>
+                    <div class="col-sm-8"><input id="cuttingStyle" class="form-control form-control-sm" readonly></div>
                 </div>
             </div>
-            <div class="col-lg-4">
+            <div class="col-lg-6">
                 <div class="row g-2 align-items-center mb-2">
-                    <label class="col-5 col-form-label col-form-label-sm">{{ __('ui.cutting.mo') }}</label>
-                    <div class="col-7"><input id="cuttingMoLabel" class="form-control form-control-sm" readonly required></div>
-                </div>
-                <div class="row g-2 align-items-center mb-2">
-                    <label class="col-5 col-form-label col-form-label-sm">{{ __('ui.cutting.po_buyer') }}</label>
-                    <div class="col-7"><input id="cuttingPoBuyer" class="form-control form-control-sm" readonly></div>
+                    <label for="cuttingPoBuyer" class="col-sm-4 col-form-label col-form-label-sm">{{ __('ui.cutting.po_buyer') }}</label>
+                    <div class="col-sm-8"><input id="cuttingPoBuyer" class="form-control form-control-sm" readonly></div>
                 </div>
                 <div class="border-top pt-2 mt-2">
                     <div class="small fw-semibold mb-1">Qty Cutting per Color / Size</div>
                     <div id="cuttingVariantDetails" class="small text-muted">Pilih MO untuk memuat detail.</div>
                 </div>
                 <div class="row g-2 align-items-center mb-2">
-                    <label class="col-5 col-form-label col-form-label-sm">{{ __('ui.cutting.send_to_sewing') }} (PCS)</label>
-                    <div class="col-7"><input type="number" name="send_to_sewing" id="cuttingSewing" step="0.0001" min="0" value="0" class="form-control form-control-sm text-end" required></div>
+                    <label for="cuttingSewing" class="col-sm-4 col-form-label col-form-label-sm">{{ __('ui.cutting.send_to_sewing') }} (PCS)</label>
+                    <div class="col-sm-8"><input type="number" name="send_to_sewing" id="cuttingSewing" step="0.0001" min="0" value="0" class="form-control form-control-sm text-end" required></div>
                 </div>
                 <div class="row g-2 align-items-center">
-                    <label class="col-5 col-form-label col-form-label-sm">{{ __('ui.cutting.rejected') }} (PCS)</label>
-                    <div class="col-7"><input type="number" name="rejected_quantity" id="cuttingReject" step="0.0001" min="0" value="0" class="form-control form-control-sm text-end" required></div>
+                    <label for="cuttingReject" class="col-sm-4 col-form-label col-form-label-sm">{{ __('ui.cutting.rejected') }} (PCS)</label>
+                    <div class="col-sm-8"><input type="number" name="rejected_quantity" id="cuttingReject" step="0.0001" min="0" value="0" class="form-control form-control-sm text-end" required></div>
                 </div>
             </div>
         </div>
@@ -124,7 +125,7 @@
             <div class="modal-header"><h5 class="modal-title">{{ __('ui.cutting.select_mo') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
             <div class="modal-body">
                 <table id="cuttingMoTable" class="table table-sm table-bordered w-100">
-                    <thead><tr><th>{{ __('ui.cutting.mo') }}</th><th>{{ __('ui.common.status') }}</th><th>{{ __('ui.cutting.po_buyer') }}</th><th>Detail Barang / Style / Warna / Size / Qty</th><th class="text-end">Total Qty</th><th>{{ __('ui.common.action') }}</th></tr></thead>
+                    <thead><tr><th>{{ __('ui.cutting.mo') }}</th><th>{{ __('ui.common.status') }}</th><th>{{ __('ui.cutting.po_buyer') }}</th><th>{{ __('ui.gsn.parent_code') }}</th><th>{{ __('ui.gsn.sku_code') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th>{{ __('ui.wip_issue.category') }}</th><th>Detail Barang / Style / Warna / Size / Qty</th><th class="text-end">Total Qty</th><th>{{ __('ui.common.action') }}</th></tr></thead>
                 </table>
             </div>
         </div>
@@ -172,7 +173,7 @@ $(function(){
             {data:'number',name:'number'},
             {data:'mo_status',orderable:false,searchable:false},
             {data:'buyer_po_number',name:'buyer_po_number'},
-            {data:'variant_details',orderable:false,searchable:false},
+            {data: 'parent_code', orderable: false, searchable: false}, {data: 'sku_code', orderable: false, searchable: false}, {data: 'color', orderable: false, searchable: false}, {data: 'size', orderable: false, searchable: false}, {data: 'category_label', orderable: false, searchable: false}, {data:'variant_details',orderable:false,searchable:false},
             {data:'total_quantity',orderable:false,searchable:false,className:'text-end'},
             {data:'actions',orderable:false,searchable:false,className:'text-center'}
         ],

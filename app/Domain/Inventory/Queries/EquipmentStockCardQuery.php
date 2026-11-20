@@ -5,6 +5,7 @@ namespace App\Domain\Inventory\Queries;
 use App\Models\EquipmentIssueItem;
 use App\Models\EquipmentReceiptItem;
 use App\Models\Product;
+use Brick\Math\BigDecimal;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
@@ -20,15 +21,19 @@ class EquipmentStockCardQuery
             ->orderBy('code');
     }
 
+    public function balance(int $productId, int $companyId): BigDecimal
+    {
+        return BigDecimal::of((string) $this->receipts($productId, $companyId)->sum('quantity'))
+            ->minus((string) $this->issues($productId, $companyId)->sum('quantity'));
+    }
+
     /**
      * Build a read-only running ledger from the active equipment receipt and
      * issue documents. These legacy documents do not currently post stock movements.
      */
     public function movements(int $productId, int $companyId): Collection
     {
-        $receipts = EquipmentReceiptItem::query()
-            ->where('product_id', $productId)
-            ->whereHas('document', fn (Builder $query) => $query->where('company_id', $companyId))
+        $receipts = $this->receipts($productId, $companyId)
             ->with(['document.creator:id,name'])
             ->get()
             ->map(fn (EquipmentReceiptItem $item) => $this->movementRow(
@@ -41,9 +46,7 @@ class EquipmentStockCardQuery
                 $item->id,
             ));
 
-        $issues = EquipmentIssueItem::query()
-            ->where('product_id', $productId)
-            ->whereHas('document', fn (Builder $query) => $query->where('company_id', $companyId))
+        $issues = $this->issues($productId, $companyId)
             ->with(['document.creator:id,name'])
             ->get()
             ->map(fn (EquipmentIssueItem $item) => $this->movementRow(
@@ -70,6 +73,20 @@ class EquipmentStockCardQuery
 
             return $row;
         });
+    }
+
+    private function receipts(int $productId, int $companyId): Builder
+    {
+        return EquipmentReceiptItem::query()
+            ->where('product_id', $productId)
+            ->whereHas('document', fn (Builder $query) => $query->where('company_id', $companyId));
+    }
+
+    private function issues(int $productId, int $companyId): Builder
+    {
+        return EquipmentIssueItem::query()
+            ->where('product_id', $productId)
+            ->whereHas('document', fn (Builder $query) => $query->where('company_id', $companyId));
     }
 
     private function movementRow(?string $date, string $number, string $description, float $quantity, ?string $operator, mixed $createdAt, int $sortId): array

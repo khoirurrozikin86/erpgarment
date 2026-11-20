@@ -22,6 +22,28 @@ class LostItemController extends Controller
         return Excel::download(new LostItemsExport(), 'lost-items.xlsx');
     }
 
+    public function create(DocumentNumberService $numbers): View
+    {
+        return view('super.documents.stock-exception-form', [
+            'line' => null,
+            'number' => $numbers->preview('lost_item'),
+            'routePrefix' => 'super.lost-items',
+            'translation' => 'ui.lost',
+        ]);
+    }
+
+    public function edit(LostItemLine $lostItemLine): View
+    {
+        $lostItemLine->load(['document', 'product.unit']);
+
+        return view('super.documents.stock-exception-form', [
+            'line' => $lostItemLine,
+            'number' => $lostItemLine->document->number,
+            'routePrefix' => 'super.lost-items',
+            'translation' => 'ui.lost',
+        ]);
+    }
+
     public function numberPreview(DocumentNumberService $numbers): JsonResponse
     {
         return response()->json(['number' => $numbers->preview('lost_item')]);
@@ -38,7 +60,7 @@ class LostItemController extends Controller
             ->addColumn('actions', function (LostItemLine $line) {
                 $items = '';
                 if (auth()->user()->can('lost-items.update')) {
-                    $items .= '<li><button type="button" class="dropdown-item d-flex align-items-center gap-2 btn-edit-lost-item" data-id="'.(int)$line->id.'" data-number="'.e($line->document->number).'" data-date="'.$line->document->document_date?->format('Y-m-d').'" data-product="'.(int)$line->product_id.'" data-code="'.e($line->product->code).'" data-name="'.e($line->product->name).'" data-unit="'.e($line->product->unit?->symbol ?: $line->product->unit?->name ?: '').'" data-quantity="'.e($line->quantity).'" data-description="'.e($line->description).'" title="'.e(__('ui.common.edit')).'"><i data-feather="edit-2" class="icon-sm"></i>'.e(__('ui.common.edit')).'</button></li>';
+                    $items .= '<li><a class="dropdown-item d-flex align-items-center gap-2" href="'.e(route('super.lost-items.edit', $line)).'"><i data-feather="edit-2" class="icon-sm"></i>'.e(__('ui.common.edit')).'</a></li>';
                 }
                 if (auth()->user()->can('lost-items.delete')) {
                     $items .= '<li><button type="button" class="dropdown-item d-flex align-items-center gap-2 text-danger btn-delete-lost-item" data-url="'.e(route('super.lost-items.destroy', $line)).'" title="'.e(__('ui.common.delete')).'"><i data-feather="trash-2" class="icon-sm"></i>'.e(__('ui.common.delete')).'</button></li>';

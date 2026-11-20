@@ -15,6 +15,9 @@
         <a href="{{ route('super.stock-opnames.index') }}" class="btn btn-outline-secondary btn-sm"><i data-feather="arrow-left" class="icon-sm me-1"></i>{{ __('ui.common.back') }}</a>
     </div>
 
+    @if(session('import_success'))
+        <div class="alert alert-success" role="status">{{ session('import_success') }}</div>
+    @endif
     <div class="alert alert-info">{{ __('ui.workflow.count_instructions') }}</div>
 
     <form id="stockOpnameCountForm">
@@ -34,12 +37,12 @@
                             <td>{{ $item->product?->name ?? __('ui.workflow.deleted_item') }}</td>
                             <td>{{ $item->product?->color ?? '—' }}</td>
                             <td>{{ $item->product?->size ?? '—' }}</td>
-                            <td class="text-end">{{ number_format((float) $item->system_quantity, 4, ',', '.') }} {{ $item->product?->unit?->symbol ?: $item->product?->unit?->name }}</td>
+                            <td class="text-end">{{ \App\Support\DisplayNumber::format((float) $item->system_quantity, 4) }} {{ $item->product?->unit?->symbol ?: $item->product?->unit?->name }}</td>
                             <td>
                                 <input type="hidden" name="items[{{ $index }}][product_id]" value="{{ $item->product_id }}">
                                 <input type="number" name="items[{{ $index }}][counted_quantity]" class="form-control form-control-sm text-end counted-quantity" min="0" max="999999999999.9999" step="0.0001" value="{{ $item->counted_quantity }}" required>
                             </td>
-                            <td class="text-end difference-cell">{{ $item->difference === null ? '—' : number_format((float) $item->difference, 4, ',', '.') }}</td>
+                            <td class="text-end difference-cell">{{ $item->difference === null ? '—' : \App\Support\DisplayNumber::format((float) $item->difference, 4) }}</td>
                         </tr>
                     @endforeach
                 </tbody>

@@ -20,7 +20,7 @@ class EquipmentReceiptTableQuery
     {
         return Product::query()->where('is_active', true)
             ->whereHas('category', fn (Builder $q) => $q->whereIn('code', ['MACHINE', 'EQUIPMENT']))
-            ->with('unit:id,name,symbol')->select(['id', 'code', 'name', 'unit_id', 'purchase_price'])->orderBy('code');
+            ->with(['unit:id,name,symbol', 'category:id,name'])->select(['id', 'code', 'name', 'unit_id', 'category_id', 'purchase_price'])->orderBy('code');
     }
 
     public function suppliers(): Builder { return Supplier::query()->where('is_active', true)->select(['id', 'code', 'name'])->orderBy('name'); }

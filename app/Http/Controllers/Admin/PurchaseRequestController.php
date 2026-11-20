@@ -56,7 +56,7 @@ class PurchaseRequestController extends Controller
                     $size = e($line['size'] ?: '—');
                     $quantity = $line['quantity'] === null
                         ? '—'
-                        : rtrim(rtrim(number_format((float) $line['quantity'], 4, ',', '.'), '0'), ',');
+                        : \App\Support\DisplayNumber::format((float) $line['quantity'], 4);
                     return '<span class="d-block text-nowrap">' . $style . ' <span class="text-muted">/ ' . $color . ' / ' . $size . ' / ' . $quantity . '</span></span>';
                 })->implode('');
             })
@@ -65,7 +65,7 @@ class PurchaseRequestController extends Controller
                 $items = $request->items->map(function (PurchaseRequestItem $item) {
                     $code = e($item->product?->code ?? '—');
                     $name = e($item->product?->name ?? __('ui.workflow.deleted_item'));
-                    $quantity = rtrim(rtrim(number_format((float) $item->quantity, 4, ',', '.'), '0'), ',');
+                    $quantity = \App\Support\DisplayNumber::format((float) $item->quantity, 4);
                     $unit = $item->product?->unit?->symbol ?: $item->product?->unit?->name;
                     $color = $item->materialRequestItem?->color ?: $item->product?->color;
                     $size = $item->materialRequestItem?->size ?: $item->product?->size;
@@ -220,7 +220,7 @@ class PurchaseRequestController extends Controller
                 'product' => $item->product?->name ?? 'Barang dihapus',
                 'color' => $item->materialRequestItem?->color ?: $item->product?->color,
                 'size' => $item->materialRequestItem?->size ?: $item->product?->size,
-                'quantity' => number_format((float) $item->quantity, 4, ',', '.'),
+                'quantity' => \App\Support\DisplayNumber::format((float) $item->quantity, 4),
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
                 'unit_price' => (float) $item->unit_price,
                 'line_total' => (float) $item->line_total,

@@ -13,7 +13,7 @@
 <script>
 $(function() {
     const safe = value => $('<div>').text(value ?? '').html();
-    const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 2 }).format(Number(value || 0));
+    const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(value || 0));
     const accounts = $('#cash-bank-accounts-table').DataTable({
         processing: true, serverSide: true, responsive: true, ajax: @json(route('super.cash-bank.accounts.dt')),
         columns: [

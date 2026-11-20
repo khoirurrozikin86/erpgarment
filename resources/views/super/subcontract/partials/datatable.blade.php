@@ -24,9 +24,11 @@ $(function () {
             drawCallback: function () { if (window.feather) feather.replace(); }
         });
     }
-    const table = createTable('#subcontract-list-table', @json(\App\Domain\Subcontract\Queries\SubcontractDataTable::columns($tableKind)), false);
-    const exportSearch = document.getElementById('subcontract-export-search');
-    table.on('search.dt', function () { if (exportSearch) exportSearch.value = table.search(); });
+    if (document.getElementById('subcontract-list-table')) {
+        const table = createTable('#subcontract-list-table', @json(\App\Domain\Subcontract\Queries\SubcontractDataTable::columns($tableKind)), false);
+        const exportSearch = document.getElementById('subcontract-export-search');
+        if (exportSearch) table.on('search.dt', () => { exportSearch.value = table.search(); });
+    }
     if (document.getElementById('subcontract-detail-table')) {
         createTable('#subcontract-detail-table', @json(\App\Domain\Subcontract\Queries\SubcontractDataTable::columns('goods-details')), true);
     }

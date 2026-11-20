@@ -9,18 +9,23 @@
 
 @section('content')
 <div class="card border-primary-subtle">
-    <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center"><span>{{ __('ui.raw_material_order.title') }}</span><a href="{{ route('super.raw-material-orders.index') }}" class="btn btn-sm btn-light"><i data-feather="arrow-left" class="icon-sm me-1"></i>{{ __('ui.common.back') }}</a></div>
-    <form id="rawMaterialOrderForm" data-url="{{ $isEdit ? route('super.raw-material-orders.update', $document) : route('super.raw-material-orders.store') }}" data-method="{{ $isEdit ? 'PUT' : 'POST' }}">
+    <div class="card-header d-flex justify-content-between align-items-center gap-2">
+    <h5 class="mb-0">{{ __('ui.raw_material_order.title') }}</h5>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ route('super.raw-material-orders.index') }}">{{ __('ui.common.back') }}</a>
+</div>
+<form id="rawMaterialOrderForm" data-url="{{ $isEdit ? route('super.raw-material-orders.update', $document) : route('super.raw-material-orders.store') }}" data-method="{{ $isEdit ? 'PUT' : 'POST' }}">
         @csrf
         <div class="card-body">
-            <div class="row g-3 align-items-end mb-4">
-                <div class="col-lg-4"><label for="rawOrderDate" class="form-label">{{ __('ui.raw_material_order.date') }} <span class="text-danger">*</span></label><input type="date" id="rawOrderDate" name="order_date" class="form-control" value="{{ $document?->order_date?->toDateString() ?? now()->toDateString() }}" required></div>
-                <div class="col-md-4"><label for="rawOrderMode" class="form-label">Sumber Order</label><select id="rawOrderMode" class="form-select"><option value="mo">Dari MO</option><option value="manual">Manual</option></select></div>
-                <div class="col-md-4" id="rawCategoryField"><label for="rawOrderCategory" class="form-label">{{ __('variants.bom_type') }}</label><select id="rawOrderCategory" class="form-select"><option value="all">Semua</option><option value="fabric">{{ __('variants.bom_type_fabric') }}</option><option value="accessory">{{ __('variants.bom_type_accessory') }}</option><option value="general">{{ __('variants.bom_type_general') }}</option></select></div>
-                <div class="col-md-4" id="rawMoSourceField"><label class="form-label">{{ __('ui.raw_material_order.mo_number') }} <span class="text-danger">*</span></label><div class="input-group"><input id="rawMoLabel" class="form-control" value="{{ $document ? $document->production_order_number : '' }}" readonly placeholder="{{ __('ui.raw_material_order.select_mo') }}"><input type="hidden" id="rawMoNumber" value="{{ $document?->production_order_number }}"><button class="btn btn-outline-primary" type="button" id="openRawMoPicker" @disabled($isEdit)><i data-feather="search" class="icon-sm"></i></button></div></div>
+            <h6 class="text-primary mb-3">{{ __('ui.common.document_details') }}</h6><div class="row gx-lg-5 gy-2"><div class="col-lg-6">
+<div class="row gx-3 gy-1 align-items-center mb-2"><label for="rawOrderDate" class="col-sm-4 col-form-label col-form-label-sm">{{ __('ui.raw_material_order.date') }} <span class="text-danger">*</span></label><div class="col-sm-8"><input type="date" id="rawOrderDate" name="order_date" class="form-control form-control-sm" value="{{ $document?->order_date?->toDateString() ?? now()->toDateString() }}" required></div></div>
+<div class="row gx-3 gy-1 align-items-center mb-2"><label for="rawOrderMode" class="col-sm-4 col-form-label col-form-label-sm">Sumber Order</label><div class="col-sm-8"><select id="rawOrderMode" class="form-select form-select-sm"><option value="mo">Dari MO</option><option value="manual">Manual</option></select></div></div>
+</div><div class="col-lg-6">
+<div class="row gx-3 gy-1 align-items-center mb-2" id="rawCategoryField"><label for="rawOrderCategory" class="col-sm-4 col-form-label col-form-label-sm">{{ __('variants.bom_type') }}</label><div class="col-sm-8"><select id="rawOrderCategory" class="form-select form-select-sm"><option value="all">Semua</option><option value="fabric">{{ __('variants.bom_type_fabric') }}</option><option value="accessory">{{ __('variants.bom_type_accessory') }}</option><option value="general">{{ __('variants.bom_type_general') }}</option></select></div></div>
+<div class="row gx-3 gy-1 align-items-center mb-2" id="rawMoSourceField"><label class="col-sm-4 col-form-label col-form-label-sm" for="rawMoLabel">{{ __('ui.raw_material_order.mo_number') }} <span class="text-danger">*</span></label><div class="col-sm-8"><div class="input-group input-group-sm"><input id="rawMoLabel" class="form-control form-control-sm" value="{{ $document ? $document->production_order_number : '' }}" readonly placeholder="{{ __('ui.raw_material_order.select_mo') }}"><input type="hidden" id="rawMoNumber" value="{{ $document?->production_order_number }}"><button class="btn btn-outline-primary" type="button" id="openRawMoPicker" @disabled($isEdit)><i data-feather="search" class="icon-sm"></i></button></div></div></div>
                 <div class="col-12" id="rawLoadMoField"><div class="d-flex justify-content-end"><button class="btn btn-primary btn-sm" type="button" id="loadRawMo" @disabled($isEdit)>{{ __('ui.raw_material_order.load_mo') }}</button></div></div>
-            </div>
-            <section id="rawMoProductionSummary" class="mb-4 d-none" aria-labelledby="rawMoProductionTitle">
+</div></div>
+<hr class="my-3">
+<section id="rawMoProductionSummary" class="mb-4 d-none" aria-labelledby="rawMoProductionTitle">
                 <h6 id="rawMoProductionTitle" class="fw-semibold mb-2">{{ __('variants.raw_mo_production_summary') }}</h6>
                 <div class="table-responsive">
                     <table class="table table-sm table-bordered align-middle mb-0">
@@ -50,9 +55,9 @@
     </form>
 </div>
 
-<div class="modal fade" id="rawMoPickerModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">{{ __('ui.raw_material_order.select_mo') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div><div class="modal-body"><div class="table-responsive"><table id="rawMoPickerTable" class="table table-sm table-bordered align-middle w-100"><thead><tr><th>{{ __('ui.raw_material_order.mo_number') }}</th><th>{{ __('ui.raw_material_order.mo_date') }}</th><th>{{ __('ui.nav.styles') }} / {{ __('ui.workflow.color') }} / {{ __('ui.workflow.size') }} / {{ __('ui.workflow.order_quantity') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead></table></div></div></div></div></div>
+<div class="modal fade" id="rawMoPickerModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">{{ __('ui.raw_material_order.select_mo') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{{ __('ui.common.close') }}"></button></div><div class="modal-body"><div class="table-responsive"><table id="rawMoPickerTable" class="table table-sm table-bordered align-middle w-100"><thead><tr><th>{{ __('ui.raw_material_order.mo_number') }}</th><th>{{ __('ui.raw_material_order.mo_date') }}</th><th>{{ __('ui.gsn.parent_code') }} / {{ __('ui.gsn.sku_code') }} / {{ __('ui.wip_issue.category') }} / {{ __('ui.nav.styles') }} / {{ __('ui.workflow.color') }} / {{ __('ui.workflow.size') }} / {{ __('ui.workflow.order_quantity') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead></table></div></div></div></div></div>
 
-<div class="modal fade" id="manualRawProductModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Pilih Barang Manual</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="table-responsive"><table id="manualRawProductTable" class="table table-sm table-bordered table-hover align-middle w-100"><thead><tr><th>{{ __('ui.raw_material_order.item_code') }}</th><th>{{ __('ui.raw_material_order.item_name') }}</th><th>{{ __('ui.raw_material_order.unit') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead></table></div></div></div></div></div>
+<div class="modal fade" id="manualRawProductModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">Pilih Barang Manual</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="table-responsive"><table id="manualRawProductTable" class="table table-sm table-bordered table-hover align-middle w-100"><thead><tr><th>{{ __('ui.gsn.parent_code') }}</th><th>{{ __('ui.gsn.sku_code') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th>{{ __('ui.wip_issue.category') }}</th><th>{{ __('ui.raw_material_order.item_name') }}</th><th>{{ __('ui.raw_material_order.unit') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead></table></div></div></div></div></div>
 @endsection
 
 @push('scripts')
@@ -102,8 +107,8 @@ $(function(){
         {data:null,orderable:false,searchable:false,className:'text-center',render:()=>'<button type="button" class="btn btn-link btn-sm text-danger remove-manual-material">Hapus</button>'}
     ],drawCallback:()=>window.feather&&feather.replace()});
     const manualProducts=$('#manualRawProductTable').DataTable({processing:true,serverSide:true,responsive:true,ajax:{url:@json(route('super.raw-material-orders.manual-products.dt')),data:d=>{}},columns:[
-        {data:'code',name:'code'}, {data:'name',name:'name'}, {data:'unit',orderable:false,searchable:false}, {data:'actions',orderable:false,searchable:false,className:'text-center'}
-    ],order:[[1,'asc']],drawCallback:()=>window.feather&&feather.replace()});
+        {data: 'parent_code', orderable: false, searchable: false}, {data: 'sku_code', name: 'code', orderable: false}, {data: 'color', orderable: false, searchable: true}, {data: 'size', orderable: false, searchable: true}, {data: 'category_label', orderable: false, searchable: false}, {data:'name',name:'name'}, {data:'unit',orderable:false,searchable:false}, {data:'actions',orderable:false,searchable:false,className:'text-center'}
+    ],order:[[5,'asc']],drawCallback:()=>window.feather&&feather.replace()});
     const picker=$('#rawMoPickerTable').DataTable({processing:true,serverSide:true,responsive:true,ajax:@json(route('super.raw-material-orders.mos.dt')),columns:[{data:'number',name:'number'},{data:'mo_date',name:'po_date',defaultContent:'—'},{data:'variant_details',orderable:false,searchable:false},{data:'actions',orderable:false,searchable:false,className:'text-center'}],order:[[1,'desc']],drawCallback:()=>window.feather&&feather.replace()});
     $('#rawOrderMode').val(initialManualMode);
     function renderProductionSummary() {

@@ -4,7 +4,7 @@
 @section('content')
     @php
         $canSend = auth()->user()->can('material-issues.create') && $details['items']->contains(fn ($line) => $line['remaining'] > 0);
-        $number = fn ($value) => rtrim(rtrim(number_format($value, 4, ',', '.'), '0'), ',');
+        $number = fn ($value) => \App\Support\DisplayNumber::format($value, 4);
     @endphp
 
     <div class="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-3">

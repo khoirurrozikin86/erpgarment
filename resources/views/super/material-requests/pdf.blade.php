@@ -4,17 +4,7 @@
     <meta charset="utf-8">
     <title>{{ $materialRequest->number }}</title>
     <style>
-        @page { margin: 24px 28px; }
         body { font-family: DejaVu Sans, sans-serif; color: #202938; font-size: 11px; }
-        h1 { font-size: 17px; margin: 0 0 2px; }
-        .company-header { width: 100%; border-bottom: 1px solid #cfd5df; padding-bottom: 5px; margin-bottom: 7px; }
-        .company-logo-cell { width: 72px; vertical-align: middle; }
-        .company-logo-cell img { max-width: 62px; max-height: 42px; }
-        .company-info { vertical-align: middle; line-height: 1.25; }
-        .company-name { font-size: 14px; font-weight: bold; color: #263b5e; margin-bottom: 2px; }
-        .company-contact { color: #475467; }
-        .header { border-bottom: 1px solid #263b5e; padding-bottom: 5px; margin-bottom: 6px; }
-        .document-no { font-size: 13px; font-weight: bold; color: #263b5e; }
         .meta { width: 100%; margin-bottom: 6px; }
         .meta td { padding: 2px 6px 2px 0; vertical-align: top; }
         .meta .label { width: 145px; color: #667085; }
@@ -32,6 +22,7 @@
         .sign-line { border-bottom: 1px solid #475467; height: 30px; margin-bottom: 3px; }
         .footer { margin-top: 8px; border-top: 1px solid #d0d5dd; padding-top: 3px; font-size: 9px; color: #667085; }
     </style>
+    @include('super.documents.partials.compact-pdf-styles')
 </head>
 <body>
     @include('super.documents.partials.company-pdf-header', ['company' => $company, 'companyLogoDataUri' => $companyLogoDataUri])
@@ -45,16 +36,32 @@
         <tr><td class="label">{{ __('ui.common.department') }}</td><td>{{ $materialRequest->department ?: '—' }}</td><td class="label">{{ __('ui.common.needed_date') }}</td><td>{{ $materialRequest->needed_at?->format('d/m/Y') ?? '—' }}</td></tr>
         <tr><td class="label">{{ __('ui.common.approval_status') }}</td><td>{{ ['pending' => 'Menunggu Approval', 'approved' => 'Disetujui', 'rejected' => 'Ditolak'][$materialRequest->status] ?? $materialRequest->status }}</td><td class="label">{{ __('ui.common.purchasing_progress') }}</td><td>{{ ['not_processed' => 'Belum Diproses', 'partially_processed' => 'Sebagian Dialokasikan ke PR', 'processed' => 'Seluruh Kebutuhan Dialokasikan ke PR'][$materialRequest->purchase_status] ?? '—' }}</td></tr>
         @if ($materialRequest->bom_version)
-            <tr><td class="label">{{ __('ui.workflow.bom_used') }}</td><td>{{ $materialRequest->billOfMaterial?->number ?? 'BOM '.$materialRequest->bom_version }}{{ $materialRequest->billOfMaterial ? ' — '.__('variants.bom_type_'.$materialRequest->billOfMaterial->bom_type) : '' }}</td><td class="label">{{ __('ui.workflow.material_order') }}</td><td>{{ $materialRequest->productionOrder?->number ?? '—' }} · {{ $materialRequest->outputProduct?->variant_display_name ?? '—' }} × {{ number_format((float) $materialRequest->production_quantity, 4, ',', '.') }}</td></tr>
+            <tr><td class="label">{{ __('ui.workflow.bom_used') }}</td><td>{{ $materialRequest->billOfMaterial?->number ?? 'BOM '.$materialRequest->bom_version }}{{ $materialRequest->billOfMaterial ? ' — '.__('variants.bom_type_'.$materialRequest->billOfMaterial->bom_type) : '' }}</td><td class="label">{{ __('ui.workflow.material_order') }}</td><td>{{ $materialRequest->productionOrder?->number ?? '—' }} · {{ $materialRequest->outputProduct?->variant_display_name ?? '—' }} × {{ \App\Support\DisplayNumber::format((float) $materialRequest->production_quantity, 4) }}</td></tr>
         @endif
         <tr><td class="label">{{ __('ui.common.reviewed_by') }}</td><td>{{ $materialRequest->reviewer?->name ?? '—' }}</td><td class="label">{{ __('ui.common.review_time') }}</td><td>{{ $materialRequest->reviewed_at?->format('d/m/Y H:i') ?? '—' }}</td></tr>
     </table>
 
     @if ($productionDetails->isNotEmpty())
-        <div class="section-title">{{ __('ui.nav.styles') }} / {{ __('ui.workflow.color') }} / {{ __('ui.workflow.size') }} / {{ __('ui.workflow.order_quantity') }}</div>
-        @foreach ($productionDetails as $detail)
-            <div>{{ $detail['style'] ?: '—' }} / {{ $detail['color'] ?: '—' }} / {{ $detail['size'] ?: '—' }} / {{ $detail['quantity'] === null ? '—' : number_format((float) $detail['quantity'], 4, ',', '.') }}</div>
-        @endforeach
+        <table class="items" style="width: 65%">
+            <thead>
+                <tr>
+                    <th>{{ __('ui.workflow.style') }}</th>
+                    <th>{{ __('ui.workflow.color') }}</th>
+                    <th>{{ __('ui.workflow.size') }}</th>
+                    <th class="right">{{ __('ui.common.quantity') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($productionDetails as $detail)
+                    <tr>
+                        <td>{{ $detail['style'] ?: '—' }}</td>
+                        <td>{{ $detail['color'] ?: '—' }}</td>
+                        <td>{{ $detail['size'] ?: '—' }}</td>
+                        <td class="right">{{ $detail['quantity'] === null ? '—' : \App\Support\DisplayNumber::format((float) $detail['quantity'], 4) }}</td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
     @endif
 
     <div class="section-title">Barang yang Diminta</div>
@@ -68,7 +75,7 @@
                     <td>{{ $item['name'] }}</td>
                     <td>{{ $item['size'] ?: '—' }}</td>
                     <td>{{ $item['color'] ?: '—' }}</td>
-                    <td class="right">{{ number_format((float) $item['quantity'], 4, ',', '.') }}</td>
+                    <td class="right">{{ \App\Support\DisplayNumber::format((float) $item['quantity'], 4) }}</td>
                     <td>{{ $item['unit'] }}</td>
                     <td>{{ $item['note'] }}</td>
                 </tr>

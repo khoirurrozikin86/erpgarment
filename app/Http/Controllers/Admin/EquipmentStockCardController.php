@@ -53,8 +53,8 @@ class EquipmentStockCardController extends Controller
         return DataTables::collection($rows)
             ->addIndexColumn()
             ->editColumn('date', fn (array $row) => $row['date'] ?: '—')
-            ->editColumn('amount', fn (array $row) => number_format($row['amount'], 2, ',', '.'))
-            ->editColumn('balance', fn (array $row) => number_format($row['balance'], 2, ',', '.'))
+            ->editColumn('amount', fn (array $row) => \App\Support\DisplayNumber::format($row['amount'], 2))
+            ->editColumn('balance', fn (array $row) => \App\Support\DisplayNumber::format($row['balance'], 2))
             ->toJson();
     }
 

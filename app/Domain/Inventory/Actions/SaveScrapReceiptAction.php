@@ -17,11 +17,13 @@ class SaveScrapReceiptAction
     {
         return DB::transaction(function () use ($data, $userId) {
             $scrap = $this->scrapProduct((int) $data['scrap_product_id']);
-            $source = Product::query()->where('track_stock', true)->where('is_active', true)->lockForUpdate()->findOrFail($data['source_product_id']);
+            $source = isset($data['source_product_id'])
+                ? Product::query()->where('track_stock', true)->where('is_active', true)->lockForUpdate()->findOrFail($data['source_product_id'])
+                : null;
             $document = ScrapReceiptDocument::query()->create([
                 'company_id' => $this->company->id(), 'number' => $this->numbers->generate('scrap_receipt'),
                 'receipt_date' => $data['receipt_date'], 'scrap_product_id' => $scrap->id,
-                'source_product_id' => $source->id, 'production_number' => $data['production_number'] ?? null,
+                'source_product_id' => $source?->id, 'production_number' => $data['production_number'] ?? null,
                 'quantity' => $data['quantity'], 'description' => $data['description'] ?? null, 'created_by' => $userId,
             ]);
             $this->move($document, $scrap, (float) $document->quantity, $userId, 'scrap_receipt');
@@ -38,10 +40,12 @@ class SaveScrapReceiptAction
             $old = $document->load(['scrapProduct', 'sourceProduct'])->toArray();
             $oldProduct = Product::query()->lockForUpdate()->findOrFail($document->scrap_product_id);
             $scrap = $this->scrapProduct((int) $data['scrap_product_id']);
-            $source = Product::query()->where('track_stock', true)->where('is_active', true)->lockForUpdate()->findOrFail($data['source_product_id']);
+            $source = isset($data['source_product_id'])
+                ? Product::query()->where('track_stock', true)->where('is_active', true)->lockForUpdate()->findOrFail($data['source_product_id'])
+                : null;
             $this->move($document, $oldProduct, -(float) $document->quantity, $userId, 'scrap_receipt_reversal');
             $document->update([
-                'receipt_date' => $data['receipt_date'], 'scrap_product_id' => $scrap->id, 'source_product_id' => $source->id,
+                'receipt_date' => $data['receipt_date'], 'scrap_product_id' => $scrap->id, 'source_product_id' => $source?->id,
                 'production_number' => $data['production_number'] ?? null, 'quantity' => $data['quantity'], 'description' => $data['description'] ?? null,
             ]);
             $this->move($document, $scrap, (float) $document->quantity, $userId, 'scrap_receipt');

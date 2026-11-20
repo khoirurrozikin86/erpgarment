@@ -10,6 +10,8 @@ class EquipmentReceiptDocument extends Model
 {
     use SoftDeletes;
 
+    public const OWNERSHIP_TYPES = ['own', 'rent', 'repair'];
+
     protected $fillable = ['company_id', 'number', 'receipt_date', 'ownership_type', 'invoice_number', 'invoice_date', 'supplier_id', 'currency_code', 'description', 'created_by'];
 
     protected function casts(): array

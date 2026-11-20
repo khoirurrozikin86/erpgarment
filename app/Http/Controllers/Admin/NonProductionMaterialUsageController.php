@@ -67,7 +67,10 @@ class NonProductionMaterialUsageController extends Controller
 
     public function productsDt(NonProductionMaterialUsageTableQuery $query): JsonResponse
     {
-        return DataTables::eloquent($query->products())
+        return DataTables::eloquent($query->products()->with(['parentProduct:id,code', 'category:id,name']))
+            ->addColumn('parent_code', fn ($product) => $product?->parentProduct?->code ?? $product?->code ?? '—')
+            ->addColumn('sku_code', fn ($product) => $product?->parent_product_id ? $product->code : '—')
+            ->addColumn('category_label', fn ($product) => $product?->category?->name ?? '—')
             ->addColumn('unit_label', fn (Product $product) => $product->unit?->symbol ?: $product->unit?->name ?: '—')
             ->addColumn('actions', fn (Product $product) => '<button type="button" class="btn btn-sm btn-primary btn-select-np-usage-product" data-id="'.(int)$product->id.'" data-code="'.e($product->code).'" data-name="'.e($product->name).'" data-unit="'.e($product->unit?->symbol ?: $product->unit?->name ?: '').'"><i data-feather="check" class="icon-sm"></i></button>')
             ->rawColumns(['actions'])->toJson();

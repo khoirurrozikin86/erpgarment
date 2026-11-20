@@ -22,7 +22,7 @@ class PackingTableQuery
             ->joinSub($sew,'sew_stage',fn($j)=>$j->on('sew_stage.production_order_id','=','production_orders.id'))
             ->leftJoinSub($pack,'pack_stage',fn($j)=>$j->on('pack_stage.production_order_id','=','production_orders.id'))
             ->whereRaw('COALESCE(sew_stage.sewing_qty,0)>COALESCE(pack_stage.packing_qty,0)')
-            ->with(['outputProduct:id,code,name,style_code,unit_id,color,size,parent_product_id','outputProduct.parentProduct:id,code','outputProduct.unit:id,name,symbol','materials.product:id,code,name,unit_id'])
+            ->with(['outputProduct:id,code,name,style_code,unit_id,color,size,parent_product_id,category_id', 'outputProduct.category:id,name','outputProduct.parentProduct:id,code','outputProduct.unit:id,name,symbol','materials.product:id,code,name,unit_id'])
             ->select(['production_orders.id','production_orders.company_id','production_orders.number','production_orders.buyer_po_number','production_orders.no_cbd','production_orders.output_product_id', 'production_orders.style_code','production_orders.planned_quantity','production_orders.status'])
             ->selectRaw('COALESCE(sew_stage.sewing_qty,0)-COALESCE(pack_stage.packing_qty,0) as available_sewing_quantity')->latest('production_orders.created_at');
     }

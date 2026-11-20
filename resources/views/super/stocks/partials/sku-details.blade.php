@@ -31,8 +31,8 @@
                     <td>{{ $sku['color'] }}</td>
                     <td>{{ $sku['size'] }}</td>
                     <td>{{ $group['unit'] ?? '—' }}</td>
-                    <td class="text-end">{{ number_format($sku['quantity'], 4, ',', '.') }}</td>
-                    <td class="text-end">{{ number_format($sku['threshold'], 4, ',', '.') }}</td>
+                    <td class="text-end">{{ \App\Support\DisplayNumber::format($sku['quantity'], 4) }}</td>
+                    <td class="text-end">{{ \App\Support\DisplayNumber::format($sku['threshold'], 4) }}</td>
                     <td><span class="badge {{ $statusClasses[$sku['status']] }}">{{ __('ui.modules.'.$sku['status']) }}</span></td>
                     <td><button type="button" class="btn btn-outline-primary btn-sm view-item-lots" data-id="{{ $sku['id'] }}" data-name="{{ $sku['name'] }}">{{ __('ui.workflow.view_lots') }}</button></td>
                 </tr>

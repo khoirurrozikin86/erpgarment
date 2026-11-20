@@ -71,7 +71,7 @@ class IssueMaterialRequestAction
                 $stock = ProductStock::query()->where('product_id', $product->id)->lockForUpdate()->first();
                 $before = round((float) ($stock?->quantity ?? 0), 4);
                 if (!$stock || $before < $quantity) {
-                    throw ValidationException::withMessages(['items' => __('ui.workflow.material_issue_insufficient_stock', ['item' => $product->variant_display_name, 'available' => number_format($before, 4, ',', '.')])]);
+                    throw ValidationException::withMessages(['items' => __('ui.workflow.material_issue_insufficient_stock', ['item' => $product->variant_display_name, 'available' => \App\Support\DisplayNumber::format($before, 4)])]);
                 }
 
                 $lots = InventoryLot::query()->where('product_id', $product->id)

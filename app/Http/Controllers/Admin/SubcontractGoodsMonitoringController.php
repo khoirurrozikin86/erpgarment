@@ -22,7 +22,7 @@ class SubcontractGoodsMonitoringController extends SubcontractContractMonitoring
             $selected=SubcontractContract::where('company_id',$company->id())->with('subcontractor')->findOrFail($selection['contract_id']);
             // Manual receipt contract numbers only identify a contract if the match is unambiguous.
             $ambiguous=SubcontractContract::where('company_id',$company->id())->where('subcontractor_id',$selected->subcontractor_id)->where('contract_number',$selected->contract_number)->count()!==1;
-            $details=SubcontractMaterialIssueItem::query()->with('product.unit')
+            $details=SubcontractMaterialIssueItem::query()->with(['product.unit', 'product.parentProduct:id,code', 'product.category:id,name'])
                 ->whereHas('document',function($q)use($company,$selected,$direction,$filters,$ambiguous){
                     $q->where('company_id',$company->id())->where('status','confirmed')->where('subcontractor_id',$selected->subcontractor_id)->where('issue_date','<=',$filters['to_date']);
                     if($direction==='issue')$q->whereIn('issue_kind',['raw','wip'])->where('contract_id',$selected->id);

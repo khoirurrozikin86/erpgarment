@@ -11,6 +11,6 @@ class SubcontractWipIssueQuery extends SubcontractMaterialIssueQuery
     {
         return Product::where('product_type','stock')->where('track_stock',true)->where('is_active',true)
             ->where(fn(Builder $q)=>$q->where('garment_item_type','work_in_process')->orWhereHas('category',fn(Builder $q)=>$q->where('code','WIP')->orWhereRaw('LOWER(name) = ?', ['barang setengah jadi'])))
-            ->with('unit')->orderBy('code');
+            ->with(['unit', ...SubcontractProductColumns::RELATIONS])->orderBy('code');
     }
 }

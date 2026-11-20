@@ -24,7 +24,7 @@ class SewingTableQuery
             ->joinSub($cut, 'cut_stage', fn ($join) => $join->on('cut_stage.production_order_id', '=', 'production_orders.id'))
             ->leftJoinSub($sew, 'sew_stage', fn ($join) => $join->on('sew_stage.production_order_id', '=', 'production_orders.id'))
             ->whereRaw('COALESCE(cut_stage.cut_qty,0) > COALESCE(sew_stage.sew_qty,0)')
-            ->with(['outputProduct:id,code,name,style_code,unit_id,color,size,parent_product_id', 'outputProduct.parentProduct:id,code', 'outputProduct.unit:id,name,symbol', 'materials' => fn ($materials) => $materials->forSewing(), 'materials.product:id,code,name,unit_id', 'materials.product.unit:id,name,symbol'])
+            ->with(['outputProduct:id,code,name,style_code,unit_id,color,size,parent_product_id,category_id', 'outputProduct.category:id,name', 'outputProduct.parentProduct:id,code', 'outputProduct.unit:id,name,symbol', 'materials' => fn ($materials) => $materials->forSewing(), 'materials.product:id,code,name,unit_id', 'materials.product.unit:id,name,symbol'])
             ->select(['production_orders.id', 'production_orders.company_id', 'production_orders.number', 'production_orders.buyer_po_number', 'production_orders.output_product_id', 'production_orders.style_code', 'production_orders.planned_quantity', 'production_orders.status'])
             ->selectRaw('COALESCE(cut_stage.cut_qty,0) - COALESCE(sew_stage.sew_qty,0) as available_cutting_quantity')
             ->latest('production_orders.created_at');

@@ -24,7 +24,7 @@ class CuttingTableQuery
         return ProductionOrder::query()->where('company_id',$companyId)
             ->whereIn('status',['released','in_progress'])
             ->whereIn('id',$firstRows)
-            ->with(['outputProduct:id,code,name,style_code,unit_id,color,size,parent_product_id','outputProduct.parentProduct:id,code','outputProduct.unit:id,name,symbol','materials.product:id,code,name,unit_id'])
+            ->with(['outputProduct:id,code,name,style_code,unit_id,color,size,parent_product_id,category_id', 'outputProduct.category:id,name','outputProduct.parentProduct:id,code','outputProduct.unit:id,name,symbol','materials.product:id,code,name,unit_id'])
             ->select(['id','company_id','number','buyer_po_number','output_product_id','planned_quantity','status'])->latest('created_at');
     }
 }

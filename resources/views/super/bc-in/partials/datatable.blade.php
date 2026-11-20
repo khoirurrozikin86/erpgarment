@@ -67,7 +67,7 @@ $(function () {
     const detailStatus = document.getElementById('bc-detail-status');
     const detailTitle = document.getElementById('bc-detail-document');
     const detailTable = document.getElementById('bc-detail-table');
-    const amount = new Intl.NumberFormat('id-ID', {minimumFractionDigits: 4, maximumFractionDigits: 4});
+    const amount = new Intl.NumberFormat('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 4});
     let pending;
     let trigger;
 

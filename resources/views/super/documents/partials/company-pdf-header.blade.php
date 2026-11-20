@@ -5,14 +5,16 @@
         @endif
         <td class="company-info">
             <div class="company-name">{{ $company?->name ?? 'Perusahaan' }}</div>
+        </td>
+        <td class="company-details">
             @if ($company?->address)
-                <div>{{ $company->address }}</div>
+                <div class="company-address">{{ \Illuminate\Support\Str::squish($company->address) }}</div>
             @endif
             @php
                 $companyCityLine = collect([$company?->city, $company?->province, $company?->postal_code])->filter()->implode(', ');
             @endphp
             @if ($companyCityLine)
-                <div>{{ $companyCityLine }}</div>
+                <div class="company-address">{{ $companyCityLine }}</div>
             @endif
             <div class="company-contact">
                 @if ($company?->phone)
@@ -20,9 +22,6 @@
                 @endif
                 @if ($company?->email)
                     <span>{{ $company->phone ? ' | ' : '' }}{{ $company->email }}</span>
-                @endif
-                @if ($company?->tax_number)
-                    <span>{{ $company->phone || $company->email ? ' | ' : '' }}NPWP: {{ $company->tax_number }}</span>
                 @endif
             </div>
         </td>

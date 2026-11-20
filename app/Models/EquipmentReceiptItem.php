@@ -14,5 +14,7 @@ class EquipmentReceiptItem extends Model
         return ['quantity' => 'decimal:4', 'unit_price' => 'decimal:4', 'total_price' => 'decimal:4'];
     }
 
+    public function product(): BelongsTo { return $this->belongsTo(Product::class); }
+
     public function document(): BelongsTo { return $this->belongsTo(EquipmentReceiptDocument::class, 'equipment_receipt_document_id'); }
 }

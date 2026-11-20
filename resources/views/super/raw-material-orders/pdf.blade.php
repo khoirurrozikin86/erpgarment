@@ -4,13 +4,7 @@
     <meta charset="utf-8">
     <title>{{ $document->number }}</title>
     <style>
-        @page { margin: 24px 28px; }
         body { font-family: DejaVu Sans, sans-serif; color: #202938; font-size: 10px; }
-        h1 { font-size: 17px; margin: 0 0 3px; }
-        .company-header { width: 100%; border-bottom: 1px solid #cfd5df; margin-bottom: 8px; padding-bottom: 5px; }
-        .company-logo-cell { width: 72px; vertical-align: middle; }
-        .company-logo-cell img { max-width: 62px; max-height: 42px; }
-        .company-name { font-size: 14px; font-weight: bold; }
         .meta { width: 100%; margin: 8px 0; }
         .meta th { text-align: left; padding-right: 12px; color: #475467; }
         .items { border-collapse: collapse; width: 100%; }
@@ -21,11 +15,14 @@
         .production-summary { margin: 0 0 10px; }
         .production-summary h2 { font-size: 11px; margin: 0 0 4px; }
     </style>
+    @include('super.documents.partials.compact-pdf-styles')
 </head>
 <body>
     @include('super.documents.partials.company-pdf-header', ['company' => $company, 'companyLogoDataUri' => $companyLogoDataUri])
-    <h1>{{ __('ui.raw_material_order.title') }}</h1>
-    <strong>{{ $document->number }}</strong>
+    <div class="header">
+        <h1>{{ __('ui.raw_material_order.title') }}</h1>
+        <div class="document-no">{{ $document->number }}</div>
+    </div>
 
     <table class="meta">
         <tr>
@@ -53,7 +50,7 @@
                             <td>{{ $detail['style'] ?: '—' }}</td>
                             <td>{{ $detail['color'] ?: '—' }}</td>
                             <td>{{ $detail['size'] ?: '—' }}</td>
-                            <td class="number">{{ rtrim(rtrim(number_format($detail['quantity'], 4, ',', '.'), '0'), ',') }}</td>
+                            <td class="number">{{ \App\Support\DisplayNumber::format($detail['quantity'], 4) }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -84,7 +81,7 @@
                     <td>{{ filled($item['color']) ? $item['color'] : '—' }}</td>
                     <td>{{ filled($item['size']) ? $item['size'] : '—' }}</td>
                     <td>{{ $item['unit'] ?? '—' }}</td>
-                    <td class="number">{{ number_format($item['quantity'], 4, ',', '.') }}</td>
+                    <td class="number">{{ \App\Support\DisplayNumber::format($item['quantity'], 4) }}</td>
                 </tr>
             @empty
                 <tr><td colspan="9" class="empty">{{ __('ui.common.no_matching_records') }}</td></tr>

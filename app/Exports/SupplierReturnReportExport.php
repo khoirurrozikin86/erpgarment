@@ -16,7 +16,7 @@ class SupplierReturnReportExport extends DefaultValueBinder implements FromQuery
         $product = $row->product;
         return [$row->purchaseReturn?->number, $row->purchaseReturn?->returned_at?->format('Y-m-d'), $product?->parentProduct?->code ?? $product?->code, $product?->parent_product_id ? $product->code : null, $product?->name, $row->goodsReceiptItem?->received_color ?? $product?->color, $row->goodsReceiptItem?->received_size ?? $product?->size, $product?->unit?->symbol ?: $product?->unit?->name, (float) $row->quantity];
     }
-    public function columnFormats(): array { return ['I' => '#,##0.0000']; }
+    public function columnFormats(): array { return ['I' => '#,##0.####']; }
     public function bindValue(Cell $cell, $value)
     {
         if (is_string($value)) { $cell->setValueExplicit($value, DataType::TYPE_STRING); return true; }

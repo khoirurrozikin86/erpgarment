@@ -334,6 +334,13 @@
                         }
                         body.append(row.append(action));
                     });
+                    if (result.items.length === 0) {
+                        body.append($('<tr>').append(
+                            $('<td class="text-center text-muted">')
+                                .attr('colspan', headings.length)
+                                .text(@json(__('variants.no_item_variants')))
+                        ));
+                    }
                     const table = $('<table class="table table-sm table-bordered align-middle mb-0">')
                         .append($('<thead class="table-light">').append(head), body);
                     const content = $('<div class="table-responsive text-start">').append(table);

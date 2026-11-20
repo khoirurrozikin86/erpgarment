@@ -15,7 +15,7 @@ class ProductionPlanReportExport extends DefaultValueBinder implements FromQuery
     {
         return [$row->number, $row->po_date?->format('d-m-Y'), $row->outputProduct?->code, $row->outputProduct?->name, $row->outputProduct?->color, $row->outputProduct?->size, (float) $row->planned_quantity, (float) ($row->report_rejected ?? 0), (float) ($row->report_produced ?? 0), (float) ($row->report_shipped ?? 0)];
     }
-    public function columnFormats(): array { return ['G' => '#,##0.0000', 'H' => '#,##0.####', 'I' => '#,##0.####', 'J' => '#,##0.####']; }
+    public function columnFormats(): array { return ['G' => '#,##0.####', 'H' => '#,##0.####', 'I' => '#,##0.####', 'J' => '#,##0.####']; }
     public function bindValue(Cell $cell, $value)
     {
         if (is_string($value)) { $cell->setValueExplicit($value, DataType::TYPE_STRING); return true; }

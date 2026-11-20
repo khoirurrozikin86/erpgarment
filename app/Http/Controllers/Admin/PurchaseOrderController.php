@@ -81,7 +81,7 @@ class PurchaseOrderController extends Controller
                     $size = e($line['size'] ?: '—');
                     $quantity = $line['quantity'] === null
                         ? '—'
-                        : rtrim(rtrim(number_format((float) $line['quantity'], 4, ',', '.'), '0'), ',');
+                        : \App\Support\DisplayNumber::format((float) $line['quantity'], 4);
                     return '<span class="d-block text-nowrap">' . $style . ' <span class="text-muted">/ ' . $color . ' / ' . $size . ' / ' . $quantity . '</span></span>';
                 })->implode('');
             })
@@ -92,7 +92,7 @@ class PurchaseOrderController extends Controller
                 $items = $order->items->map(function ($item) {
                     $code = e($item->product?->code ?? '—');
                     $name = e($item->product?->variant_display_name ?? __('ui.workflow.deleted_item'));
-                    $quantity = rtrim(rtrim(number_format((float) $item->quantity, 4, ',', '.'), '0'), ',');
+                    $quantity = \App\Support\DisplayNumber::format((float) $item->quantity, 4);
                     $color = $item->purchaseRequestItem?->materialRequestItem?->color ?: $item->product?->color;
                     $size = $item->purchaseRequestItem?->materialRequestItem?->size ?: $item->product?->size;
                     $dimensions = collect([$color, $size])->filter()->map(fn ($value) => e($value))->implode(' / ');
@@ -211,8 +211,8 @@ class PurchaseOrderController extends Controller
                 'product' => $item->product?->name ?? 'Barang dihapus',
                 'color' => $item->purchaseRequestItem?->materialRequestItem?->color ?: $item->product?->color,
                 'size' => $item->purchaseRequestItem?->materialRequestItem?->size ?: $item->product?->size,
-                'quantity' => number_format((float) $item->quantity, 4, ',', '.'),
-                'received_quantity' => number_format((float) $item->received_quantity, 4, ',', '.'),
+                'quantity' => \App\Support\DisplayNumber::format((float) $item->quantity, 4),
+                'received_quantity' => \App\Support\DisplayNumber::format((float) $item->received_quantity, 4),
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
                 'unit_price' => (float) $item->unit_price,
                 'line_total' => (float) $item->line_total,

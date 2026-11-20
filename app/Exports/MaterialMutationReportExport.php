@@ -21,7 +21,7 @@ class MaterialMutationReportExport extends DefaultValueBinder implements FromQue
         $dimensions = StockMovementDimensions::summarize($product->stockMovements);
         return [$product->parentProduct?->code ?? $product->code, $product->code, $product->name, $product->category?->name, $dimensions['color'], $dimensions['size'], $product->unit?->symbol ?: $product->unit?->name, null, $v['opening'], $v['incoming'], $v['outgoing'], $v['adjustment'], $v['closing'], $v['counted'], $v['difference'], $v['notes']];
     }
-    public function columnFormats(): array { return array_fill_keys(range('H', 'O'), '#,##0.00'); }
+    public function columnFormats(): array { return array_fill_keys(range('H', 'O'), '#,##0.##'); }
     public function bindValue(Cell $cell, $value)
     {
         if (is_string($value)) { $cell->setValueExplicit($value, DataType::TYPE_STRING); return true; }

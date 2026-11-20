@@ -396,7 +396,7 @@
     const partyTableElement = $('#bc-party-table');
     const counterparty = document.getElementById(primaryParty);
     let usingReceipt = false;
-    const numberFormat = new Intl.NumberFormat(undefined, {minimumFractionDigits: 4, maximumFractionDigits: 4});
+    const numberFormat = new Intl.NumberFormat(undefined, {minimumFractionDigits: 0, maximumFractionDigits: 4});
     let index = 0;
     let partyKind;
     let partyTrigger;

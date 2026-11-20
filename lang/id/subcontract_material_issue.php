@@ -3,7 +3,7 @@
 return [
     'title' => 'Pengeluaran Bahan Baku Subkon',
     'form' => 'Form Bahan Baku Keluar Subkon',
-    'add' => 'Tambah Pengeluaran',
+    'add' => 'Tambah Pengeluaran Bahan Baku',
     'number' => 'No Surat Jalan',
     'date' => 'Tanggal Surat Jalan',
     'receiver' => 'Tujuan / Penerima',

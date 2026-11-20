@@ -4,18 +4,8 @@
     <meta charset="utf-8">
     <title>{{ $issue->number }}</title>
     <style>
-        @page { margin: 32px 36px; }
         body { font-family: DejaVu Sans, sans-serif; color: #202938; font-size: 11px; }
-        h1 { font-size: 20px; margin: 0 0 4px; text-align: center; }
         .muted { color: #667085; }
-        .company-header { width: 100%; border-bottom: 1px solid #cfd5df; padding-bottom: 10px; margin-bottom: 16px; }
-        .company-logo-cell { width: 90px; vertical-align: middle; }
-        .company-logo-cell img { max-width: 76px; max-height: 62px; }
-        .company-info { vertical-align: middle; line-height: 1.5; }
-        .company-name { font-size: 16px; font-weight: bold; color: #263b5e; margin-bottom: 2px; }
-        .company-contact { color: #475467; }
-        .header { border-bottom: 2px solid #263b5e; padding-bottom: 13px; margin-bottom: 16px; }
-        .document-no { font-size: 13px; font-weight: bold; color: #263b5e; text-align: center; }
         .meta { width: 100%; margin-bottom: 12px; table-layout: fixed; font-size: 9px; line-height: 1.2; }
         .meta td { padding: 3px 5px 3px 0; vertical-align: top; }
         .meta .label { width: 135px; color: #667085; }
@@ -29,6 +19,7 @@
         .sign-line { border-bottom: 1px solid #475467; height: 48px; margin-bottom: 6px; }
         .footer { margin-top: 20px; border-top: 1px solid #d0d5dd; padding-top: 7px; font-size: 9px; color: #667085; }
     </style>
+    @include('super.documents.partials.compact-pdf-styles')
 </head>
 <body>
     @include('super.documents.partials.company-pdf-header', ['company' => $company, 'companyLogoDataUri' => $companyLogoDataUri])
@@ -72,7 +63,7 @@
                     <td>{{ $item->issued_color ?? '—' }}</td>
                     <td>{{ $item->issued_size ?? '—' }}</td>
                     <td>{{ $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—' }}</td>
-                    <td class="right">{{ number_format((float) $item->quantity, 4, ',', '.') }}</td>
+                    <td class="right">{{ \App\Support\DisplayNumber::format((float) $item->quantity, 4) }}</td>
                 </tr>
             @empty
                 <tr><td colspan="10" class="center">{{ __('ui.common.no_matching_records') }}</td></tr>

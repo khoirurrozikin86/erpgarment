@@ -74,96 +74,128 @@
     @can('material-requests.create')
         @if($isCreatePage)
         <div id="createRequestPage" class="card">
-            <div class="card-body">
-                <div>
-                    <form id="materialRequestForm" class="material-request-form">
-                        @csrf
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <div>
-                                <h5 class="modal-title">{{ __('ui.workflow.material_request_title') }}</h5>
-                                <small class="text-muted">{{ __('ui.workflow.request_sent_for_approval') }}</small>
+            <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <h5 class="mb-0">{{ __('ui.workflow.material_request_title') }}</h5>
+                <a class="btn btn-outline-secondary btn-sm" href="{{ route('super.material-requests.index') }}">{{ __('ui.common.back') }}</a>
+            </div>
+            <form id="materialRequestForm" class="material-request-form">
+                @csrf
+                <input type="hidden" name="bill_of_material_id" id="request_bom_id">
+                <input type="hidden" name="production_order_id" id="request_production_order_id">
+                <input type="hidden" name="output_product_id" id="request_output_product_id">
+                <input type="hidden" name="bom_version" id="request_bom_version">
+                <input type="hidden" name="production_quantity" id="request_production_quantity">
+                <div class="card-body">
+                    <div class="row g-3 g-xl-4">
+                        <div class="col-lg-6">
+                            <div class="row g-2 align-items-center mb-2">
+                                <label for="request_department" class="col-md-4 col-form-label col-form-label-sm">{{ __('ui.common.department') }}</label>
+                                <div class="col-md-8">
+                                    <input type="text" class="form-control form-control-sm" id="request_department" name="department" maxlength="120" placeholder="{{ __('ui.workflow.department_example') }}">
+                                </div>
                             </div>
-                            <a class="btn btn-outline-secondary btn-sm" href="{{ route('super.material-requests.index') }}">{{ __('ui.common.cancel') }}</a>
                         </div>
-                        <div>
-                            <input type="hidden" name="bill_of_material_id" id="request_bom_id">
-                            <input type="hidden" name="production_order_id" id="request_production_order_id">
-                            <input type="hidden" name="output_product_id" id="request_output_product_id">
-                            <input type="hidden" name="bom_version" id="request_bom_version">
-                            <input type="hidden" name="production_quantity" id="request_production_quantity">
-                            <div class="border rounded p-3 mb-3 bg-light">
-                                <div class="row align-items-end mb-3">
+                        <div class="col-lg-6">
+                            <div class="row g-2 align-items-center mb-2">
+                                <label for="request_needed_at" class="col-md-4 col-form-label col-form-label-sm">{{ __('ui.common.needed_date') }}</label>
+                                <div class="col-md-8">
+                                    <input type="date" class="form-control form-control-sm" id="request_needed_at" name="needed_at">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <section class="border-top mt-3 pt-3" aria-labelledby="mr-source-title">
+                        <h6 id="mr-source-title" class="text-primary mb-3">{{ __('ui.workflow.source_production_order') }}</h6>
+                        <div class="row g-2 align-items-center">
+                            <div class="col-lg-6">
+                                <div class="row g-2 align-items-center">
+                                    <label for="source_production_order_label" class="col-md-4 col-form-label col-form-label-sm">{{ __('bc_reports.mo_no') }}</label>
                                     <div class="col-md-8">
-                                        <label for="source_production_order" class="form-label">{{ __('ui.workflow.source_production_order') }}</label>
                                         <input type="hidden" id="source_production_order">
                                         <div class="input-group input-group-sm">
-                                            <input id="source_production_order_label" class="form-control bg-light" readonly placeholder="{{ __('ui.workflow.choose_production_order') }}">
+                                            <input id="source_production_order_label" class="form-control" readonly placeholder="{{ __('ui.workflow.choose_production_order') }}">
                                             <button type="button" class="btn btn-outline-primary mr-source-search" data-kind="mo">{{ __('ui.common.search') }}</button>
                                         </div>
                                     </div>
-                                    <div class="col-md-4"><button type="button" class="btn btn-outline-success btn-sm" id="load-production-order-materials">{{ __('variants.take_bom') }}</button></div>
                                 </div>
-                                <div id="mr-independent-bom"><h6 class="fw-bold">{{ __('ui.workflow.generate_from_bom') }}</h6>
-                                <div class="row align-items-end">
-                                    <div class="col-md-4 mb-2">
-                                        <label for="bom_output_product" class="form-label">{{ __('ui.workflow.bom_product') }}</label>
-                                        <input type="hidden" id="bom_output_product">
-                                        <div class="input-group input-group-sm">
-                                            <input id="bom_output_product_label" class="form-control bg-light" readonly placeholder="{{ __('ui.workflow.bom_choose_product') }}">
-                                            <button type="button" class="btn btn-outline-primary mr-source-search" data-kind="product">{{ __('ui.common.search') }}</button>
+                            </div>
+                            <div class="col-auto">
+                                <button type="button" class="btn btn-outline-success btn-sm" id="load-production-order-materials">{{ __('variants.take_bom') }}</button>
+                            </div>
+                        </div>
+                        <div id="mr-independent-bom" class="mt-3">
+                            <h6 class="text-primary mb-2">{{ __('ui.workflow.generate_from_bom') }}</h6>
+                            <div class="row g-3 g-xl-4">
+                                <div class="col-lg-6">
+                                    <div class="row g-2 align-items-center mb-2">
+                                        <label for="bom_output_product_label" class="col-md-4 col-form-label col-form-label-sm">{{ __('ui.workflow.bom_product') }}</label>
+                                        <div class="col-md-8">
+                                            <input type="hidden" id="bom_output_product">
+                                            <div class="input-group input-group-sm">
+                                                <input id="bom_output_product_label" class="form-control" readonly placeholder="{{ __('ui.workflow.bom_choose_product') }}">
+                                                <button type="button" class="btn btn-outline-primary mr-source-search" data-kind="product">{{ __('ui.common.search') }}</button>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-4 mb-2">
-                                        <label for="request_bom_choice" class="form-label">{{ __('variants.choose_bom') }}</label>
-                                        <select class="form-select form-select-sm" id="request_bom_choice">
-                                            <option value="">{{ __('ui.common.select') }}</option>
-                                        </select>
+                                    <div class="row g-2 align-items-center">
+                                        <label for="request_bom_choice" class="col-md-4 col-form-label col-form-label-sm">{{ __('variants.choose_bom') }}</label>
+                                        <div class="col-md-8">
+                                            <select class="form-select form-select-sm" id="request_bom_choice">
+                                                <option value="">{{ __('ui.common.select') }}</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                    <div class="col-md-2 mb-2">
-                                        <label for="production_quantity_input" class="form-label">{{ __('ui.workflow.production_quantity') }}</label>
-                                        <input type="number" class="form-control" id="production_quantity_input" min="0.0001" step="0.0001">
+                                </div>
+                                <div class="col-lg-6">
+                                    <div class="row g-2 align-items-center mb-2">
+                                        <label for="production_quantity_input" class="col-md-4 col-form-label col-form-label-sm">{{ __('ui.workflow.production_quantity') }}</label>
+                                        <div class="col-md-8">
+                                            <input type="number" class="form-control form-control-sm" id="production_quantity_input" min="0.0001" step="0.0001">
+                                        </div>
                                     </div>
-                                    <div class="col-md-2 mb-2">
+                                    <div class="d-flex justify-content-end">
                                         <button type="button" class="btn btn-outline-primary btn-sm" id="generate-bom-requirements">{{ __('ui.workflow.calculate_bom_requirements') }}</button>
                                     </div>
                                 </div>
-                                </div>
-                                <small id="bom-generation-summary" class="text-muted"></small>
-                                <div id="mr-live-calculation" class="mt-3"></div>
-                                <div id="mr-order-source-details" class="table-responsive mt-2 d-none"><table class="table table-sm"><thead><tr><th>{{ __('ui.nav.styles') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th>{{ __('ui.common.quantity') }}</th></tr></thead><tbody></tbody></table></div>
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="request_department" class="form-label">{{ __('ui.common.department') }}</label>
-                                    <input type="text" class="form-control" id="request_department" name="department" maxlength="120" placeholder="{{ __('ui.workflow.department_example') }}">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="request_needed_at" class="form-label">{{ __('ui.common.needed_date') }}</label>
-                                    <input type="date" class="form-control" id="request_needed_at" name="needed_at">
-                                </div>
-                            </div>
-                            <label class="form-label">{{ __('ui.workflow.items_needed') }}<span class="text-danger">*</span></label>
-                            <div class="table-responsive mb-3">
-                                <table class="table table-sm table-bordered align-middle">
-                                    <thead><tr><th style="min-width:320px">{{ __('ui.common.item') }}</th><th style="min-width:100px">{{ __('ui.workflow.size') }}</th><th style="min-width:120px">{{ __('ui.workflow.color') }}</th><th style="width:150px">{{ __('ui.common.quantity') }}</th><th style="min-width:80px">{{ __('ui.common.unit') }}</th><th style="min-width:170px">{{ __('ui.common.notes') }}</th><th style="width:45px"></th></tr></thead>
-                                    <tbody id="request-items"></tbody>
-                                </table>
-                            </div>
-                            <div id="mr-material-totals" class="mb-3"></div>
-                            <button type="button" class="btn btn-outline-secondary btn-sm mb-3" id="add-request-item">
-                                <i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.common.add_item') }}</button>
-                            <div class="mb-0">
-                                <label for="request_reason" class="form-label">{{ __('ui.common.request_reason') }}<span class="text-danger">*</span></label>
-                                <textarea class="form-control" id="request_reason" name="reason" rows="3" maxlength="5000" required placeholder="{{ __('ui.common.explain_need') }}"></textarea>
                             </div>
                         </div>
-                        <div class="d-flex justify-content-end gap-2 border-top pt-3 mt-3">
-                            <a class="btn btn-outline-secondary btn-sm" href="{{ route('super.material-requests.index') }}">{{ __('ui.common.cancel') }}</a>
-                            <button type="submit" class="btn btn-primary btn-sm" id="submitMaterialRequest"><i data-feather="send" class="icon-sm me-1"></i>{{ __('ui.workflow.submit_request') }}</button>
+                        <small id="bom-generation-summary" class="text-muted"></small>
+                        <div id="mr-live-calculation" class="mt-2"></div>
+                        <div id="mr-order-source-details" class="table-responsive mt-2 d-none">
+                            <table class="table table-sm"><thead><tr><th>{{ __('ui.nav.styles') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th>{{ __('ui.common.quantity') }}</th></tr></thead><tbody></tbody></table>
                         </div>
-                    </form>
+                    </section>
+
+                    <section class="border-top mt-3 pt-3" aria-labelledby="mr-items-title">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                            <h6 id="mr-items-title" class="text-primary mb-0">{{ __('ui.workflow.items_needed') }} <span class="text-danger">*</span></h6>
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="add-request-item">
+                                <i data-feather="plus" class="icon-sm me-1" aria-hidden="true"></i>{{ __('ui.common.add_item') }}
+                            </button>
+                        </div>
+                        <div class="table-responsive mb-2">
+                            <table class="table table-sm table-bordered align-middle">
+                                <thead><tr><th style="min-width:320px">{{ __('ui.common.item') }}</th><th style="min-width:100px">{{ __('ui.workflow.size') }}</th><th style="min-width:120px">{{ __('ui.workflow.color') }}</th><th style="width:150px">{{ __('ui.common.quantity') }}</th><th style="min-width:80px">{{ __('ui.common.unit') }}</th><th style="min-width:170px">{{ __('ui.common.notes') }}</th><th style="width:45px"></th></tr></thead>
+                                <tbody id="request-items"></tbody>
+                            </table>
+                        </div>
+                        <div id="mr-material-totals" class="mb-2"></div>
+                        <div class="row g-2 align-items-start">
+                            <label for="request_reason" class="col-md-2 col-form-label col-form-label-sm">{{ __('ui.common.request_reason') }} <span class="text-danger">*</span></label>
+                            <div class="col-md-10">
+                                <textarea class="form-control form-control-sm" id="request_reason" name="reason" rows="2" maxlength="5000" required placeholder="{{ __('ui.common.explain_need') }}"></textarea>
+                            </div>
+                        </div>
+                    </section>
                 </div>
-            </div>
+                <div class="card-footer d-flex flex-wrap justify-content-end gap-2">
+                    <a class="btn btn-outline-secondary btn-sm" href="{{ route('super.material-requests.index') }}">{{ __('ui.common.cancel') }}</a>
+                    <button type="submit" class="btn btn-primary btn-sm" id="submitMaterialRequest">
+                        <i data-feather="send" class="icon-sm me-1" aria-hidden="true"></i>{{ __('ui.workflow.submit_request') }}
+                    </button>
+                </div>
+            </form>
         </div>
     @endif
     @endcan
@@ -301,6 +333,7 @@
                 row.append($('<td>').append($('<span>', {class: 'request-item-unit', text: item.unit || selectedProduct?.unit || '—'})));
                 row.append($('<td>').append($('<input>', { type: 'text', class: 'form-control form-control-sm', name: `items[${index}][note]`, maxlength: 255, placeholder: '{{ __('ui.common.optional') }}', value: item.note ?? '' })));
                 row.append($('<td class="text-center text-nowrap">').append($('<button>', {type:'button', class:'btn btn-sm btn-outline-primary me-1', text:'+ '+@json(__('variants.variant'))}).on('click', () => addItemRow({product_id: row.find('.request-item-product').val(), parent_label:row.find('.request-item-label').val(), unit:row.find('.request-item-unit').text(), color:row.find('.request-item-color').val()}))).append($('<button>', { type: 'button', class: 'btn btn-sm btn-outline-danger remove-request-item', html: '<i data-feather="x"></i>' })));
+                $('#request-items .mr-no-remaining-items').remove();
                 $('#request-items').append(row);
                 regroupRequestItems();
                 refreshMaterialTotals();
@@ -358,17 +391,31 @@
                 target.append($('<div class="table-responsive">').append(table.append(body)));
             }
             function loadCalculatedItems(result) {
-                $('#request-items').empty(); itemIndex = 0;
-                const lines = result.source_details?.flatMap(detail=>detail.materials || []) || [];
-                if (lines.length) {
-                    lines.filter(line=>Number(line.request_quantity)>0).forEach(line=>addItemRow({
-                        product_id:line.product_id, color:line.color || '', size:line.size || '',
-                        quantity:line.request_quantity, unit:line.unit,
-                        label:line.code+' — '+line.name, calculation:line,
-                        note: [line.style,line.operation].filter(Boolean).join(' / ')
-                    }));
-                } else result.items.forEach(item=>addItemRow(item));
-                regroupRequestItems(); refreshMaterialTotals();
+                const body = $('#request-items').empty();
+                itemIndex = 0;
+                const breakdown = result.breakdown ?? result.source_details?.flatMap(detail => detail.materials || []) ?? [];
+                const items = breakdown.length
+                    ? breakdown.filter(line => Number(line.request_quantity) > 0).map(line => ({
+                        product_id: line.product_id,
+                        color: line.color || '',
+                        size: line.size || '',
+                        quantity: line.request_quantity,
+                        unit: line.unit,
+                        label: line.code + ' — ' + line.name,
+                        calculation: line,
+                        note: [line.style, line.operation].filter(Boolean).join(' / '),
+                    }))
+                    : (result.items ?? []).filter(item => Number(item.quantity) > 0);
+
+                items.forEach(addItemRow);
+                if (!items.length) {
+                    const message = breakdown.length
+                        ? @json(__('variants.mr_bom_no_remaining_items'))
+                        : @json(__('variants.raw_mo_no_active_bom_materials'));
+                    body.append($('<tr class="mr-no-remaining-items">')
+                        .append($('<td colspan="7" class="text-center text-danger fw-semibold py-2">').text(message)));
+                }
+                refreshMaterialTotals();
             }
             function refreshMaterialTotals() {
                 const groups = new Map();
@@ -625,14 +672,15 @@
                 });
                 $('#materialRequestForm').on('submit', function(e) {
                     e.preventDefault();
-                    let quantitiesValid = true;
-                    $('#request-items input[name$="[quantity]"]').each(function() {
+                    const quantities = $('#request-items input[name$="[quantity]"]');
+                    let quantitiesValid = quantities.length > 0;
+                    quantities.each(function() {
                         const quantity = parseQuantity(this.value);
                         if (!Number.isFinite(quantity) || quantity <= 0) {
                             quantitiesValid = false;
                             return false;
                         }
-                        this.value = quantity.toFixed(4);
+                        this.value = Number(quantity.toFixed(4));
                     });
                     if (!quantitiesValid) {
                         Swal.fire({ icon: 'warning', title: '{{ __('ui.workflow.failure') }}', text: '{{ __('ui.workflow.quantity_input_invalid') }}' });

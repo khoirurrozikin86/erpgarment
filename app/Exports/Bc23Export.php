@@ -8,6 +8,6 @@ class Bc23Export extends DefaultValueBinder implements FromQuery,WithHeadings,Wi
  public function query(){return app(Bc23Query::class)->builder($this->companyId,$this->filters);}
  public function headings():array{return array_map(fn($k)=>__('bc23.'.$k),['submission_number','document_number','document_date','receipt_number','receipt_date','supplier','parent_code','sku_code','name','color','size','unit','quantity','unit_price','total_price','cif','country_code','hs_code','currency']);}
  public function map($r):array{return [$r->submission_number,$r->document_number,$r->document_date,$r->receipt_number,$r->receipt_date,$r->supplier_name,$r->parent_code,$r->sku_code,$r->item_name,$r->color,$r->size,$r->unit,$r->quantity===null?null:(float)$r->quantity,$r->unit_price===null?null:(float)$r->unit_price,$r->total_price===null?null:(float)$r->total_price,$r->cif===null?null:(float)$r->cif,$r->country_code,$r->hs_code,$r->currency];}
- public function columnFormats():array{return array_fill_keys(['M','N','O','P'],'#,##0.0000');}
+ public function columnFormats():array{return array_fill_keys(['M','N','O','P'],'#,##0.####');}
  public function bindValue(Cell $cell,$value){if(is_string($value)){$cell->setValueExplicit($value,DataType::TYPE_STRING);return true;}return parent::bindValue($cell,$value);}
 }

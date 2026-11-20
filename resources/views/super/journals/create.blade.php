@@ -13,7 +13,7 @@
 @push('scripts')
 <script>
 $(function() {
-    const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 2 }).format(value || 0);
+    const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(value || 0);
     let lineIndex = 0;
     const addLine = () => {
         const fragment = document.getElementById('journalLineTemplate').content.cloneNode(true);

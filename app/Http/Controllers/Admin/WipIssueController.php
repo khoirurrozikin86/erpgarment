@@ -40,7 +40,9 @@ class WipIssueController extends Controller
 
     public function productsDt(WipIssueTableQuery $query): JsonResponse
     {
-        return DataTables::eloquent($query->products()->with('category:id,name,code'))
+        return DataTables::eloquent($query->products()->doesntHave('variants')->with(['category:id,name', 'parentProduct:id,code']))
+            ->addColumn('parent_code', fn ($product) => $product?->parentProduct?->code ?? $product?->code ?? '—')
+            ->addColumn('sku_code', fn ($product) => $product?->parent_product_id ? $product->code : '—')
             ->addColumn('unit_label', fn (Product $product) => $product->unit?->symbol ?: $product->unit?->name ?: '—')
             ->addColumn('category_label', fn (Product $product) => $product->category?->name ?: '—')
             ->addColumn('actions', fn (Product $product) => '<button type="button" class="btn btn-sm btn-primary btn-select-wip-product" data-id="'.(int)$product->id.'" data-code="'.e($product->code).'" data-name="'.e($product->name).'" data-unit="'.e($product->unit?->symbol ?: $product->unit?->name ?: '').'"><i data-feather="check" class="icon-sm"></i></button>')

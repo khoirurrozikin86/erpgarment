@@ -15,6 +15,28 @@ class DamagedItemController extends Controller
 {
     public function index(): View { return view('super.damaged-items.index'); }
 
+    public function create(DocumentNumberService $numbers): View
+    {
+        return view('super.documents.stock-exception-form', [
+            'line' => null,
+            'number' => $numbers->preview('damaged_item'),
+            'routePrefix' => 'super.damaged-items',
+            'translation' => 'ui.damage',
+        ]);
+    }
+
+    public function edit(DamagedItemLine $damagedItemLine): View
+    {
+        $damagedItemLine->load(['document', 'product.unit']);
+
+        return view('super.documents.stock-exception-form', [
+            'line' => $damagedItemLine,
+            'number' => $damagedItemLine->document->number,
+            'routePrefix' => 'super.damaged-items',
+            'translation' => 'ui.damage',
+        ]);
+    }
+
     public function numberPreview(DocumentNumberService $numbers): JsonResponse
     {
         return response()->json(['number' => $numbers->preview('damaged_item')]);
@@ -31,7 +53,7 @@ class DamagedItemController extends Controller
             ->addColumn('actions', function (DamagedItemLine $line) {
                 $items = '';
                 if (auth()->user()->can('damaged-items.update')) {
-                    $items .= '<li><button type="button" class="dropdown-item d-flex align-items-center gap-2 btn-edit-damaged-item" data-id="'.(int)$line->id.'" data-number="'.e($line->document->number).'" data-date="'.$line->document->document_date?->format('Y-m-d').'" data-product="'.(int)$line->product_id.'" data-code="'.e($line->product->code).'" data-name="'.e($line->product->name).'" data-unit="'.e($line->product->unit?->symbol ?: $line->product->unit?->name ?: '').'" data-quantity="'.e($line->quantity).'" data-description="'.e($line->description).'" title="'.e(__('ui.common.edit')).'"><i data-feather="edit-2" class="icon-sm"></i>'.e(__('ui.common.edit')).'</button></li>';
+                    $items .= '<li><a class="dropdown-item d-flex align-items-center gap-2" href="'.e(route('super.damaged-items.edit', $line)).'"><i data-feather="edit-2" class="icon-sm"></i>'.e(__('ui.common.edit')).'</a></li>';
                 }
                 if (auth()->user()->can('damaged-items.delete')) {
                     $items .= '<li><button type="button" class="dropdown-item d-flex align-items-center gap-2 text-danger btn-delete-damaged-item" data-url="'.e(route('super.damaged-items.destroy', $line)).'" title="'.e(__('ui.common.delete')).'"><i data-feather="trash-2" class="icon-sm"></i>'.e(__('ui.common.delete')).'</button></li>';

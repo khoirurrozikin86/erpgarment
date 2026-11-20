@@ -23,6 +23,7 @@ class BillOfMaterialsExport implements FromQuery, WithHeadings, WithMapping, Sho
                 'billOfMaterial',
                 'billOfMaterial.creator',
                 'product.unit',
+                'product.parentProduct:id,code',
             ])
             ->whereHas('billOfMaterial', function (Builder $query) {
                 $query->where('company_id', $this->companyId);
@@ -35,7 +36,7 @@ class BillOfMaterialsExport implements FromQuery, WithHeadings, WithMapping, Sho
     {
         return [
             'NO', 'NO BOM', 'STYLE', 'JENIS BOM', 'PROSES', 'WARNA', 'SIZE', 'KODE PRODUK', 'NAMA PRODUK', 'SATUAN PRODUK',
-            'KODE BAHAN', 'NAMA BAHAN', 'SATUAN BAHAN', 'KONSUMSI',
+            __('variants.stock_parent_code'), __('variants.stock_sku'), 'NAMA BAHAN', 'SATUAN BAHAN', 'KONSUMSI',
             'SPAN', 'SCRAP', 'USER INPUT',
         ];
     }
@@ -57,7 +58,8 @@ class BillOfMaterialsExport implements FromQuery, WithHeadings, WithMapping, Sho
             $product?->code,
             $product?->name,
             $product?->unit?->symbol ?: $product?->unit?->name,
-            $material?->code,
+            $material?->parentProduct?->code ?? $material?->code,
+            $material?->parent_product_id ? $material->code : null,
             $material?->name,
             $material?->unit?->symbol ?: $material?->unit?->name,
             (float) $item->quantity,

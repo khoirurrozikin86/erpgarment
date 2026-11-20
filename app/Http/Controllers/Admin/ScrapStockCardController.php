@@ -44,13 +44,13 @@ class ScrapStockCardController extends Controller
             ->addColumn('transaction_date', fn (StockMovement $movement) => $query->transactionDate($movement))
             ->addColumn('document_number', fn (StockMovement $movement) => $query->documentNumber($movement))
             ->addColumn('description', fn (StockMovement $movement) => $query->description($movement))
-            ->addColumn('amount', fn (StockMovement $movement) => number_format(abs((float) $movement->quantity), 4, ',', '.'))
+            ->addColumn('amount', fn (StockMovement $movement) => \App\Support\DisplayNumber::format(abs((float) $movement->quantity), 4))
             ->addColumn('direction', fn (StockMovement $movement) => match (true) {
                 (float) $movement->quantity > 0 => '+',
                 (float) $movement->quantity < 0 => '-',
                 default => 'S',
             })
-            ->addColumn('balance', fn (StockMovement $movement) => number_format((float) $movement->quantity_after, 4, ',', '.'))
+            ->addColumn('balance', fn (StockMovement $movement) => \App\Support\DisplayNumber::format((float) $movement->quantity_after, 4))
             ->addColumn('operator', fn (StockMovement $movement) => $movement->createdBy?->name ?: '—')
             ->toJson();
     }

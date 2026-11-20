@@ -3,7 +3,7 @@
 return [
     'title' => 'Pengeluaran Barang Setengah Jadi Subkon',
     'form' => 'Form Barang Setengah Jadi Keluar Subkon',
-    'add' => 'Tambah Pengeluaran',
+    'add' => 'Tambah Pengeluaran Barang Setengah Jadi',
     'number' => 'No Surat Jalan',
     'date' => 'Tanggal Surat Jalan',
     'receiver' => 'Tujuan / Penerima',

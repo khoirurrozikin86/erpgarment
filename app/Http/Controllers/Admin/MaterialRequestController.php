@@ -196,7 +196,7 @@ class MaterialRequestController extends Controller
                     $size = e($line['size'] ?: '—');
                     $quantity = $line['quantity'] === null
                         ? '—'
-                        : rtrim(rtrim(number_format((float) $line['quantity'], 4, ',', '.'), '0'), ',');
+                        : \App\Support\DisplayNumber::format((float) $line['quantity'], 4);
                     return '<span class="d-block text-nowrap">' . $style . ' / ' . $color . ' / ' . $size . ' / ' . $quantity . '</span>';
                 })->implode('');
             })
@@ -208,14 +208,14 @@ class MaterialRequestController extends Controller
                         ?? $request->productionOrder?->planned_quantity
                         ?? $request->production_quantity);
 
-                return $quantity === null ? '—' : number_format((float) $quantity, 4, ',', '.');
+                return $quantity === null ? '—' : \App\Support\DisplayNumber::format((float) $quantity, 4);
             })
             ->addColumn('required_items', function (MaterialRequest $request) {
                 if ($request->items->isEmpty()) return '—';
                 $items = $request->items->map(function ($item) {
                     $code = e($item->product?->code ?? '—');
                     $name = e($item->product?->variant_display_name ?? __('ui.workflow.deleted_item'));
-                    $quantity = rtrim(rtrim(number_format((float) $item->quantity, 4, ',', '.'), '0'), ',');
+                    $quantity = \App\Support\DisplayNumber::format((float) $item->quantity, 4);
                     $unit = $item->product?->unit?->symbol ?: $item->product?->unit?->name;
                     $dimensions = collect([
                         __('ui.workflow.color') => filled($item->color) ? $item->color : $item->product?->color,
@@ -353,7 +353,7 @@ class MaterialRequestController extends Controller
                 'id' => $item->id,
                 'product' => $item->product?->variant_display_name ?? 'Barang dihapus',
                 'code' => $item->product?->code ?? '—',
-                'quantity' => number_format((float) $item->quantity, 4, ',', '.'),
+                'quantity' => \App\Support\DisplayNumber::format((float) $item->quantity, 4),
                 'quantity_value' => (float) $item->quantity,
                 'color' => $item->color,
                 'size' => $item->size,

@@ -15,6 +15,41 @@
         <a href="{{ route('super.stock-opnames.index') }}" class="btn btn-outline-secondary btn-sm"><i data-feather="arrow-left" class="icon-sm me-1"></i>{{ __('ui.common.back') }}</a>
     </div>
 
+    @can('stock-opnames.count')
+        <div class="card mb-3">
+            <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <h6 class="mb-0">{{ __('stock_opname_import.title') }}</h6>
+                <a class="btn btn-outline-secondary btn-sm" href="{{ route('super.stock-opnames.template') }}">
+                    <i data-feather="download" class="icon-sm me-1"></i>{{ __('stock_opname_import.template') }}
+                </a>
+            </div>
+            <form class="card-body" method="POST" action="{{ route('super.stock-opnames.import') }}" enctype="multipart/form-data">
+                @csrf
+                @if($errors->any())
+                    <div class="alert alert-danger" role="alert">
+                        @foreach($errors->all() as $error)
+                            <div>{{ $error }}</div>
+                        @endforeach
+                    </div>
+                @endif
+                <div class="row g-2 align-items-end">
+                    <div class="col-md-5">
+                        <label for="stock-opname-file" class="form-label">{{ __('stock_opname_import.file') }}</label>
+                        <input id="stock-opname-file" class="form-control form-control-sm" type="file" name="file" accept=".xlsx" required>
+                    </div>
+                    <div class="col-md-5">
+                        <label for="import-notes" class="form-label">{{ __('ui.common.notes') }}</label>
+                        <input id="import-notes" class="form-control form-control-sm" name="import_notes" value="{{ old('import_notes') }}" maxlength="5000">
+                    </div>
+                    <div class="col-md-auto">
+                        <button class="btn btn-primary btn-sm" type="submit">{{ __('stock_opname_import.upload') }}</button>
+                    </div>
+                </div>
+                <p class="small text-muted mt-2 mb-0">{{ __('stock_opname_import.help') }}</p>
+            </form>
+        </div>
+    @endcan
+
     <form id="createStockOpnameForm">
         @csrf
         <div class="card mb-3"><div class="card-header d-flex justify-content-between align-items-center">

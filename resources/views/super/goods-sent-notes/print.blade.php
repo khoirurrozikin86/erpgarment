@@ -1,8 +1,17 @@
 <!doctype html><html lang="id"><head><meta charset="utf-8"><title>{{ __('ui.gsn.print_title') }} — {{ $note->number }}</title><style>
-@page{size:A4 portrait;margin:18mm}body{font:14px Arial,sans-serif;color:#111}.top{display:flex;justify-content:space-between;align-items:flex-start}.company{max-width:65%}.logo{font-size:32px;font-weight:bold;color:#4355bd}h2{text-align:center;margin:26px 0 18px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px}.box{border:1px solid #222;padding:10px;min-height:90px}.full{grid-column:1/-1}table{width:100%;border-collapse:collapse}th,td{border:1px solid #222;padding:8px}th{background:#f8e967;text-align:center}.sign{display:flex;justify-content:space-between;margin-top:65px;text-align:center}.sign div{width:30%;padding-top:45px}@media print{.no-print{display:none}}
+@page{size:A4 portrait;margin:9mm}body{font:12px Arial,sans-serif;color:#111}.top{display:flex;justify-content:space-between;align-items:flex-start}.company{max-width:50%;overflow-wrap:anywhere}.company-details{width:46%;text-align:right;overflow-wrap:anywhere}.logo{font-size:23px;font-weight:bold;color:#4355bd}h2{text-align:center;font-size:17px;margin:10px 0 3px}.document-no{text-align:center;margin:0 0 8px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}.box{border:1px solid #222;padding:6px}.full{grid-column:1/-1}table{width:100%;border-collapse:collapse;font-size:10px;line-height:1.2}thead{display:table-header-group}tr{break-inside:avoid}th,td{border:1px solid #222;padding:3px 4px}th{background:#f8e967;text-align:center}.sign{display:flex;justify-content:space-between;margin-top:22px;text-align:center;break-inside:avoid}.sign div{width:30%;padding-top:12px}@media print{.no-print{display:none}}
 </style></head><body>
-<div class="top"><div class="company"><strong>{{ $company->name }}</strong><br>{{ $company->address }}<br>{{ collect([$company->city,$company->province])->filter()->implode(', ') }}<br>{{ $company->phone }}</div><div class="logo">{{ $company->code }}</div></div>
-<h2>{{ __('ui.gsn.print_title') }}</h2><p><strong>{{ __('ui.gsn.number') }}:</strong> {{ $note->number }}</p>
+<div class="top">
+    <div class="company"><div class="logo">{{ $company->code }}</div><strong>{{ $company->name }}</strong></div>
+    <div class="company-details">
+        @if ($company->address)
+            <div>{{ \Illuminate\Support\Str::squish($company->address) }}</div>
+        @endif
+        <div>{{ collect([$company->city, $company->province, $company->postal_code])->filter()->implode(', ') }}</div>
+        <div>{{ collect([$company->phone, $company->email])->filter()->implode(' | ') }}</div>
+    </div>
+</div>
+<h2>{{ __('ui.gsn.print_title') }}</h2><p class="document-no"><strong>{{ __('ui.gsn.number') }}:</strong> {{ $note->number }}</p>
 <div class="meta"><div class="box"><strong>{{ __('ui.gsn.customer') }}</strong><br>{{ $note->items->first()?->customer?->name ?: $note->items->first()?->productionOrder?->buyer?->name ?: '—' }}<br>{{ $note->items->first()?->customer?->address ?: $note->items->first()?->productionOrder?->buyer?->address }}</div><div><p>{{ $company->city ?: '—' }}, {{ $note->sent_date?->translatedFormat('d F Y') }}</p><p><strong>{{ __('ui.gsn.date') }}:</strong> {{ $note->sent_date?->translatedFormat('d F Y') }}</p><p><strong>{{ __('ui.gsn.contract_number') }}:</strong> {{ $note->contract_number ?: '—' }}</p></div>
 <div class="full"><strong>{{ __('ui.gsn.vehicle_number') }}:</strong> {{ $note->vehicle_number ?: '—' }} &nbsp; <strong>{{ __('ui.gsn.driver_name') }}:</strong> {{ $note->driver_name ?: '—' }} &nbsp; <strong>{{ __('ui.gsn.driver_phone') }}:</strong> {{ $note->driver_phone ?: '—' }}<br><strong>{{ __('ui.gsn.container_number') }}:</strong> {{ $note->container_number ?: '—' }} &nbsp; <strong>{{ __('ui.gsn.seal_number') }}:</strong> {{ $note->seal_number ?: '—' }}</div></div>
 <table>
@@ -32,7 +41,7 @@
                 <td style="text-align:center">{{ ($order?->order_color ?? $product?->color) ?: '—' }}</td>
                 <td style="text-align:center">{{ ($order?->order_size ?? $product?->size) ?: '—' }}</td>
                 <td style="text-align:center">
-                    {{ number_format((float)$item->quantity,2) }} {{ $product?->unit?->symbol ?: $product?->unit?->name }}<br>
+                    {{ \App\Support\DisplayNumber::format((float) $item->quantity, 2) }} {{ $product?->unit?->symbol ?: $product?->unit?->name }}<br>
                     {{ number_format((float)$item->cartons,0) }} {{ __('ui.gsn.cartons') }}
                 </td>
                 <td>
@@ -44,4 +53,4 @@
         @endforeach
     </tbody>
 </table>
-<div class="sign"><div>{{ __('ui.gsn.received_by') }}<br><br><br>(__________________)</div><div>{{ __('ui.gsn.prepared_by') }}<br>{{ $company->name }}<br><br><br>(__________________)</div></div><button class="no-print" onclick="window.print()">{{ __('ui.common.print') }}</button></body></html>
+<div class="sign"><div>{{ __('ui.gsn.received_by') }}<br><br><br><br>(__________________)</div><div>{{ __('ui.gsn.prepared_by') }}<br>{{ $company->name }}<br><br><br><br>(__________________)</div></div><button class="no-print" onclick="window.print()">{{ __('ui.common.print') }}</button></body></html>

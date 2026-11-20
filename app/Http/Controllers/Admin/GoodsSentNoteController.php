@@ -44,6 +44,7 @@ class GoodsSentNoteController extends Controller
     public function ordersDt(CompanyContext $company, GoodsSentNoteTableQuery $query): JsonResponse
     {
         return DataTables::eloquent($query->eligibleOrders($company->id()))
+            ->addColumn('category_label', fn ($o) => $o->outputProduct?->category?->name ?? '—')
             ->addColumn('style', fn ($o) => $o->model_style ?: '—')
             ->addColumn('parent_code', fn ($o) => $o->outputProduct?->parentProduct?->code ?? $o->outputProduct?->code ?? '—')
             ->addColumn('sku_code', fn ($o) => $o->outputProduct?->parent_product_id ? $o->outputProduct->code : '—')

@@ -1,4 +1,5 @@
 @extends('layouts.admin')
+@include('super.boms.partials.feedback')
 @section('title', __('ui.workflow.bom_title'))
 @section('breadcrumb')
     <nav class="page-breadcrumb">
@@ -14,21 +15,21 @@
         <div class="d-flex gap-2">@can('boms.create')<a class="btn btn-primary btn-sm" href="{{ route('super.boms.create') }}">+ {{ __('ui.workflow.bom_create') }}</a>@endcan
         <a href="{{ route('super.boms.export') }}" class="btn btn-sm btn-outline-success">{{ __('ui.common.export_excel') }}</a></div>
     </div>
-    @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif
     <div class="card border-0 shadow-sm bom-card"><div class="card-body"><div class="table-responsive">
         <table id="bom-products-table" class="table table-hover align-middle w-100 mb-0"><thead><tr>
-            <th>No</th><th>{{ __('variants.bom_number') }}</th><th>Style</th><th>{{ __('variants.bom_type') }}</th><th>{{ __('variants.process') }}</th><th>{{ __('ui.workflow.size') }}</th><th>{{ __('ui.workflow.color') }}</th><th>Item Code</th><th>{{ __('ui.common.item') }}</th><th>{{ __('ui.common.category') }}</th><th>{{ __('ui.common.unit') }}</th><th>Consumption</th><th>{{ __('ui.common.actions') }}</th>
+            <th>No</th><th>{{ __('variants.bom_number') }}</th><th>Style</th><th>{{ __('variants.bom_type') }}</th><th>{{ __('variants.process') }}</th><th>{{ __('ui.workflow.size') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('variants.stock_parent_code') }}</th><th>{{ __('variants.stock_sku') }}</th><th>{{ __('ui.common.item') }}</th><th>{{ __('ui.common.category') }}</th><th>{{ __('ui.common.unit') }}</th><th>Consumption</th><th>{{ __('ui.common.actions') }}</th>
         </tr></thead><tbody>
         @foreach($boms as $bom)
             <tr><td></td><td class="align-top text-nowrap">{{ $bom->number }}</td><td class="align-top text-nowrap">{{ $bom->style_code ?: $bom->product?->style_code }}<small class="d-block text-muted">{{ $bom->name }}</small></td>
                 <td class="align-top">{{ __('variants.bom_type_'.$bom->bom_type) }}</td>
-            @foreach(['process','size','color','code','name','category','unit','consumption'] as $column)
+            @foreach(['process','size','color','parent_code','sku_code','name','category','unit','consumption'] as $column)
                 <td class="align-top">@forelse($bom->items as $component)<div class="bom-component-line">
                     @switch($column)
                         @case('process') {{ $component->operation ?: '—' }} @break
                         @case('color') {{ $component->applies_to_color ?: __('variants.all') }} @break
                         @case('size') {{ $component->applies_to_size ?: __('variants.all') }} @break
-                        @case('code') {{ $component->product?->code }} @break
+                        @case('parent_code') {{ $component->product?->parentProduct?->code ?? $component->product?->code ?? '—' }} @break
+                        @case('sku_code') {{ $component->product?->parent_product_id ? $component->product->code : '—' }} @break
                         @case('name') {{ $component->product?->name }} @break
                         @case('category') {{ $component->product?->category?->name }} @break
                         @case('unit') {{ $component->product?->unit?->symbol ?: $component->product?->unit?->name ?: '—' }} @break
@@ -126,17 +127,6 @@
                     customClass: {htmlContainer: 'bom-delete-message'}
                 });
             @endif
-            $(document).on('submit', '.bom-delete-form', function(e) {
-                e.preventDefault();
-                const form = this;
-                Swal.fire({
-                    icon: 'warning', title: @json(__('ui.workflow.bom_delete')),
-                    text: form.dataset.confirm, showCancelButton: true,
-                    confirmButtonText: @json(__('ui.common.delete')),
-                    cancelButtonText: @json(__('ui.common.cancel')),
-                    confirmButtonColor: '#d33'
-                }).then(result => { if (result.isConfirmed) HTMLFormElement.prototype.submit.call(form); });
-            });
             $('#bom-products-table').DataTable({
                 pageLength: 10,
                 lengthMenu: [5, 10, 50, 100],
@@ -144,7 +134,7 @@
                     [1, 'desc']
                 ],
                 columnDefs: [{
-                    targets: [0, 12],
+                    targets: [0, 13],
                     orderable: false,
                     searchable: false
                 }],

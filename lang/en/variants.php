@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'no_item_variants' => 'This item has no variants yet.',
     'master_style' => 'Style Master',
     'style_in_use' => 'This style is still used by a Production Order or BOM.',
     'style_deleted' => 'Style deleted.',
@@ -132,6 +133,8 @@ return [
     'bom_type_general' => 'General',
     'bom_selection_required' => 'This style has multiple active BOMs. Select the appropriate BOM, such as Fabric or Accessories.',
     'bom_style_locked' => 'The style of an already used BOM cannot be changed.',
+    'bom_item_delete_confirm' => 'Delete this material line?',
+    'bom_item_deleted' => 'The BOM material line was deleted.',
     'bom_delete_confirm' => 'Remove this BOM from the list? Existing MOs and MRs and their material requirement history will be preserved.',
     'bom_manual_help' => 'Select a master Style, then enter materials and consumption for each production process. A BOM number is generated when saved.',
     'variant' => 'Variants',
@@ -163,6 +166,7 @@ return [
     'stock_card_all_skus' => 'All SKUs',
     'raw_mo_production_summary' => 'MO Production Summary',
     'raw_mo_production_quantity' => 'Production Qty',
+    'mr_bom_no_remaining_items' => 'There are no remaining requirements from this BOM. Active material requests or materials already issued cover the requirements.',
     'raw_mo_no_active_bom_materials' => 'No material requirements from an active BOM match this MO and BOM type.',
     'inventory_global_closing' => 'Parent Closing Balance',
     'inventory_minimum_balance' => 'Minimum Balance',

@@ -11,8 +11,7 @@
         @foreach(['parent_code', 'sku_code'] as $column)
             <td>
                 @if($item->product_id && $column === ($item->sku_code ? 'sku_code' : 'parent_code'))
-                    <a class="js-trace-product" href="{{ route('super.reports.outgoing.trace', $item->product_id) }}"
-                        data-code="{{ $item->item_code ?? $item->{$column} }}" data-name="{{ $item->item_name }}" data-unit="{{ $item->unit }}">
+                    <a href="{{ route('super.reports.outgoing.trace', $item->product_id) }}">
                         {{ $item->{$column} ?? '—' }}
                     </a>
                 @else
@@ -24,8 +23,8 @@
         <td>{{ $item->color ?? '—' }}</td>
         <td>{{ $item->size ?? '—' }}</td>
         <td>{{ $item->unit }}</td>
-        <td class="text-end">{{ number_format($item->quantity, 4, ',', '.') }}</td>
-        <td class="text-end">{{ $item->unit_price === null ? '—' : number_format($item->unit_price, 4, ',', '.') }}</td>
-        <td class="text-end">{{ $item->total_amount === null ? '—' : number_format($item->total_amount, 4, ',', '.') }}</td>
+        <td class="text-end">{{ \App\Support\DisplayNumber::format($item->quantity, 4) }}</td>
+        <td class="text-end">{{ $item->unit_price === null ? '—' : \App\Support\DisplayNumber::format($item->unit_price, 4) }}</td>
+        <td class="text-end">{{ $item->total_amount === null ? '—' : \App\Support\DisplayNumber::format($item->total_amount, 4) }}</td>
     </tr>
 @endforeach

@@ -16,7 +16,9 @@ class SubcontractSemiFinishedTableQuery
             ->with([
                 'document:id,company_id,number,production_date,production_order_id,buyer_po_number,description',
                 'document.productionOrder:id,number,buyer_po_number',
-                'product:id,code,name,unit_id,style_code',
+                'product',
+                'product.parentProduct:id,code',
+                'product.category:id,name',
                 'product.unit:id,name,symbol',
             ])
             ->select('subcontract_semi_finished_items.*')->latest('subcontract_semi_finished_items.id');
@@ -29,13 +31,13 @@ class SubcontractSemiFinishedTableQuery
                 $query->whereHas('category', fn (Builder $category) => $category->where('code', 'WIP')->orWhereRaw('LOWER(name) = ?', ['barang setengah jadi']))
                     ->orWhere('garment_item_type', 'work_in_process');
             })
-            ->with('unit:id,name,symbol')->select(['id', 'code', 'name', 'unit_id', 'category_id', 'style_code'])->orderBy('name');
+            ->with(['unit:id,name,symbol', ...SubcontractProductColumns::RELATIONS])->select('products.*')->orderBy('name');
     }
 
     public function productionOrders(int $companyId): Builder
     {
         return ProductionOrder::query()->where('company_id', $companyId)
-            ->with('outputProduct:id,code,name')->select(['id', 'number', 'buyer_po_number', 'output_product_id', 'planned_quantity'])
+            ->with(['outputProduct.parentProduct:id,code', 'outputProduct.category:id,name'])->select(['id', 'number', 'buyer_po_number', 'output_product_id', 'planned_quantity', 'order_color', 'order_size'])
             ->latest('id');
     }
 }

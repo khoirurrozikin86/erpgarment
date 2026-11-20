@@ -16,6 +16,6 @@ class SupportMaterialOrderTableQuery
 
     public function products(): Builder
     {
-        return Product::query()->where('is_active', true)->with('unit:id,name,symbol')->select(['id','code','name','unit_id'])->orderBy('name');
+        return Product::query()->doesntHave('variants')->where('is_active', true)->with('unit:id,name,symbol')->select(['id','code','name','unit_id', 'parent_product_id', 'category_id', 'color', 'size'])->orderBy('name');
     }
 }

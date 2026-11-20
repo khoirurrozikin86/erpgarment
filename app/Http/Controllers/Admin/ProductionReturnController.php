@@ -21,18 +21,52 @@ class ProductionReturnController extends Controller
     public function index(CompanyContext $company, ProductionReturnTableQuery $query): View
     {
         return view('super.production-returns.index', [
-            'orders' => RawMaterialOrderDocument::query()->where('company_id',$company->id())->latest('id')->limit(500)->get(['id','number']),
+            'orders' => request()->routeIs('super.return-to-warehouse.create') ? collect() : RawMaterialOrderDocument::query()->where('company_id',$company->id())->latest('id')->limit(500)->get(['id','number']),
             'products' => collect(),
         ]);
     }
 
+    public function ordersDt(CompanyContext $company): JsonResponse
+    {
+        $orders = RawMaterialOrderDocument::query()
+            ->where('company_id', $company->id())
+            ->select(['id', 'number', 'production_order_number', 'order_date']);
+
+        return DataTables::eloquent($orders)
+            ->editColumn('order_date', fn (RawMaterialOrderDocument $order) => $order->order_date?->format('d/m/Y'))
+            ->toJson();
+    }
+
     public function preview(DocumentNumberService $numbers): JsonResponse { return response()->json(['number'=>$numbers->preview('return_to_warehouse')]); }
 
-    public function productsDt(): JsonResponse
+    public function productsDt(Request $request, CompanyContext $company): JsonResponse
     {
-        return DataTables::eloquent(Product::query()->where('track_stock',true)->where('is_active',true)->with('unit:id,name,symbol')->select(['id','code','name','unit_id','style_code'])->orderBy('name'))
+        $filters = $request->validate([
+            'raw_material_order_document_id' => ['nullable', 'integer', 'min:1'],
+        ]);
+
+        $products = Product::query()
+            ->where('track_stock', true)
+            ->where('is_active', true)
+            ->with(['unit:id,name,symbol', 'parentProduct:id,code', 'category:id,name'])
+            ->select(['id', 'code', 'name', 'unit_id', 'style_code', 'parent_product_id', 'category_id', 'color', 'size'])
+            ->orderBy('name');
+
+        if ($orderId = $filters['raw_material_order_document_id'] ?? null) {
+            $order = RawMaterialOrderDocument::query()
+                ->where('company_id', $company->id())
+                ->findOrFail($orderId);
+            $products->whereIn('products.id', $order->items()->select('product_id'));
+        } else {
+            $products->doesntHave('variants');
+        }
+
+        return DataTables::eloquent($products)
+            ->addColumn('parent_code', fn ($p) => $p?->parentProduct?->code ?? $p?->code ?? '—')
+            ->addColumn('sku_code', fn ($p) => $p?->parent_product_id ? $p->code : '—')
+            ->addColumn('category_label', fn ($p) => $p?->category?->name ?? '—')
             ->addColumn('unit_label',fn(Product $p)=>$p->unit?->symbol ?: $p->unit?->name ?: '—')
-            ->addColumn('actions',fn(Product $p)=>'<button type="button" class="btn btn-sm btn-primary btn-select-return-product" data-id="'.(int)$p->id.'" data-code="'.e($p->code).'" data-name="'.e($p->name).'" data-unit="'.e($p->unit?->symbol ?: $p->unit?->name ?: '').'" data-style="'.e($p->style_code).'" title="'.e(__('ui.common.select')).'"><i data-feather="check" class="icon-sm"></i></button>')
+            ->addColumn('actions',fn(Product $p)=>'<button type="button" class="btn btn-sm btn-primary btn-select-return-product" data-id="'.(int)$p->id.'" data-code="'.e($p->code).'" data-name="'.e($p->name).'" data-unit="'.e($p->unit?->symbol ?: $p->unit?->name ?: '').'" data-parent-code="'.e($p->parentProduct?->code ?? $p->code).'" data-sku-code="'.e($p->parent_product_id ? $p->code : '').'" data-color="'.e($p->color).'" data-size="'.e($p->size).'" data-style="'.e($p->style_code).'" title="'.e(__('ui.common.select')).'"><i data-feather="check" class="icon-sm"></i></button>')
             ->rawColumns(['actions'])->toJson();
     }
 
@@ -44,7 +78,10 @@ class ProductionReturnController extends Controller
             ->addColumn('return_date',fn(ProductionReturnItem $i)=>$i->document?->return_date?->format('Y-m-d'))
             ->addColumn('mo',fn(ProductionReturnItem $i)=>$i->document?->rawMaterialOrder?->number ?: '—')
             ->addColumn('po_supplier',fn(ProductionReturnItem $i)=>$i->document?->po_supplier_number ?: '—')
-            ->addColumn('code',fn(ProductionReturnItem $i)=>$i->product?->code)
+            ->addColumn('parent_code', fn (ProductionReturnItem $i) => $i->product?->parentProduct?->code ?? $i->product?->code ?? '—')
+            ->addColumn('sku_code', fn (ProductionReturnItem $i) => $i->product?->parent_product_id ? $i->product->code : '—')
+            ->addColumn('color', fn (ProductionReturnItem $i) => $i->product?->color ?: '—')
+            ->addColumn('size', fn (ProductionReturnItem $i) => $i->product?->size ?: '—')
             ->addColumn('name',fn(ProductionReturnItem $i)=>$i->product?->name)
             ->addColumn('unit',fn(ProductionReturnItem $i)=>$i->product?->unit?->symbol ?: $i->product?->unit?->name ?: '—')
             ->addColumn('style',fn(ProductionReturnItem $i)=>$i->product?->style_code ?: '—')
@@ -97,8 +134,8 @@ class ProductionReturnController extends Controller
 
     public function show(ProductionReturnDocument $document, CompanyContext $company): JsonResponse
     {
-        $d=ProductionReturnDocument::query()->where('company_id',$company->id())->with(['rawMaterialOrder:id,number','items.product.unit','approver:id,name'])->findOrFail($document->id);
-        return response()->json(['number'=>$d->number,'date'=>$d->return_date->format('Y-m-d'),'mo'=>$d->rawMaterialOrder?->number ?: '—','status'=>$d->status,'approver'=>$d->approver?->name,'approved_at'=>$d->approved_at?->format('d-m-Y H:i'),'items'=>$d->items->map(fn($i)=>['code'=>$i->product?->code,'name'=>$i->product?->name,'unit'=>$i->product?->unit?->symbol ?: $i->product?->unit?->name,'style'=>$i->product?->style_code,'quantity'=>(float)$i->quantity,'description'=>$i->description])]);
+        $d=ProductionReturnDocument::query()->where('company_id',$company->id())->with(['rawMaterialOrder:id,number','items.product.unit','items.product.parentProduct:id,code','approver:id,name'])->findOrFail($document->id);
+        return response()->json(['number'=>$d->number,'date'=>$d->return_date->format('Y-m-d'),'mo'=>$d->rawMaterialOrder?->number ?: '—','mo_id'=>$d->raw_material_order_document_id,'po_supplier'=>$d->po_supplier_number,'status'=>$d->status,'approver'=>$d->approver?->name,'approved_at'=>$d->approved_at?->format('d-m-Y H:i'),'items'=>$d->items->map(fn($i)=>['id'=>$i->id,'product_id'=>$i->product_id,'parent_code'=>$i->product?->parentProduct?->code ?? $i->product?->code,'sku_code'=>$i->product?->parent_product_id ? $i->product->code : null,'color'=>$i->product?->color,'size'=>$i->product?->size,'code'=>$i->product?->code,'name'=>$i->product?->name,'unit'=>$i->product?->unit?->symbol ?: $i->product?->unit?->name,'style'=>$i->product?->style_code,'quantity'=>(float)$i->quantity,'description'=>$i->description])]);
     }
 
     public function editDetails(ProductionReturnDocument $document, CompanyContext $company): JsonResponse

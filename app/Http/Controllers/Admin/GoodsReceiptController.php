@@ -169,7 +169,7 @@ class GoodsReceiptController extends Controller
                 'name' => $item->product?->name ?? 'Barang dihapus',
                 'color' => $item->purchaseOrderItem?->purchaseRequestItem?->materialRequestItem?->color ?: $item->product?->color,
                 'size' => $item->purchaseOrderItem?->purchaseRequestItem?->materialRequestItem?->size ?: $item->product?->size,
-                'quantity' => number_format((float) $item->quantity, 4, ',', '.'),
+                'quantity' => \App\Support\DisplayNumber::format((float) $item->quantity, 4),
                 'lot_number' => $item->inventoryLot?->lot_number ?? '—',
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
                 'unit_price' => (float) $item->unit_price,

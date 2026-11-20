@@ -109,15 +109,22 @@ class RawMaterialOrderController extends Controller
                 $details = ProductionOrder::query()
                     ->where('company_id', $company->id())
                     ->where('number', $order->number)
-                    ->with('outputProduct:id,code,name,style_code,color,size')
+                    ->with(['outputProduct:id,code,name,color,size,parent_product_id,category_id', 'outputProduct.parentProduct:id,code', 'outputProduct.category:id,name'])
                     ->get();
 
                 return $details->map(function (ProductionOrder $detail) {
                     $style = e($detail->model_style ?: '—');
                     $color = e($detail->outputProduct?->color ?: '—');
                     $size = e($detail->outputProduct?->size ?: '—');
-                    $quantity = rtrim(rtrim(number_format((float) $detail->planned_quantity, 4, ',', '.'), '0'), ',');
-                    return '<span class="d-block text-nowrap">' . $style . ' / ' . $color . ' / ' . $size . ' / ' . $quantity . '</span>';
+                    $quantity = \App\Support\DisplayNumber::format((float) $detail->planned_quantity, 4);
+                    $product = $detail->outputProduct;
+                    $parent = e($product?->parentProduct?->code ?? $product?->code ?? '—');
+                    $sku = e($product?->parent_product_id ? $product->code : '—');
+                    $category = e($product?->category?->name ?? '—');
+
+                    return '<span class="d-block text-nowrap">'
+                        .implode(' / ', [$parent, $sku, $category, $style, $color, $size, $quantity])
+                        .'</span>';
                 })->implode('');
             })
             ->addColumn('actions', fn (ProductionOrder $order) => '<button type="button" class="btn btn-sm btn-primary btn-select-raw-mo" data-number="'.e($order->number).'" data-date="'.$order->po_date?->format('Y-m-d').'" data-style="'.e($order->model_style ?: '—').'">'.e(__('ui.common.select')).'</button>')
@@ -184,11 +191,11 @@ class RawMaterialOrderController extends Controller
             'q' => ['nullable', 'string', 'max:100'],
         ]);
 
-        $query = Product::query()
+        $query = Product::query()->doesntHave('variants')
             ->where('is_active', true)
             ->where('track_stock', true)
-            ->with('unit:id,name,symbol')
-            ->select(['id', 'code', 'name', 'unit_id', 'style_code', 'color', 'size'])
+            ->with(['unit:id,name,symbol', 'parentProduct:id,code', 'category:id,name'])
+            ->select(['id', 'code', 'name', 'unit_id', 'style_code', 'color', 'size', 'parent_product_id', 'category_id'])
             ->when($filters['q'] ?? null, function ($builder, $search) {
                 $builder->where(function ($query) use ($search) {
                     $query->where('code', 'like', "%{$search}%")
@@ -199,6 +206,9 @@ class RawMaterialOrderController extends Controller
             ->orderBy('name');
 
         return DataTables::eloquent($query)
+            ->addColumn('parent_code', fn ($product) => $product?->parentProduct?->code ?? $product?->code ?? '—')
+            ->addColumn('sku_code', fn ($product) => $product?->parent_product_id ? $product->code : '—')
+            ->addColumn('category_label', fn ($product) => $product?->category?->name ?? '—')
             ->addColumn('unit', fn (Product $product) => $product->unit?->symbol ?: $product->unit?->name ?: '—')
             ->addColumn('actions', fn (Product $product) => '<button type="button" class="btn btn-sm btn-primary btn-select-manual-material" data-id="'.(int) $product->id.'" data-code="'.e($product->code).'" data-name="'.e($product->name).'" data-unit="'.e($product->unit?->symbol ?: $product->unit?->name ?: '—').'" data-style="'.e($product->style_code ?: '').'" data-color="'.e($product->color ?: '').'" data-size="'.e($product->size ?: '').'">'.e(__('ui.common.select')).'</button>')
             ->rawColumns(['actions'])

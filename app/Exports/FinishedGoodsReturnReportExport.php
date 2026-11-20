@@ -16,7 +16,7 @@ class FinishedGoodsReturnReportExport extends DefaultValueBinder implements From
         $product = $row->product;
         return ['—', $row->created_at?->format('Y-m-d'), $product?->parentProduct?->code ?? $product?->code, $product?->parent_product_id ? $product->code : null, $product?->name, $product?->parent_product_id ? $product->color : null, $product?->parent_product_id ? $product->size : null, $product?->unit?->symbol ?: $product?->unit?->name, (float) $row->quantity];
     }
-    public function columnFormats(): array { return ['I' => '#,##0.0000']; }
+    public function columnFormats(): array { return ['I' => '#,##0.####']; }
     public function bindValue(Cell $cell, $value)
     {
         if (is_string($value)) { $cell->setValueExplicit($value, DataType::TYPE_STRING); return true; }

@@ -1,4 +1,5 @@
 @extends('layouts.admin')
+@include('super.boms.partials.feedback')
 
 @section('title', __('variants.master_style'))
 @section('content')
@@ -39,7 +40,7 @@
                                 @endcan
                                 @can('styles.delete')
                                     @if ($style['id'])
-                                        <form method="POST" action="{{ route('super.boms.styles.destroy', $style['id']) }}" class="d-inline style-delete-form">
+                                        <form method="POST" action="{{ route('super.boms.styles.destroy', $style['id']) }}" class="d-inline bom-delete-form">
                                             @csrf
                                             @method('DELETE')
                                             <button type="submit" class="btn btn-outline-danger btn-sm">{{ __('ui.common.delete') }}</button>
@@ -58,26 +59,6 @@
 @push('scripts')
     <script>
         $(function () {
-            $('#bom-styles-table').on('submit', '.style-delete-form', function (event) {
-                event.preventDefault();
-                const form = this;
-                Swal.fire({
-                    icon: 'warning',
-                    title: @json(__('ui.common.confirm_delete')),
-                    showCancelButton: true,
-                    confirmButtonText: @json(__('ui.common.delete')),
-                    cancelButtonText: @json(__('ui.common.cancel')),
-                }).then(result => {
-                    if (result.isConfirmed) form.submit();
-                });
-            });
-
-            @if (session('success'))
-                Swal.fire({icon: 'success', text: @json(session('success'))});
-            @elseif ($errors->has('style'))
-                Swal.fire({icon: 'error', text: @json($errors->first('style'))});
-            @endif
-
             $('#bom-styles-table').DataTable({
                 columnDefs: [{targets: 3, searchable: false, orderable: false}],
                 language: {

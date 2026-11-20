@@ -84,7 +84,11 @@ class PackingController extends Controller
 
     public function ordersDt(CompanyContext $company,PackingTableQuery $query):JsonResponse
     {
-        return DataTables::eloquent($query->productionOrders($company->id()))->addColumn('style',fn($o)=>$o->model_style?:'—')->addColumn('product_code',fn($o)=>$o->stageProductCode('packing'))->addColumn('product_name',fn($o)=>$o->outputProduct?->variant_display_name)->addColumn('color', fn ($o) => $o->outputProduct?->color ?: '—')->addColumn('size', fn ($o) => $o->outputProduct?->size ?: '—')->addColumn('order_quantity', fn ($o) => $o->planned_quantity ?? 0)->addColumn('unit',fn($o)=>$o->outputProduct?->unit?->symbol?:$o->outputProduct?->unit?->name?:'—')
+        return DataTables::eloquent($query->productionOrders($company->id()))
+            ->addColumn('parent_code', fn ($o) => $o->outputProduct?->parentProduct?->code ?? $o->outputProduct?->code ?? '—')
+            ->addColumn('sku_code', fn ($o) => $o->outputProduct?->parent_product_id ? $o->outputProduct->code : '—')
+            ->addColumn('category_label', fn ($o) => $o->outputProduct?->category?->name ?? '—')
+            ->addColumn('style',fn($o)=>$o->model_style?:'—')->addColumn('product_code',fn($o)=>$o->stageProductCode('packing'))->addColumn('product_name',fn($o)=>$o->outputProduct?->variant_display_name)->addColumn('color', fn ($o) => $o->outputProduct?->color ?: '—')->addColumn('size', fn ($o) => $o->outputProduct?->size ?: '—')->addColumn('order_quantity', fn ($o) => $o->planned_quantity ?? 0)->addColumn('unit',fn($o)=>$o->outputProduct?->unit?->symbol?:$o->outputProduct?->unit?->name?:'—')
             ->addColumn('actions',fn($o)=>'<button type="button" class="btn btn-sm btn-primary btn-select-packing-mo" data-id="'.$o->id.'" data-number="'.e($o->number).'" data-product="'.e($o->stageProductCode('packing').' — '.$o->outputProduct?->variant_display_name).'" data-style="'.e($o->model_style).'" data-po="'.e($o->buyer_po_number).'" data-unit="'.e($o->outputProduct?->unit?->symbol?:$o->outputProduct?->unit?->name).'" data-available="'.e($o->available_sewing_quantity).'">'.e(__('ui.common.select')).'</button>')->rawColumns(['actions'])->toJson();
     }
     public function materialsDt(Request $r,CompanyContext $company):JsonResponse

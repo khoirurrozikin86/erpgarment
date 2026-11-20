@@ -65,7 +65,7 @@
     <script>
         $(function() {
             const viewModal = new bootstrap.Modal(document.getElementById('viewPurchaseRequestModal'));
-            const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 2 }).format(Number(value || 0));
+            const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(value || 0));
             const safe = value => $('<div>').text(value ?? '').html();
             const table = $('#purchase-requests-table').DataTable({
                 processing: true,

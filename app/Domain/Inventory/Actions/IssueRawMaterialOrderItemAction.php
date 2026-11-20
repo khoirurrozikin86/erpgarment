@@ -96,7 +96,7 @@ class IssueRawMaterialOrderItemAction
                     throw ValidationException::withMessages(['stock' => __('ui.workflow.material_issue_stock_not_tracked')]);
                 }
                 if (!$stock || $stockQuantity < $quantity) {
-                    throw ValidationException::withMessages(['stock' => __('ui.workflow.material_issue_insufficient_stock', ['item' => $product->variant_display_name, 'available' => number_format((float) ($stock?->quantity ?? 0), 4, ',', '.')])]);
+                    throw ValidationException::withMessages(['stock' => __('ui.workflow.material_issue_insufficient_stock', ['item' => $product->variant_display_name, 'available' => \App\Support\DisplayNumber::format((float) ($stock?->quantity ?? 0), 4)])]);
                 }
                 $sourceBalances[$source->id] = round($sourceIssued + $quantity, 4);
                 if ($material) {

@@ -5,86 +5,86 @@
 <div class="card">
     <div class="card-header d-flex justify-content-between align-items-center py-2">
         <h5 class="mb-0">{{ __('ui.gsn.form_title') }}</h5>
-        <a class="btn btn-light btn-sm" href="{{ route('super.goods-sent-notes.index') }}">{{ __('ui.common.back') }}</a>
+        <a class="btn btn-outline-secondary btn-sm" href="{{ route('super.goods-sent-notes.index') }}">{{ __('ui.common.back') }}</a>
     </div>
     <form id="gsnForm" data-id="{{ $note?->id }}">
         @csrf
         <div class="card-body">
             <div class="row gy-4 gx-xl-5 pb-4 mb-4 border-bottom">
-                <section class="col-xl-6" aria-labelledby="gsn-document-heading">
+                <section class="col-lg-6" aria-labelledby="gsn-document-heading">
                     <h6 class="text-primary mb-3" id="gsn-document-heading">{{ __('ui.gsn.document') }}</h6>
                     <div class="row gx-3 gy-1 mb-2 align-items-center">
-                        <label class="col-sm-5 col-xl-6 col-xxl-5 col-form-label col-form-label-sm" for="gsnNumber">{{ __('ui.gsn.number') }}</label>
-                        <div class="col-sm-7 col-xl-6 col-xxl-7">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="gsnNumber">{{ __('ui.gsn.number') }}</label>
+                        <div class="col-sm-8">
                             <input id="gsnNumber" class="form-control form-control-sm" value="{{ $note?->number }}" readonly>
                         </div>
                     </div>
                     <div class="row gx-3 gy-1 mb-2 align-items-center">
-                        <label class="col-sm-5 col-xl-6 col-xxl-5 col-form-label col-form-label-sm" for="gsn-sent-date">{{ __('ui.gsn.date') }} *</label>
-                        <div class="col-sm-7 col-xl-6 col-xxl-7">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="gsn-sent-date">{{ __('ui.gsn.date') }} *</label>
+                        <div class="col-sm-8">
                             <input id="gsn-sent-date" class="form-control form-control-sm" type="date" name="sent_date" required value="{{ $note?->sent_date?->format('Y-m-d') ?: now()->toDateString() }}">
                         </div>
                     </div>
                     <div class="row gx-3 gy-1 mb-2 align-items-center">
-                        <label class="col-sm-5 col-xl-6 col-xxl-5 col-form-label col-form-label-sm" for="gsn-contract-number">{{ __('ui.gsn.contract_number') }}</label>
-                        <div class="col-sm-7 col-xl-6 col-xxl-7">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="gsn-contract-number">{{ __('ui.gsn.contract_number') }}</label>
+                        <div class="col-sm-8">
                             <input id="gsn-contract-number" class="form-control form-control-sm" name="contract_number" maxlength="100" value="{{ $note?->contract_number }}">
                         </div>
                     </div>
                     <div class="row gx-3 gy-1 mb-2 align-items-center">
-                        <label class="col-sm-5 col-xl-6 col-xxl-5 col-form-label col-form-label-sm" for="gsn-contract-date">{{ __('ui.gsn.contract_date') }}</label>
-                        <div class="col-sm-7 col-xl-6 col-xxl-7">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="gsn-contract-date">{{ __('ui.gsn.contract_date') }}</label>
+                        <div class="col-sm-8">
                             <input id="gsn-contract-date" class="form-control form-control-sm" type="date" name="contract_date" value="{{ $note?->contract_date?->format('Y-m-d') }}">
                         </div>
                     </div>
                     <div class="row gx-3 gy-1 mb-2 align-items-center">
-                        <label class="col-sm-5 col-xl-6 col-xxl-5 col-form-label col-form-label-sm" for="gsn-delivery-route">{{ __('ui.gsn.delivery_route') }}</label>
-                        <div class="col-sm-7 col-xl-6 col-xxl-7">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="gsn-delivery-route">{{ __('ui.gsn.delivery_route') }}</label>
+                        <div class="col-sm-8">
                             <input id="gsn-delivery-route" class="form-control form-control-sm" name="delivery_route" value="{{ $note?->delivery_route }}">
                         </div>
                     </div>
                     <div class="row gx-3 gy-1 mb-2 align-items-center">
-                        <label class="col-sm-5 col-xl-6 col-xxl-5 col-form-label col-form-label-sm" for="gsn-warehouse">{{ __('ui.gsn.warehouse') }}</label>
-                        <div class="col-sm-7 col-xl-6 col-xxl-7">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="gsn-warehouse">{{ __('ui.gsn.warehouse') }}</label>
+                        <div class="col-sm-8">
                             <input id="gsn-warehouse" class="form-control form-control-sm" name="warehouse" value="{{ $note?->warehouse }}">
                         </div>
                     </div>
                 </section>
-                <section class="col-xl-6" aria-labelledby="gsn-transport-heading">
+                <section class="col-lg-6" aria-labelledby="gsn-transport-heading">
                     <h6 class="text-primary mb-3" id="gsn-transport-heading">{{ __('ui.gsn.transport') }}</h6>
                     <div class="row gx-3 gy-1 mb-2 align-items-center">
-                        <label class="col-sm-5 col-xl-6 col-xxl-5 col-form-label col-form-label-sm" for="gsn-vehicle-number">{{ __('ui.gsn.vehicle_number') }}</label>
-                        <div class="col-sm-7 col-xl-6 col-xxl-7">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="gsn-vehicle-number">{{ __('ui.gsn.vehicle_number') }}</label>
+                        <div class="col-sm-8">
                             <input id="gsn-vehicle-number" class="form-control form-control-sm" name="vehicle_number" value="{{ $note?->vehicle_number }}">
                         </div>
                     </div>
                     <div class="row gx-3 gy-1 mb-2 align-items-center">
-                        <label class="col-sm-5 col-xl-6 col-xxl-5 col-form-label col-form-label-sm" for="gsn-driver-name">{{ __('ui.gsn.driver_name') }}</label>
-                        <div class="col-sm-7 col-xl-6 col-xxl-7">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="gsn-driver-name">{{ __('ui.gsn.driver_name') }}</label>
+                        <div class="col-sm-8">
                             <input id="gsn-driver-name" class="form-control form-control-sm" name="driver_name" value="{{ $note?->driver_name }}">
                         </div>
                     </div>
                     <div class="row gx-3 gy-1 mb-2 align-items-center">
-                        <label class="col-sm-5 col-xl-6 col-xxl-5 col-form-label col-form-label-sm" for="gsn-driver-phone">{{ __('ui.gsn.driver_phone') }}</label>
-                        <div class="col-sm-7 col-xl-6 col-xxl-7">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="gsn-driver-phone">{{ __('ui.gsn.driver_phone') }}</label>
+                        <div class="col-sm-8">
                             <input id="gsn-driver-phone" class="form-control form-control-sm" name="driver_phone" value="{{ $note?->driver_phone }}">
                         </div>
                     </div>
                     <div class="row gx-3 gy-1 mb-2 align-items-center">
-                        <label class="col-sm-5 col-xl-6 col-xxl-5 col-form-label col-form-label-sm" for="gsn-seal-number">{{ __('ui.gsn.seal_number') }}</label>
-                        <div class="col-sm-7 col-xl-6 col-xxl-7">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="gsn-seal-number">{{ __('ui.gsn.seal_number') }}</label>
+                        <div class="col-sm-8">
                             <input id="gsn-seal-number" class="form-control form-control-sm" name="seal_number" value="{{ $note?->seal_number }}">
                         </div>
                     </div>
                     <div class="row gx-3 gy-1 mb-2 align-items-center">
-                        <label class="col-sm-5 col-xl-6 col-xxl-5 col-form-label col-form-label-sm" for="gsn-receiver-type">{{ __('ui.gsn.receiver_type') }}</label>
-                        <div class="col-sm-7 col-xl-6 col-xxl-7">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="gsn-receiver-type">{{ __('ui.gsn.receiver_type') }}</label>
+                        <div class="col-sm-8">
                             <input id="gsn-receiver-type" class="form-control form-control-sm" name="receiver_type" value="{{ $note?->receiver_type }}">
                         </div>
                     </div>
                     <div class="row gx-3 gy-1 mb-2 align-items-center">
-                        <label class="col-sm-5 col-xl-6 col-xxl-5 col-form-label col-form-label-sm" for="gsn-container-number">{{ __('ui.gsn.container_number') }}</label>
-                        <div class="col-sm-7 col-xl-6 col-xxl-7">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="gsn-container-number">{{ __('ui.gsn.container_number') }}</label>
+                        <div class="col-sm-8">
                             <input id="gsn-container-number" class="form-control form-control-sm" name="container_number" value="{{ $note?->container_number }}">
                         </div>
                     </div>
@@ -126,7 +126,7 @@
         </div>
     </form>
 </div>
-<div class="modal fade" id="gsnOrderModal" tabindex="-1"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">{{ __('ui.gsn.select_order') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="table-responsive"><table class="table table-sm table-bordered w-100" id="gsnOrderTable"><thead><tr><th>{{ __('ui.gsn.mo') }}</th><th>{{ __('ui.gsn.po_buyer') }}</th><th>{{ __('ui.gsn.customer') }}</th><th>{{ __('ui.gsn.style') }}</th><th>{{ __('ui.gsn.parent_code') }}</th><th>{{ __('ui.gsn.sku_code') }}</th><th>{{ __('ui.gsn.color') }}</th><th>{{ __('ui.gsn.size') }}</th><th>{{ __('ui.gsn.item_name') }}</th><th>{{ __('ui.gsn.unit') }}</th><th>{{ __('ui.gsn.available') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead></table></div></div></div></div></div>
+<div class="modal fade" id="gsnOrderModal" tabindex="-1"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title">{{ __('ui.gsn.select_order') }}</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="table-responsive"><table class="table table-sm table-bordered w-100" id="gsnOrderTable"><thead><tr><th>{{ __('ui.gsn.mo') }}</th><th>{{ __('ui.gsn.po_buyer') }}</th><th>{{ __('ui.gsn.customer') }}</th><th>{{ __('ui.gsn.style') }}</th><th>{{ __('ui.gsn.parent_code') }}</th><th>{{ __('ui.gsn.sku_code') }}</th><th>{{ __('ui.gsn.color') }}</th><th>{{ __('ui.gsn.size') }}</th><th>{{ __('ui.wip_issue.category') }}</th><th>{{ __('ui.gsn.item_name') }}</th><th>{{ __('ui.gsn.unit') }}</th><th>{{ __('ui.gsn.available') }}</th><th>{{ __('ui.common.action') }}</th></tr></thead></table></div></div></div></div></div>
 @endsection
 @push('scripts')
 <script>
@@ -139,7 +139,7 @@ $(function(){
      'remove' => __('ui.common.delete'),
  ]) }};
  const orderModal=new bootstrap.Modal(document.getElementById('gsnOrderModal'));
- const orderTable=$('#gsnOrderTable').DataTable({processing:true,serverSide:true,responsive:true,ajax:@json(route('super.goods-sent-notes.orders.dt')),columns:[{data:'number'},{data:'buyer_po_number'},{data:'customer',orderable:false,searchable:false},{data:'style',orderable:false,searchable:false},{data:'parent_code',orderable:false,searchable:false},{data:'sku_code',orderable:false,searchable:false},{data:'color',orderable:false,searchable:false},{data:'size',orderable:false,searchable:false},{data:'item_name',orderable:false,searchable:false},{data:'unit',orderable:false,searchable:false},{data:'available_quantity',className:'text-end'},{data:'actions',orderable:false,searchable:false}]});
+ const orderTable=$('#gsnOrderTable').DataTable({processing:true,serverSide:true,responsive:true,ajax:@json(route('super.goods-sent-notes.orders.dt')),columns:[{data:'number'},{data:'buyer_po_number'},{data:'customer',orderable:false,searchable:false},{data:'style',orderable:false,searchable:false},{data:'parent_code',orderable:false,searchable:false},{data:'sku_code',orderable:false,searchable:false},{data:'color',orderable:false,searchable:false},{data:'size',orderable:false,searchable:false}, {data: 'category_label', orderable: false, searchable: false},{data:'item_name',orderable:false,searchable:false},{data:'unit',orderable:false,searchable:false},{data:'available_quantity',className:'text-end'},{data:'actions',orderable:false,searchable:false}]});
  function addLine(d){if($('#gsnLines tbody tr[data-order="'+d.id+'"]:not(.empty-line)').length)return;$('#gsnLines .empty-line').remove();let opts='<option value="">—</option>'+customers.map(c=>`<option value="${c.id}" ${String(d.customer_id||'')===String(c.id)?'selected':''}>${$('<div>').text(c.name).html()}</option>`).join('');$('#gsnLines tbody').append(`<tr data-order="${d.id}"><td><input type="hidden" name="items[${d.id}][production_order_id]" value="${d.id}"><input type="hidden" name="items[${d.id}][product_id]" value="${d.product_id}">${$('<div>').text(d.mo).html()}</td><td>${$('<div>').text(d.style).html()}</td><td>${$('<div>').text(d.parentCode || '—').html()}</td><td>${$('<div>').text(d.skuCode || '—').html()}</td><td>${$('<div>').text(d.color || '—').html()}</td><td>${$('<div>').text(d.size || '—').html()}</td><td>${$('<div>').text(d.name).html()}</td><td>${$('<div>').text(d.unit).html()}</td><td>${$('<div>').text(d.po||'—').html()}</td><td><select class="form-select form-select-sm" aria-label="${lineLabels.customer}" name="items[${d.id}][customer_id]">${opts}</select></td><td><input type="number" class="form-control form-control-sm text-end" aria-label="${lineLabels.quantity}" name="items[${d.id}][quantity]" min="0.0001" max="${d.available}" step="0.0001" required value="${d.quantity||''}"></td><td><input type="number" class="form-control form-control-sm text-end" aria-label="${lineLabels.cartons}" name="items[${d.id}][cartons]" min="0" step="0.0001" value="${d.cartons||0}"></td><td><button type="button" class="btn btn-outline-danger btn-sm p-1 js-remove-gsn-line" aria-label="${lineLabels.remove}" title="${lineLabels.remove}"><i data-feather="trash-2" class="icon-sm"></i></button></td></tr>`);window.feather&&feather.replace()}
  if(initial?.items?.length){initial.items.forEach(i=>{const p=i.production_order?.output_product||{};addLine({id:i.production_order_id,product_id:i.product_id,mo:i.production_order?.number,po:i.production_order?.buyer_po_number,customer_id:i.customer_id,style:i.production_order?.style_code ?? p.style_code,parentCode:p.parent_product?.code ?? p.code,skuCode:p.parent_product_id ? p.code : null,color:i.production_order?.order_color ?? p.color,size:i.production_order?.order_size ?? p.size,name:p.name,unit:p.unit?.symbol||p.unit?.name,quantity:i.quantity,cartons:i.cartons,available:Number(i.quantity)})})}
  $('#gsnAddOrder').on('click',()=>orderModal.show());$(document).on('click','.js-choose-gsn-order',function(){let b=$(this);addLine({id:b.data('id'),product_id:b.data('product'),mo:b.data('mo'),po:b.data('po'),customer_id:b.data('customer'),style:b.data('style'),parentCode:b.attr('data-parent-code'),skuCode:b.attr('data-sku-code'),color:b.attr('data-color'),size:b.attr('data-size'),name:b.data('name'),unit:b.data('unit'),available:b.data('available')});orderModal.hide()});$(document).on('click','.js-remove-gsn-line',function(){$(this).closest('tr').remove()});

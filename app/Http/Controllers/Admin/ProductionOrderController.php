@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Domain\Audit\Services\AuditLogService;
 use App\Domain\Companies\Services\CompanyContext;
+use App\Domain\Manufacturing\Queries\ProductionOrderProgressQuery;
 use App\Exports\MaterialOrdersExport;
 use App\Domain\Manufacturing\Actions\CreateProductionOrderAction;
 use App\Domain\Manufacturing\Actions\UpdateMaterialOrderAction;
@@ -391,6 +392,21 @@ class ProductionOrderController extends Controller
         ];
     }
 
+    public function progress(Request $request, ProductionOrder $productionOrder, CompanyContext $company, ProductionOrderProgressQuery $query)
+    {
+        $order = $this->findForCompany($productionOrder, $company->id());
+        $lines = ProductionOrder::query()->where('company_id', $company->id())
+            ->when($order->production_order_header_id,
+                fn ($lines) => $lines->where('production_order_header_id', $order->production_order_header_id),
+                fn ($lines) => $lines->whereNull('production_order_header_id')->where('number', $order->number))
+            ->with(['outputProduct.parentProduct'])->orderBy('id')->get();
+        $documents = $query->documents($order, $lines, $request->user());
+        $stageTotals = $query->stages($lines);
+        $stages = ProductionOrderProgressQuery::STAGES;
+
+        return view('super.production-orders.progress', compact('order', 'lines', 'documents', 'stageTotals', 'stages'));
+    }
+
     public function show(ProductionOrder $productionOrder, CompanyContext $company): JsonResponse
     {
         $order = $this->findForCompany($productionOrder, $company->id())->load(['outputProduct.unit', 'outputProduct.primaryImage', 'outputProduct.parentProduct.primaryImage', 'buyer', 'materials.product.unit', 'creator', 'releaser']);
@@ -407,17 +423,17 @@ class ProductionOrderController extends Controller
                 'code' => $item->product?->code ?? '—',
                 'product' => $item->product?->variant_display_name ?? '—',
                 'operation' => $item->operation ?: '—',
-                'required_quantity' => number_format((float) $item->required_quantity, 4, ',', '.'),
+                'required_quantity' => \App\Support\DisplayNumber::format((float) $item->required_quantity, 4),
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
             ]),
             'stages' => $this->stageSummary($order),
             'stage_entries' => $order->stageEntries()->latest('processed_at')->limit(20)->get()->map(fn ($entry) => [
                 'stage' => $entry->stage,
                 'stage_label' => __('ui.workflow.stage_' . $entry->stage),
-                'input_quantity' => number_format((float) $entry->input_quantity, 4, ',', '.'),
-                'good_quantity' => number_format((float) $entry->good_quantity, 4, ',', '.'),
-                'rejected_quantity' => number_format((float) $entry->rejected_quantity, 4, ',', '.'),
-                'waste_quantity' => number_format((float) $entry->waste_quantity, 4, ',', '.'),
+                'input_quantity' => \App\Support\DisplayNumber::format((float) $entry->input_quantity, 4),
+                'good_quantity' => \App\Support\DisplayNumber::format((float) $entry->good_quantity, 4),
+                'rejected_quantity' => \App\Support\DisplayNumber::format((float) $entry->rejected_quantity, 4),
+                'waste_quantity' => \App\Support\DisplayNumber::format((float) $entry->waste_quantity, 4),
                 'processed_at' => $entry->processed_at?->format('d/m/Y H:i'),
             ]),
         ]);
@@ -464,10 +480,10 @@ class ProductionOrderController extends Controller
             return [
                 'stage' => $stage,
                 'label' => __('ui.workflow.stage_' . $stage),
-                'input_quantity' => number_format($processedInput, 4, ',', '.'),
-                'good_quantity' => number_format((float) ($total?->good_quantity ?? 0), 4, ',', '.'),
-                'rejected_quantity' => number_format((float) ($total?->rejected_quantity ?? 0), 4, ',', '.'),
-                'waste_quantity' => number_format((float) ($total?->waste_quantity ?? 0), 4, ',', '.'),
+                'input_quantity' => \App\Support\DisplayNumber::format($processedInput, 4),
+                'good_quantity' => \App\Support\DisplayNumber::format((float) ($total?->good_quantity ?? 0), 4),
+                'rejected_quantity' => \App\Support\DisplayNumber::format((float) ($total?->rejected_quantity ?? 0), 4),
+                'waste_quantity' => \App\Support\DisplayNumber::format((float) ($total?->waste_quantity ?? 0), 4),
                 'available_quantity' => round(max(0, $expected - $processedInput), 4),
                 'is_recordable' => $order->status === 'in_progress' && max(0, $expected - $processedInput) > 0,
             ];

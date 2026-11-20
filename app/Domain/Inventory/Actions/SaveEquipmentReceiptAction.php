@@ -5,7 +5,7 @@ namespace App\Domain\Inventory\Actions;
 use App\Domain\Audit\Services\AuditLogService;
 use App\Domain\Companies\Services\CompanyContext;
 use App\Domain\Settings\Services\DocumentNumberService;
-use App\Models\{EquipmentReceiptDocument, Product, Supplier};
+use App\Models\{Company, EquipmentReceiptDocument, Product, Supplier};
 use Illuminate\Support\Facades\DB;
 
 class SaveEquipmentReceiptAction
@@ -15,6 +15,8 @@ class SaveEquipmentReceiptAction
     public function create(array $data, int $userId): EquipmentReceiptDocument
     {
         return DB::transaction(function () use ($data, $userId) {
+            Company::query()->lockForUpdate()->findOrFail($this->company->id());
+
             $document = EquipmentReceiptDocument::query()->create([
                 ...$this->header($data), 'company_id' => $this->company->id(),
                 'number' => $this->numbers->generate('equipment_receipt'), 'created_by' => $userId,
@@ -28,6 +30,8 @@ class SaveEquipmentReceiptAction
     public function update(EquipmentReceiptDocument $receipt, array $data, int $userId): EquipmentReceiptDocument
     {
         return DB::transaction(function () use ($receipt, $data, $userId) {
+            Company::query()->lockForUpdate()->findOrFail($this->company->id());
+
             $document = EquipmentReceiptDocument::query()->where('company_id', $this->company->id())->lockForUpdate()->findOrFail($receipt->id);
             $old = $document->load('items')->toArray();
             $document->update($this->header($data));
@@ -41,6 +45,8 @@ class SaveEquipmentReceiptAction
     public function delete(EquipmentReceiptDocument $receipt, int $userId): void
     {
         DB::transaction(function () use ($receipt, $userId) {
+            Company::query()->lockForUpdate()->findOrFail($this->company->id());
+
             $document = EquipmentReceiptDocument::query()->where('company_id', $this->company->id())->lockForUpdate()->findOrFail($receipt->id);
             $old = $document->load('items')->toArray();
             $document->delete();

@@ -101,11 +101,11 @@ class StockCardController extends Controller
                 default => '<span class="badge bg-secondary">' . e(ucfirst(str_replace('_', ' ', $movement->movement_type))) . '</span>',
             })
             ->addColumn('lot_numbers', fn(StockMovement $movement) => $movement->lotAllocations
-                ->map(fn ($allocation) => ($allocation->inventoryLot?->lot_number ?? '—') . ' (' . number_format(abs((float) $allocation->quantity), 4, ',', '.') . ')')
+                ->map(fn ($allocation) => ($allocation->inventoryLot?->lot_number ?? '—') . ' (' . \App\Support\DisplayNumber::format(abs((float) $allocation->quantity), 4) . ')')
                 ->implode(', ') ?: '—')
-            ->addColumn('quantity_in', fn(StockMovement $movement) => (float) $movement->quantity > 0 ? number_format((float) $movement->quantity, 4, ',', '.') : '—')
-            ->addColumn('quantity_out', fn(StockMovement $movement) => (float) $movement->quantity < 0 ? number_format(abs((float) $movement->quantity), 4, ',', '.') : '—')
-            ->addColumn('balance_after', fn(StockMovement $movement) => number_format((float) $movement->quantity_after, 4, ',', '.'))
+            ->addColumn('quantity_in', fn(StockMovement $movement) => (float) $movement->quantity > 0 ? \App\Support\DisplayNumber::format((float) $movement->quantity, 4) : '—')
+            ->addColumn('quantity_out', fn(StockMovement $movement) => (float) $movement->quantity < 0 ? \App\Support\DisplayNumber::format(abs((float) $movement->quantity), 4) : '—')
+            ->addColumn('balance_after', fn(StockMovement $movement) => \App\Support\DisplayNumber::format((float) $movement->quantity_after, 4))
             ->addColumn('unit_label', fn(StockMovement $movement) => $movement->product?->unit?->symbol ?: $movement->product?->unit?->name ?: '—')
             ->rawColumns(['movement_label'])
             ->toJson();

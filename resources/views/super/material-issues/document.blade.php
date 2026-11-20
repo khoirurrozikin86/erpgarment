@@ -38,7 +38,7 @@
                                 <td>{{ $item['color'] }}</td>
                                 <td>{{ $item['size'] }}</td>
                                 <td>{{ $item['unit'] ?: '—' }}</td>
-                                <td class="text-end">{{ rtrim(rtrim(number_format($item['quantity'], 4, ',', '.'), '0'), ',') }}</td>
+                                <td class="text-end">{{ \App\Support\DisplayNumber::format($item['quantity'], 4) }}</td>
                             </tr>
                         @empty
                             <tr><td colspan="7" class="text-center text-muted">{{ __('ui.common.no_matching_records') }}</td></tr>

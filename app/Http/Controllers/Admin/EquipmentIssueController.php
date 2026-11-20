@@ -10,12 +10,31 @@ use App\Exports\EquipmentIssuesExport;
 use App\Http\Controllers\Controller;
 use App\Models\EquipmentIssueDocument;
 use Illuminate\Http\{JsonResponse, Request};
+use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
 
 class EquipmentIssueController extends Controller
 {
     public function index() { return view('super.equipment-issues.index'); }
+    public function create(DocumentNumberService $numbers): View
+    {
+        return view('super.equipment-issues.form', [
+            'document' => null,
+            'number' => $numbers->preview('equipment_issue'),
+        ]);
+    }
+
+    public function edit(EquipmentIssueDocument $equipmentIssue, CompanyContext $company): View
+    {
+        abort_unless((int) $equipmentIssue->company_id === $company->id(), 404);
+
+        return view('super.equipment-issues.form', [
+            'document' => $equipmentIssue->load('item.product.category:id,name'),
+            'number' => $equipmentIssue->number,
+        ]);
+    }
+
     public function numberPreview(DocumentNumberService $numbers): JsonResponse { return response()->json(['number' => $numbers->preview('equipment_issue')]); }
 
     public function dt(Request $request, CompanyContext $company, EquipmentIssueTableQuery $query): JsonResponse
@@ -27,7 +46,7 @@ class EquipmentIssueController extends Controller
             ->addColumn('unit', fn ($r) => $r->item?->unit ?? '—')->addColumn('quantity', fn ($r) => $r->item?->quantity ?? '—')->addColumn('description', fn ($r) => $r->item?->description ?? '—')
             ->addColumn('actions', function ($r) {
                 $html = '<div class="d-flex gap-1">';
-                if (auth()->user()->can('equipment-issues.update')) $html .= '<button class="btn btn-sm btn-outline-primary btn-edit-equipment-issue" data-id="'.(int)$r->id.'" title="'.e(__('ui.common.edit')).'"><i data-feather="edit-2" class="icon-sm"></i></button>';
+                if (auth()->user()->can('equipment-issues.update')) $html .= '<a class="btn btn-sm btn-outline-primary" href="'.e(route('super.equipment-issues.edit', $r)).'" title="'.e(__('ui.common.edit')).'"><i data-feather="edit-2" class="icon-sm"></i></a>';
                 if (auth()->user()->can('equipment-issues.delete')) $html .= '<button class="btn btn-sm btn-outline-danger btn-delete-equipment-issue" data-id="'.(int)$r->id.'" title="'.e(__('ui.common.delete')).'"><i data-feather="trash-2" class="icon-sm"></i></button>';
                 return $html.'</div>';
             })->rawColumns(['actions'])->toJson();
@@ -37,7 +56,7 @@ class EquipmentIssueController extends Controller
     {
         return DataTables::eloquent($query->products())->addColumn('category_label', fn ($p) => $p->category?->name ?? '—')
             ->addColumn('unit_label', fn ($p) => $p->unit?->symbol ?: $p->unit?->name ?: '—')
-            ->addColumn('actions', fn ($p) => '<button type="button" class="btn btn-sm btn-primary btn-select-equipment-issue-product" data-id="'.(int)$p->id.'" data-code="'.e($p->code).'" data-name="'.e($p->name).'" data-unit="'.e($p->unit?->symbol ?: $p->unit?->name ?: '').'">'.e(__('ui.common.select')).'</button>')
+            ->addColumn('actions', fn ($p) => '<button type="button" class="btn btn-sm btn-primary btn-select-equipment-issue-product" data-id="'.(int)$p->id.'" data-code="'.e($p->code).'" data-name="'.e($p->name).'" data-category="'.e($p->category?->name ?? '—').'" data-unit="'.e($p->unit?->symbol ?: $p->unit?->name ?: '').'">'.e(__('ui.common.select')).'</button>')
             ->rawColumns(['actions'])->toJson();
     }
 

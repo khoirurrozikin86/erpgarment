@@ -8,8 +8,8 @@ use App\Domain\Inventory\Queries\ScrapReceiptTableQuery;
 use App\Domain\Settings\Services\DocumentNumberService;
 use App\Exports\ScrapReceiptsExport;
 use App\Http\Controllers\Controller;
-use App\Models\ScrapReceiptDocument;
-use Illuminate\Http\{JsonResponse, Request};
+use App\Models\{Product, ProductionOrder, ScrapReceiptDocument};
+use Illuminate\Http\{JsonResponse, RedirectResponse, Request};
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
@@ -17,6 +17,33 @@ use Yajra\DataTables\Facades\DataTables;
 class ScrapReceiptController extends Controller
 {
     public function index(): View { return view('super.scrap-receipts.index'); }
+
+    public function create(DocumentNumberService $numbers): View
+    {
+        return $this->form(null, $numbers->preview('scrap_receipt'));
+    }
+
+    public function edit(ScrapReceiptDocument $scrapReceipt, CompanyContext $company): View
+    {
+        abort_unless((int) $scrapReceipt->company_id === $company->id(), 404);
+
+        return $this->form($scrapReceipt, $scrapReceipt->number);
+    }
+
+    private function form(?ScrapReceiptDocument $document, string $number): View
+    {
+        $scrapProduct = $this->selectedProduct('scrap_product_id', $document?->scrap_product_id);
+        $sourceProduct = $this->selectedProduct('source_product_id', $document?->source_product_id);
+
+        return view('super.scrap-receipts.form', compact('document', 'number', 'scrapProduct', 'sourceProduct'));
+    }
+
+    private function selectedProduct(string $field, ?int $default): ?Product
+    {
+        $id = filter_var(old($field, $default), FILTER_VALIDATE_INT);
+
+        return $id ? Product::with('unit')->find($id) : null;
+    }
 
     public function numberPreview(DocumentNumberService $numbers): JsonResponse
     {
@@ -40,7 +67,7 @@ class ScrapReceiptController extends Controller
             ->addColumn('actions', function (ScrapReceiptDocument $row) {
                 $items = '';
                 if (auth()->user()->can('scrap-receipts.update')) {
-                    $items .= '<li><button type="button" class="dropdown-item btn-edit-scrap-receipt" data-id="'.(int)$row->id.'" data-number="'.e($row->number).'" data-date="'.$row->receipt_date?->format('Y-m-d').'" data-scrap="'.(int)$row->scrap_product_id.'" data-scrap-code="'.e($row->scrapProduct?->code).'" data-scrap-name="'.e($row->scrapProduct?->name).'" data-scrap-unit="'.e($row->scrapProduct?->unit?->symbol ?: $row->scrapProduct?->unit?->name ?: '').'" data-source="'.(int)$row->source_product_id.'" data-source-code="'.e($row->sourceProduct?->code).'" data-source-name="'.e($row->sourceProduct?->name).'" data-source-unit="'.e($row->sourceProduct?->unit?->symbol ?: $row->sourceProduct?->unit?->name ?: '').'" data-production="'.e($row->production_number).'" data-quantity="'.e($row->quantity).'" data-description="'.e($row->description).'">'.e(__('ui.common.edit')).'</button></li>';
+                    $items .= '<li><a class="dropdown-item" href="'.e(route('super.scrap-receipts.edit', $row)).'">'.e(__('ui.common.edit')).'</a></li>';
                 }
                 if (auth()->user()->can('scrap-receipts.delete')) {
                     $items .= '<li><button type="button" class="dropdown-item text-danger btn-delete-scrap-receipt" data-url="'.e(route('super.scrap-receipts.destroy', $row)).'">'.e(__('ui.common.delete')).'</button></li>';
@@ -58,16 +85,40 @@ class ScrapReceiptController extends Controller
             ->rawColumns(['actions'])->toJson();
     }
 
-    public function store(Request $request, SaveScrapReceiptAction $action): JsonResponse
+    public function productionOrdersDt(CompanyContext $company): JsonResponse
     {
-        $row = $action->create($this->validated($request), (int)$request->user()->id);
-        return response()->json(['message' => __('ui.scrap_receipt.saved'), 'number' => $row->number], 201);
+        $orders = ProductionOrder::query()->where('company_id', $company->id())
+            ->whereNotNull('number')->where('number', '<>', '')->select('number')->distinct();
+
+        return DataTables::eloquent($orders)->escapeColumns([])->toJson();
     }
 
-    public function update(Request $request, ScrapReceiptDocument $scrapReceipt, SaveScrapReceiptAction $action): JsonResponse
+    public function store(Request $request, SaveScrapReceiptAction $action): JsonResponse|RedirectResponse
     {
-        $row = $action->update($scrapReceipt, $this->validated($request), (int)$request->user()->id);
-        return response()->json(['message' => __('ui.scrap_receipt.updated'), 'number' => $row->number]);
+        $row = $action->create($this->validated($request), (int) $request->user()->id);
+
+        return $this->saved($request, $row, __('ui.scrap_receipt.saved'), 201);
+    }
+
+    public function update(Request $request, ScrapReceiptDocument $scrapReceipt, SaveScrapReceiptAction $action): JsonResponse|RedirectResponse
+    {
+        $row = $action->update($scrapReceipt, $this->validated($request), (int) $request->user()->id);
+
+        return $this->saved($request, $row, __('ui.scrap_receipt.updated'), 200);
+    }
+
+    private function saved(Request $request, ScrapReceiptDocument $row, string $message, int $status): JsonResponse|RedirectResponse
+    {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $message, 'number' => $row->number], $status);
+        }
+
+        $date = $row->receipt_date->toDateString();
+
+        return redirect()->route('super.scrap-receipts.index', [
+            'from_date' => min(now()->startOfMonth()->toDateString(), $date),
+            'to_date' => max(now()->toDateString(), $date),
+        ])->with('scrap_success', $message.' ('.$row->number.')');
     }
 
     public function destroy(Request $request, ScrapReceiptDocument $scrapReceipt, SaveScrapReceiptAction $action): JsonResponse
@@ -92,7 +143,7 @@ class ScrapReceiptController extends Controller
         return $request->validate([
             'receipt_date' => ['required', 'date'],
             'scrap_product_id' => ['required', 'integer', 'exists:products,id'],
-            'source_product_id' => ['required', 'integer', 'exists:products,id'],
+            'source_product_id' => ['nullable', 'integer', 'exists:products,id'],
             'production_number' => ['nullable', 'string', 'max:100'],
             'quantity' => ['required', 'numeric', 'gt:0', 'max:999999999999.9999'],
             'description' => ['nullable', 'string', 'max:5000'],

@@ -77,7 +77,11 @@ class SupportMaterialOrderController extends Controller
 
     public function productsDt(SupportMaterialOrderTableQuery $query): JsonResponse
     {
-        return DataTables::eloquent($query->products())->addColumn('unit_label',fn(Product $p)=>$p->unit?->symbol?:$p->unit?->name?:'—')
+        return DataTables::eloquent($query->products()->with(['parentProduct:id,code', 'category:id,name']))
+            ->addColumn('parent_code', fn ($p) => $p?->parentProduct?->code ?? $p?->code ?? '—')
+            ->addColumn('sku_code', fn ($p) => $p?->parent_product_id ? $p->code : '—')
+            ->addColumn('category_label', fn ($p) => $p?->category?->name ?? '—')
+            ->addColumn('unit_label',fn(Product $p)=>$p->unit?->symbol?:$p->unit?->name?:'—')
             ->addColumn('actions',fn(Product $p)=>'<button type="button" class="btn btn-sm btn-primary btn-select-support-product" data-id="'.$p->id.'" data-code="'.e($p->code).'" data-name="'.e($p->name).'" data-unit="'.e($p->unit?->symbol?:$p->unit?->name).'">'.e(__('ui.common.select')).'</button>')->rawColumns(['actions'])->toJson();
     }
 

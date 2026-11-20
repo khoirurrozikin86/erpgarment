@@ -32,14 +32,41 @@
     @stack('vendor-styles')
     {{-- inject:css --}}
     <link rel="stylesheet" href="{{ asset('vendor/nobleui/assets/fonts/feather-font/css/iconfont.css') }}">
-    <link rel="stylesheet" href="{{ asset('vendor/nobleui/assets/vendors/flag-icon-css/css/flag-icon.min.css') }}">
     {{-- Layout styles --}}
     <link rel="stylesheet" href="{{ asset('vendor/nobleui/assets/css/demo1/style.css') }}">
 
     <link rel="shortcut icon" href="{{ asset('vendor/nobleui/assets/images/favicon.png') }}" />
+    <style>
+        .login-card {
+            max-width: 920px;
+            overflow: hidden;
+        }
 
+        .login-photo {
+            position: relative;
+            min-height: 420px;
+            background-color: #e3ece8;
+        }
 
+        .login-photo img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
 
+        @media (max-width: 767.98px) {
+            .login-photo {
+                min-height: 150px;
+            }
+
+            .login-photo img {
+                object-position: center 55%;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -48,19 +75,18 @@
             <div class="page-content d-flex align-items-center justify-content-center">
 
                 <div class="row w-100 mx-0 auth-page">
-                    <div class="col-md-8 col-xl-6 mx-auto">
-                        <div class="card shadow">
-                            <div class="row">
-                                <div class="col-md-4 pe-md-0">
-                                    <div class="auth-side-wrapper"></div>
+                    <div class="col-sm-10 col-lg-9 mx-auto">
+                        <div class="card shadow login-card mx-auto">
+                            <div class="row g-0">
+                                <div class="col-md-5 login-photo">
+                                    <img src="{{ asset('images/garment-login.jpg') }}?v={{ filemtime(public_path('images/garment-login.jpg')) }}" alt="" fetchpriority="high">
                                 </div>
 
-                                <div class="col-md-8 ps-md-0">
-                                    <div class="auth-form-wrapper px-4 py-5">
+                                <div class="col-md-7 align-self-center">
+                                    <div class="auth-form-wrapper p-4 p-md-5">
                                         <a href="{{ url('/') }}" class="noble-ui-logo d-block mb-2">
                                             {{ config('app.name') }}
                                         </a>
-                                        <div class="d-flex justify-content-end mb-3">@include('components.language-switcher')</div>
                                         <h5 class="text-muted fw-normal mb-4">{{ __('ui.auth.welcome_back') }}</h5>
 
                                         {{-- Session Status --}}
@@ -69,7 +95,7 @@
                                         @endif
 
                                         {{-- Login Form --}}
-                                        <form class="forms-sample" method="POST" action="{{ route('login') }}">
+                                        <form class="forms-sample" method="POST" action="{{ route('login', absolute: false) }}">
                                             @csrf
 
                                             <div class="mb-3">

@@ -5,13 +5,21 @@ namespace App\Http\Controllers\Admin;
 use App\Domain\Inventory\Queries\StockFamilyPage;
 use App\Domain\Inventory\Queries\StockOpnameTableQuery;
 use App\Domain\Inventory\Services\StockOpnameService;
+use App\Exports\StockOpnameTemplateExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StockFamilyTableRequest;
+use App\Imports\StockOpnameImport;
 use App\Models\StockOpname;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
+use Maatwebsite\Excel\Excel as ExcelFormat;
+use Maatwebsite\Excel\Facades\Excel;
+use Maatwebsite\Excel\Validators\ValidationException as ExcelValidationException;
+use PhpOffice\PhpSpreadsheet\Reader\Exception as SpreadsheetReaderException;
 use Yajra\DataTables\Facades\DataTables;
 
 class StockOpnameController extends Controller
@@ -24,6 +32,39 @@ class StockOpnameController extends Controller
     public function create(): View
     {
         return view('super.stock-opnames.create');
+    }
+
+    public function template()
+    {
+        return Excel::download(new StockOpnameTemplateExport(), 'template-stok-opname.xlsx');
+    }
+
+    public function import(Request $request, StockOpnameService $service): RedirectResponse
+    {
+        $data = $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx', 'max:10240'],
+            'import_notes' => ['nullable', 'string', 'max:5000'],
+        ]);
+
+        $import = new StockOpnameImport($service, (int) $request->user()->id, $data['import_notes'] ?? null);
+        try {
+            $document = DB::transaction(function () use ($import, $request) {
+                Excel::import($import, $request->file('file'), null, ExcelFormat::XLSX);
+
+                return $import->document ?? throw ValidationException::withMessages(['file' => __('stock_opname_import.empty')]);
+            });
+        } catch (ExcelValidationException $exception) {
+            return back()->withInput()->withErrors([
+                'file' => collect($exception->failures())->take(10)->map(fn ($failure) =>
+                    __('stock_opname_import.row_error', ['row' => $failure->row(), 'message' => implode(' ', $failure->errors())])
+                )->implode(' '),
+            ]);
+        } catch (SpreadsheetReaderException) {
+            return back()->withInput()->withErrors(['file' => __('stock_opname_import.invalid_file')]);
+        }
+
+        return redirect()->route('super.stock-opnames.count', $document)
+            ->with('import_success', __('stock_opname_import.success'));
     }
 
     public function count(StockOpname $stockOpname, StockOpnameTableQuery $query): View
@@ -120,9 +161,9 @@ class StockOpnameController extends Controller
                 'color' => $item->product?->color ?? '—',
                 'size' => $item->product?->size ?? '—',
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
-                'system_quantity' => number_format((float) $item->system_quantity, 4, ',', '.'),
-                'counted_quantity' => $item->counted_quantity === null ? 'Belum dihitung' : number_format((float) $item->counted_quantity, 4, ',', '.'),
-                'difference' => $item->difference === null ? '—' : number_format((float) $item->difference, 4, ',', '.'),
+                'system_quantity' => \App\Support\DisplayNumber::format((float) $item->system_quantity, 4),
+                'counted_quantity' => $item->counted_quantity === null ? 'Belum dihitung' : \App\Support\DisplayNumber::format((float) $item->counted_quantity, 4),
+                'difference' => $item->difference === null ? '—' : \App\Support\DisplayNumber::format((float) $item->difference, 4),
             ]),
         ]);
     }

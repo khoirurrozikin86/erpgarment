@@ -17,6 +17,6 @@ class SubcontractTableQuery
         return SubcontractContract::query()->where('company_id', $companyId)
             ->when($from, fn ($q) => $q->whereDate('starts_on', '>=', $from))
             ->when($to, fn ($q) => $q->whereDate('starts_on', '<=', $to))
-            ->with('subcontractor:id,name')->select('subcontract_contracts.*')->latest('starts_on');
+            ->with(['subcontractor:id,name', 'customer:id,name'])->select('subcontract_contracts.*')->latest('starts_on');
     }
 }

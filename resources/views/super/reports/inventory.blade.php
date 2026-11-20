@@ -29,7 +29,7 @@
 @push('scripts')
     <script>
         $(function () {
-            const formatQuantity = new Intl.NumberFormat('id-ID', {minimumFractionDigits: 4, maximumFractionDigits: 4});
+            const formatQuantity = new Intl.NumberFormat('id-ID', {minimumFractionDigits: 0, maximumFractionDigits: 4});
             const text = $.fn.dataTable.render.text();
             const statuses = {
                 safe_stock: ['bg-success', @json(__('ui.modules.safe_stock'))],

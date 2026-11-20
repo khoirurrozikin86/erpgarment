@@ -9,7 +9,7 @@ class SubcontractReceiptQuery extends SubcontractMaterialIssueQuery
     protected string $issueKind = 'receipt';
     public function products(): Builder
     {
-        return Product::where('product_type','stock')->where('track_stock',true)->where('is_active',true)->with('unit')->orderBy('code');
+        return Product::where('product_type','stock')->where('track_stock',true)->where('is_active',true)->with(['unit', ...SubcontractProductColumns::RELATIONS])->orderBy('code');
     }
     public function builder(int $companyId,array $filters): Builder
     {

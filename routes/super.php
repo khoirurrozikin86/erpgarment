@@ -421,6 +421,7 @@ Route::middleware(['auth'])
             Route::middleware('permission:production-orders.create')->post('/full-import', [ProductionOrderController::class, 'fullImport'])->name('full-import');
             Route::middleware('permission:production-orders.create')->get('/create', [ProductionOrderController::class, 'create'])->name('create');
             Route::middleware('permission:production-orders.update')->get('/{productionOrder}/edit', [ProductionOrderController::class, 'edit'])->name('edit');
+            Route::middleware('permission:production-orders.view')->get('/{productionOrder}/progress', [ProductionOrderController::class, 'progress'])->name('progress');
             Route::middleware('permission:production-orders.view')->get('/{productionOrder}', [ProductionOrderController::class, 'show'])->name('show');
             Route::middleware('permission:production-orders.update')->post('/{productionOrder}/stages', [ProductionOrderController::class, 'recordStage'])->name('stages.store');
             Route::middleware('permission:production-orders.create')->post('/', [ProductionOrderController::class, 'store'])->name('store');
@@ -676,12 +677,14 @@ Route::middleware(['auth'])
             Route::get('/', [\App\Http\Controllers\Admin\OutgoingGoodsReportController::class, 'index'])->name('index');
             Route::get('/export', [\App\Http\Controllers\Admin\OutgoingGoodsReportController::class, 'export'])->name('export');
             Route::get('/trace/{product}', [\App\Http\Controllers\Admin\OutgoingGoodsReportController::class, 'trace'])->name('trace')->whereNumber('product');
+            Route::get('/trace/{product}/results', [\App\Http\Controllers\Admin\OutgoingGoodsReportController::class, 'trace'])->name('trace.results')->whereNumber('product');
         });
 
         Route::prefix('reports/incoming-goods')->name('reports.incoming.')->middleware('permission:purchase-report.view')->group(function () {
             Route::get('/', [\App\Http\Controllers\Admin\IncomingGoodsReportController::class, 'index'])->name('index');
             Route::get('/export', [\App\Http\Controllers\Admin\IncomingGoodsReportController::class, 'export'])->name('export');
             Route::get('/trace/{product}', [\App\Http\Controllers\Admin\IncomingGoodsReportController::class, 'trace'])->name('trace')->whereNumber('product');
+            Route::get('/trace/{product}/results', [\App\Http\Controllers\Admin\IncomingGoodsReportController::class, 'trace'])->name('trace.results')->whereNumber('product');
         });
 
         Route::prefix('reports/purchase')->name('reports.purchase.')->group(function () {
@@ -745,6 +748,8 @@ Route::middleware(['auth'])
             Route::middleware('permission:stock-opnames.create')->get('/products/dt', [StockOpnameController::class, 'productsDt'])->name('products.dt');
             Route::middleware('permission:stock-opnames.create')->get('/create', [StockOpnameController::class, 'create'])->name('create');
             Route::middleware('permission:stock-opnames.create')->post('/', [StockOpnameController::class, 'store'])->name('store');
+            Route::middleware(['permission:stock-opnames.create', 'permission:stock-opnames.count'])->get('/template', [StockOpnameController::class, 'template'])->name('template');
+            Route::middleware(['permission:stock-opnames.create', 'permission:stock-opnames.count'])->post('/import', [StockOpnameController::class, 'import'])->name('import');
             Route::middleware('permission:stock-opnames.view')->get('/{stockOpname}', [StockOpnameController::class, 'show'])->name('show');
             Route::middleware('permission:stock-opnames.count')->get('/{stockOpname}/count', [StockOpnameController::class, 'count'])->name('count');
             Route::middleware('permission:stock-opnames.count')->put('/{stockOpname}/count', [StockOpnameController::class, 'saveCounts'])->name('count.save');
@@ -754,8 +759,10 @@ Route::middleware(['auth'])
         Route::prefix('damaged-items')->name('damaged-items.')->group(function () {
             Route::middleware('permission:damaged-items.view')->get('/', [DamagedItemController::class, 'index'])->name('index');
             Route::middleware('permission:damaged-items.view')->get('/dt', [DamagedItemController::class, 'dt'])->name('dt');
-            Route::middleware('permission:damaged-items.create')->get('/products/dt', [DamagedItemController::class, 'productsDt'])->name('products.dt');
+            Route::middleware('permission:damaged-items.create|damaged-items.update')->get('/products/dt', [DamagedItemController::class, 'productsDt'])->name('products.dt');
             Route::middleware('permission:damaged-items.create')->get('/number-preview', [DamagedItemController::class, 'numberPreview'])->name('number-preview');
+            Route::middleware('permission:damaged-items.create')->get('/create', [DamagedItemController::class, 'create'])->name('create');
+            Route::middleware('permission:damaged-items.update')->get('/{damagedItemLine}/edit', [DamagedItemController::class, 'edit'])->name('edit');
             Route::middleware('permission:damaged-items.create')->post('/', [DamagedItemController::class, 'store'])->name('store');
             Route::middleware('permission:damaged-items.update')->put('/{damagedItemLine}', [DamagedItemController::class, 'update'])->name('update');
             Route::middleware('permission:damaged-items.delete')->delete('/{damagedItemLine}', [DamagedItemController::class, 'destroy'])->name('destroy');
@@ -765,8 +772,10 @@ Route::middleware(['auth'])
             Route::middleware('permission:lost-items.view')->get('/', [LostItemController::class, 'index'])->name('index');
             Route::middleware('permission:lost-items.view')->get('/dt', [LostItemController::class, 'dt'])->name('dt');
             Route::middleware('permission:lost-items.view')->get('/export', [LostItemController::class, 'export'])->name('export');
-            Route::middleware('permission:lost-items.create')->get('/products/dt', [LostItemController::class, 'productsDt'])->name('products.dt');
+            Route::middleware('permission:lost-items.create|lost-items.update')->get('/products/dt', [LostItemController::class, 'productsDt'])->name('products.dt');
             Route::middleware('permission:lost-items.create')->get('/number-preview', [LostItemController::class, 'numberPreview'])->name('number-preview');
+            Route::middleware('permission:lost-items.create')->get('/create', [LostItemController::class, 'create'])->name('create');
+            Route::middleware('permission:lost-items.update')->get('/{lostItemLine}/edit', [LostItemController::class, 'edit'])->name('edit');
             Route::middleware('permission:lost-items.create')->post('/', [LostItemController::class, 'store'])->name('store');
             Route::middleware('permission:lost-items.update')->put('/{lostItemLine}', [LostItemController::class, 'update'])->name('update');
             Route::middleware('permission:lost-items.delete')->delete('/{lostItemLine}', [LostItemController::class, 'destroy'])->name('destroy');
@@ -774,6 +783,7 @@ Route::middleware(['auth'])
 
         Route::prefix('non-production-material-usages')->name('non-production-material-usages.')->group(function () {
             Route::middleware('permission:non-production-material-usages.view')->get('/', [NonProductionMaterialUsageController::class, 'index'])->name('index');
+            Route::view('/create', 'super.non-production-material-usages.index')->middleware('permission:non-production-material-usages.create')->name('create');
             Route::middleware('permission:non-production-material-usages.view')->get('/dt', [NonProductionMaterialUsageController::class, 'dt'])->name('dt');
             Route::middleware('permission:non-production-material-usages.view')->get('/export', [NonProductionMaterialUsageController::class, 'export'])->name('export');
             Route::middleware('permission:non-production-material-usages.view')->get('/products/dt', [NonProductionMaterialUsageController::class, 'productsDt'])->name('products.dt');
@@ -785,6 +795,7 @@ Route::middleware(['auth'])
 
         Route::prefix('wip-issues')->name('wip-issues.')->group(function () {
             Route::middleware('permission:wip-issues.view')->get('/', [WipIssueController::class, 'index'])->name('index');
+            Route::view('/create', 'super.wip-issues.index')->middleware('permission:wip-issues.create')->name('create');
             Route::middleware('permission:wip-issues.view')->get('/dt', [WipIssueController::class, 'dt'])->name('dt');
             Route::middleware('permission:wip-issues.view')->get('/export', [WipIssueController::class, 'export'])->name('export');
             Route::middleware('permission:wip-issues.create')->get('/products/dt', [WipIssueController::class, 'productsDt'])->name('products.dt');
@@ -798,8 +809,11 @@ Route::middleware(['auth'])
             Route::middleware('permission:scrap-receipts.view')->get('/', [ScrapReceiptController::class, 'index'])->name('index');
             Route::middleware('permission:scrap-receipts.view')->get('/dt', [ScrapReceiptController::class, 'dt'])->name('dt');
             Route::middleware('permission:scrap-receipts.view')->get('/export', [ScrapReceiptController::class, 'export'])->name('export');
-            Route::middleware('permission:scrap-receipts.create')->get('/products/dt', [ScrapReceiptController::class, 'productsDt'])->name('products.dt');
+            Route::middleware('permission:scrap-receipts.create|scrap-receipts.update')->get('/products/dt', [ScrapReceiptController::class, 'productsDt'])->name('products.dt');
+            Route::middleware('permission:scrap-receipts.create|scrap-receipts.update')->get('/production-orders/dt', [ScrapReceiptController::class, 'productionOrdersDt'])->name('production-orders.dt');
             Route::middleware('permission:scrap-receipts.create')->get('/number-preview', [ScrapReceiptController::class, 'numberPreview'])->name('number-preview');
+            Route::middleware('permission:scrap-receipts.create')->get('/create', [ScrapReceiptController::class, 'create'])->name('create');
+            Route::middleware('permission:scrap-receipts.update')->get('/{scrapReceipt}/edit', [ScrapReceiptController::class, 'edit'])->name('edit');
             Route::middleware('permission:scrap-receipts.create')->post('/', [ScrapReceiptController::class, 'store'])->name('store');
             Route::middleware('permission:scrap-receipts.update')->put('/{scrapReceipt}', [ScrapReceiptController::class, 'update'])->name('update');
             Route::middleware('permission:scrap-receipts.delete')->delete('/{scrapReceipt}', [ScrapReceiptController::class, 'destroy'])->name('destroy');
@@ -812,6 +826,8 @@ Route::middleware(['auth'])
             Route::middleware('permission:scrap-issues.create|scrap-issues.update')->get('/products/dt', [ScrapIssueController::class, 'productsDt'])->name('products.dt');
             Route::middleware('permission:scrap-issues.create|scrap-issues.update')->get('/customers/dt', [ScrapIssueController::class, 'customersDt'])->name('customers.dt');
             Route::middleware('permission:scrap-issues.create')->get('/number-preview', [ScrapIssueController::class, 'numberPreview'])->name('number-preview');
+            Route::middleware('permission:scrap-issues.create')->get('/create', [ScrapIssueController::class, 'create'])->name('create');
+            Route::middleware('permission:scrap-issues.update')->get('/{scrapIssue}/edit', [ScrapIssueController::class, 'edit'])->name('edit');
             Route::middleware('permission:scrap-issues.create')->post('/', [ScrapIssueController::class, 'store'])->name('store');
             Route::middleware('permission:scrap-issues.update')->put('/{scrapIssue}', [ScrapIssueController::class, 'update'])->name('update');
             Route::middleware('permission:scrap-issues.delete')->delete('/{scrapIssue}', [ScrapIssueController::class, 'destroy'])->name('destroy');
@@ -825,6 +841,8 @@ Route::middleware(['auth'])
             Route::middleware('permission:equipment-receipts.create|equipment-receipts.update')->get('/suppliers/dt', [EquipmentReceiptController::class, 'suppliersDt'])->name('suppliers.dt');
             Route::middleware('permission:equipment-receipts.create')->get('/number-preview', [EquipmentReceiptController::class, 'numberPreview'])->name('number-preview');
             Route::middleware('permission:equipment-receipts.create')->post('/', [EquipmentReceiptController::class, 'store'])->name('store');
+            Route::middleware('permission:equipment-receipts.create')->get('/create', [EquipmentReceiptController::class, 'create'])->name('create');
+            Route::middleware('permission:equipment-receipts.update')->get('/{equipmentReceipt}/edit', [EquipmentReceiptController::class, 'edit'])->name('edit');
             Route::middleware('permission:equipment-receipts.view')->get('/{equipmentReceipt}', [EquipmentReceiptController::class, 'show'])->name('show');
             Route::middleware('permission:equipment-receipts.update')->put('/{equipmentReceipt}', [EquipmentReceiptController::class, 'update'])->name('update');
             Route::middleware('permission:equipment-receipts.delete')->delete('/{equipmentReceipt}', [EquipmentReceiptController::class, 'destroy'])->name('destroy');
@@ -837,6 +855,8 @@ Route::middleware(['auth'])
             Route::middleware('permission:equipment-issues.create|equipment-issues.update')->get('/products/dt', [EquipmentIssueController::class, 'productsDt'])->name('products.dt');
             Route::middleware('permission:equipment-issues.create')->get('/number-preview', [EquipmentIssueController::class, 'numberPreview'])->name('number-preview');
             Route::middleware('permission:equipment-issues.create')->post('/', [EquipmentIssueController::class, 'store'])->name('store');
+            Route::middleware('permission:equipment-issues.create')->get('/create', [EquipmentIssueController::class, 'create'])->name('create');
+            Route::middleware('permission:equipment-issues.update')->get('/{equipmentIssue}/edit', [EquipmentIssueController::class, 'edit'])->name('edit');
             Route::middleware('permission:equipment-issues.view')->get('/{equipmentIssue}', [EquipmentIssueController::class, 'show'])->name('show');
             Route::middleware('permission:equipment-issues.update')->put('/{equipmentIssue}', [EquipmentIssueController::class, 'update'])->name('update');
             Route::middleware('permission:equipment-issues.delete')->delete('/{equipmentIssue}', [EquipmentIssueController::class, 'destroy'])->name('destroy');
@@ -1015,10 +1035,12 @@ Route::middleware(['auth'])
             Route::middleware('permission:subcontract-semi-finished.create|subcontract-semi-finished.update')->get('/semi-finished/production-orders/dt', [SubcontractSemiFinishedController::class, 'productionOrdersDt'])->name('semi-finished.production-orders.dt');
             Route::middleware('permission:subcontract-semi-finished.create')->get('/semi-finished/number-preview', [SubcontractSemiFinishedController::class, 'numberPreview'])->name('semi-finished.number-preview');
             Route::middleware('permission:subcontract-semi-finished.create')->post('/semi-finished', [SubcontractSemiFinishedController::class, 'store'])->name('semi-finished.store');
+            Route::middleware('permission:subcontract-semi-finished.create')->get('/semi-finished/create', [SubcontractSemiFinishedController::class, 'create'])->name('semi-finished.create');
+            Route::middleware('permission:subcontract-semi-finished.update')->get('/semi-finished/{document}/edit', [SubcontractSemiFinishedController::class, 'edit'])->name('semi-finished.edit');
             Route::middleware('permission:subcontract-semi-finished.view')->get('/semi-finished/{document}', [SubcontractSemiFinishedController::class, 'show'])->name('semi-finished.show');
             Route::middleware('permission:subcontract-semi-finished.update')->put('/semi-finished/{document}', [SubcontractSemiFinishedController::class, 'update'])->name('semi-finished.update');
             Route::middleware('permission:subcontract-semi-finished.delete')->delete('/semi-finished/{document}', [SubcontractSemiFinishedController::class, 'destroy'])->name('semi-finished.destroy');
-            Route::middleware('permission:subcontractors.view|subcontract-contracts.view')->get('/', [SubcontractController::class, 'index'])->name('index');
+            Route::middleware('permission:subcontract-contracts.view')->get('/', [SubcontractController::class, 'index'])->name('index');
             Route::middleware('permission:subcontractors.view')->get('/subcontractors/dt', [SubcontractController::class, 'subcontractorsDt'])->name('subcontractors.dt');
             Route::middleware('permission:subcontractors.create')->post('/subcontractors', [SubcontractController::class, 'storeSubcontractor'])->name('subcontractors.store');
             Route::middleware('permission:subcontractors.view')->get('/subcontractors/{subcontractor}', [SubcontractController::class, 'showSubcontractor'])->name('subcontractors.show');
@@ -1026,6 +1048,9 @@ Route::middleware(['auth'])
             Route::middleware('permission:subcontractors.delete')->delete('/subcontractors/{subcontractor}', [SubcontractController::class, 'destroySubcontractor'])->name('subcontractors.destroy');
             Route::middleware('permission:subcontract-contracts.view')->get('/contracts/dt', [SubcontractController::class, 'contractsDt'])->name('contracts.dt');
             Route::middleware('permission:subcontract-contracts.create')->get('/contracts/number-preview', [SubcontractController::class, 'numberPreview'])->name('contracts.number-preview');
+            Route::middleware('permission:subcontract-contracts.create|subcontract-contracts.update')->get('/contracts/customers/dt', [SubcontractController::class, 'customersDt'])->name('contracts.customers.dt');
+            Route::middleware('permission:subcontract-contracts.create')->get('/contracts/create', [SubcontractController::class, 'createContract'])->name('contracts.create');
+            Route::middleware('permission:subcontract-contracts.update')->get('/contracts/{contract}/edit', [SubcontractController::class, 'editContract'])->name('contracts.edit');
             Route::middleware('permission:subcontract-contracts.create')->post('/contracts', [SubcontractController::class, 'storeContract'])->name('contracts.store');
             Route::middleware('permission:subcontract-contracts.view')->get('/contracts/{contract}', [SubcontractController::class, 'showContract'])->name('contracts.show');
             Route::middleware('permission:subcontract-contracts.update')->put('/contracts/{contract}', [SubcontractController::class, 'updateContract'])->name('contracts.update');
@@ -1071,6 +1096,8 @@ Route::middleware(['auth'])
 
         Route::prefix('return-to-warehouse')->name('return-to-warehouse.')->group(function () {
             Route::middleware('permission:return-to-warehouse.view')->get('/', [ProductionReturnController::class, 'index'])->name('index');
+            Route::middleware('permission:return-to-warehouse.create')->get('/create', [ProductionReturnController::class, 'index'])->name('create');
+            Route::middleware('permission:return-to-warehouse.create')->get('/orders/dt', [ProductionReturnController::class, 'ordersDt'])->name('orders.dt');
             Route::middleware('permission:return-to-warehouse.view')->get('/dt', [ProductionReturnController::class, 'dt'])->name('dt');
             Route::middleware('permission:return-to-warehouse.view')->get('/export', [ProductionReturnController::class, 'export'])->name('export');
             Route::middleware('permission:return-to-warehouse.create')->get('/products/dt', [ProductionReturnController::class, 'productsDt'])->name('products.dt');

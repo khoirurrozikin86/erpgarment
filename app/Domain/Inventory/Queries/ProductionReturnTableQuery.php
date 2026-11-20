@@ -10,7 +10,7 @@ class ProductionReturnTableQuery
     public function items(int $companyId, ?string $from = null, ?string $to = null): Builder
     {
         return ProductionReturnItem::query()->whereHas('document', fn (Builder $q) => $q->where('company_id',$companyId)->when($from,fn($q)=>$q->whereDate('return_date','>=',$from))->when($to,fn($q)=>$q->whereDate('return_date','<=',$to)))
-            ->with(['document:id,company_id,number,return_date,raw_material_order_document_id,po_supplier_number,status','document.rawMaterialOrder:id,number','product:id,code,name,unit_id,style_code','product.unit:id,name,symbol'])
+            ->with(['document:id,company_id,number,return_date,raw_material_order_document_id,po_supplier_number,status','document.rawMaterialOrder:id,number','product:id,code,name,unit_id,style_code,parent_product_id,color,size','product.parentProduct:id,code','product.unit:id,name,symbol'])
             ->select('production_return_items.*')->latest('production_return_items.created_at');
     }
 

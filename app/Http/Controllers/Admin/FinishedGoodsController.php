@@ -103,6 +103,9 @@ class FinishedGoodsController extends Controller
     public function ordersDt(CompanyContext $company, FinishedGoodsTableQuery $query): JsonResponse
     {
         return DataTables::eloquent($query->eligibleOrders($company->id()))
+            ->addColumn('parent_code', fn ($order) => $order->outputProduct?->parentProduct?->code ?? $order->outputProduct?->code ?? '—')
+            ->addColumn('sku_code', fn ($order) => $order->outputProduct?->parent_product_id ? $order->outputProduct->code : '—')
+            ->addColumn('category_label', fn ($order) => $order->outputProduct?->category?->name ?? '—')
             ->addColumn('style', fn ($order) => $order->model_style ?: '—')
             ->addColumn('item_code', fn ($order) => $order->outputProduct?->code)
             ->addColumn('item_name', fn ($order) => $order->outputProduct?->variant_display_name)->addColumn('color', fn ($order) => $order->outputProduct?->color ?: '—')->addColumn('size', fn ($order) => $order->outputProduct?->size ?: '—')->addColumn('order_quantity', fn ($order) => $order->planned_quantity ?? 0)

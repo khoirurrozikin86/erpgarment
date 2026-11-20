@@ -172,20 +172,20 @@
                                 </td>
                                 <td class="text-end">@foreach($details as $detail)
                                     @php $order = $detail; @endphp
-                                    <div class="mo-merged-detail">{{ number_format((float) $order->planned_quantity, 4, ',', '.') }}
+                                    <div class="mo-merged-detail">{{ \App\Support\DisplayNumber::format((float) $order->planned_quantity, 4) }}
                                 </div>
                                     @endforeach
                                     @php $order = $details->first(); @endphp
                                 </td>
                                 <td class="text-end">@foreach($details as $detail)
                                     @php $order = $detail; @endphp
-                                    <div class="mo-merged-detail">{{ number_format((float) $order->price_per_unit, 4, ',', '.') }}</div>
+                                    <div class="mo-merged-detail">{{ \App\Support\DisplayNumber::format((float) $order->price_per_unit, 4) }}</div>
                                     @endforeach
                                     @php $order = $details->first(); @endphp
                                 </td>
                                 <td class="text-end">@foreach($details as $detail)
                                     @php $order = $detail; @endphp
-                                    <div class="mo-merged-detail">{{ number_format((float) $order->total_price, 4, ',', '.') }}</div>
+                                    <div class="mo-merged-detail">{{ \App\Support\DisplayNumber::format((float) $order->total_price, 4) }}</div>
                                     @endforeach
                                     @php $order = $details->first(); @endphp
                                 </td>
@@ -205,13 +205,20 @@
                                         $showRequestAction = $loop->first && ($requestOrder || $needsFinishedGood) && auth()->user()->can('material-requests.create');
                                     @endphp
                                     <div class="mo-merged-detail">
-                                    @if($showRequestAction || auth()->user()->canAny(['production-orders.update', 'production-orders.delete']))
+                                    @if($loop->first || $showRequestAction || auth()->user()->canAny(['production-orders.update', 'production-orders.delete']))
                                         <div class="dropdown">
                                             <button class="btn btn-sm bg-transparent border-0 p-0" type="button"
                                                 data-bs-toggle="dropdown" aria-expanded="false"
                                                 title="{{ __('ui.common.actions') }}"><i data-feather="more-vertical"
                                                     class="icon-sm"></i></button>
                                             <ul class="dropdown-menu dropdown-menu-end">
+                                                @if($loop->first)
+                                                    <li>
+                                                        <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('super.material-orders.progress', $order) }}">
+                                                            <i data-feather="activity" class="icon-sm" aria-hidden="true"></i>{{ __('production_progress.title') }}
+                                                        </a>
+                                                    </li>
+                                                @endif
                                                 @if($showRequestAction)
                                                     <li>
                                                         @if($requestOrder)

@@ -10,6 +10,7 @@ use App\Exports\EquipmentReceiptsExport;
 use App\Http\Controllers\Controller;
 use App\Models\EquipmentReceiptDocument;
 use Illuminate\Http\{JsonResponse, Request};
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Maatwebsite\Excel\Facades\Excel;
 use Yajra\DataTables\Facades\DataTables;
@@ -17,6 +18,24 @@ use Yajra\DataTables\Facades\DataTables;
 class EquipmentReceiptController extends Controller
 {
     public function index(): View { return view('super.equipment-receipts.index'); }
+    public function create(DocumentNumberService $numbers): View
+    {
+        return view('super.equipment-receipts.form', [
+            'document' => null,
+            'number' => $numbers->preview('equipment_receipt'),
+        ]);
+    }
+
+    public function edit(EquipmentReceiptDocument $equipmentReceipt, CompanyContext $company): View
+    {
+        abort_unless((int) $equipmentReceipt->company_id === $company->id(), 404);
+
+        return view('super.equipment-receipts.form', [
+            'document' => $equipmentReceipt->load(['supplier:id,name', 'items.product.category:id,name']),
+            'number' => $equipmentReceipt->number,
+        ]);
+    }
+
     public function numberPreview(DocumentNumberService $numbers): JsonResponse { return response()->json(['number' => $numbers->preview('equipment_receipt')]); }
 
     public function dt(Request $request, CompanyContext $company, EquipmentReceiptTableQuery $query): JsonResponse
@@ -29,7 +48,7 @@ class EquipmentReceiptController extends Controller
             ->addColumn('supplier_name', fn (EquipmentReceiptDocument $r) => $r->supplier?->name ?? '—')
             ->addColumn('actions', function (EquipmentReceiptDocument $r) {
                 $items = '<li><button type="button" class="dropdown-item btn-detail-equipment" data-id="'.(int)$r->id.'">'.e(__('ui.common.detail')).'</button></li>';
-                if (auth()->user()->can('equipment-receipts.update')) $items .= '<li><button type="button" class="dropdown-item btn-edit-equipment" data-id="'.(int)$r->id.'">'.e(__('ui.common.edit')).'</button></li>';
+                if (auth()->user()->can('equipment-receipts.update')) $items .= '<li><a class="dropdown-item" href="'.e(route('super.equipment-receipts.edit', $r)).'">'.e(__('ui.common.edit')).'</a></li>';
                 if (auth()->user()->can('equipment-receipts.delete')) $items .= '<li><button type="button" class="dropdown-item text-danger btn-delete-equipment" data-id="'.(int)$r->id.'">'.e(__('ui.common.delete')).'</button></li>';
                 return '<div class="dropdown"><button class="btn btn-sm bg-transparent border-0 p-0" type="button" data-bs-toggle="dropdown"><i data-feather="more-vertical" class="icon-sm"></i></button><ul class="dropdown-menu dropdown-menu-end">'.$items.'</ul></div>';
             })->rawColumns(['actions'])->toJson();
@@ -40,7 +59,7 @@ class EquipmentReceiptController extends Controller
         return DataTables::eloquent($query->products()->with('category:id,name'))
             ->addColumn('unit_label', fn ($p) => $p->unit?->symbol ?: $p->unit?->name ?: '—')
             ->addColumn('category_label', fn ($p) => $p->category?->name ?? '—')
-            ->addColumn('actions', fn ($p) => '<button type="button" class="btn btn-sm btn-primary btn-select-equipment-product" data-id="'.(int)$p->id.'" data-code="'.e($p->code).'" data-name="'.e($p->name).'" data-unit="'.e($p->unit?->symbol ?: $p->unit?->name ?: '').'" data-price="'.e($p->purchase_price).'">'.e(__('ui.common.select')).'</button>')
+            ->addColumn('actions', fn ($p) => '<button type="button" class="btn btn-sm btn-primary btn-select-equipment-product" data-id="'.(int)$p->id.'" data-code="'.e($p->code).'" data-name="'.e($p->name).'" data-category="'.e($p->category?->name ?? '—').'" data-unit="'.e($p->unit?->symbol ?: $p->unit?->name ?: '').'" data-price="'.e($p->purchase_price).'">'.e(__('ui.common.select')).'</button>')
             ->rawColumns(['actions'])->toJson();
     }
 
@@ -61,5 +80,5 @@ class EquipmentReceiptController extends Controller
     public function destroy(Request $request, EquipmentReceiptDocument $equipmentReceipt, SaveEquipmentReceiptAction $action): JsonResponse { $action->delete($equipmentReceipt, (int)$request->user()->id); return response()->json(['message' => __('ui.machine_receipt.deleted')]); }
     public function export(Request $request, CompanyContext $company) { $f = $this->filters($request); return Excel::download(new EquipmentReceiptsExport($company->id(), $f['from_date'] ?? now()->startOfMonth()->toDateString(), $f['to_date'] ?? now()->toDateString()), 'equipment-receipts.xlsx'); }
     private function filters(Request $r): array { return $r->validate(['from_date' => ['nullable', 'date'], 'to_date' => ['nullable', 'date', 'after_or_equal:from_date']]); }
-    private function validated(Request $r): array { return $r->validate(['receipt_date' => ['required', 'date'], 'ownership_type' => ['required', 'in:own,rent'], 'invoice_number' => ['nullable', 'string', 'max:150'], 'invoice_date' => ['nullable', 'date'], 'supplier_id' => ['nullable', 'integer', 'exists:suppliers,id'], 'currency_code' => ['nullable', 'string', 'max:10'], 'description' => ['nullable', 'string', 'max:5000'], 'items' => ['required', 'array', 'min:1'], 'items.*.product_id' => ['required', 'integer', 'exists:products,id'], 'items.*.quantity' => ['required', 'numeric', 'gt:0', 'max:999999999999.9999'], 'items.*.unit_price' => ['nullable', 'numeric', 'gte:0', 'max:999999999999.9999'], 'items.*.supplier_po_number' => ['nullable', 'string', 'max:150'], 'items.*.description' => ['nullable', 'string', 'max:5000']]); }
+    private function validated(Request $r): array { return $r->validate(['receipt_date' => ['required', 'date'], 'ownership_type' => ['required', Rule::in(EquipmentReceiptDocument::OWNERSHIP_TYPES)], 'invoice_number' => ['nullable', 'string', 'max:150'], 'invoice_date' => ['nullable', 'date'], 'supplier_id' => ['nullable', 'integer', 'exists:suppliers,id'], 'currency_code' => ['nullable', 'string', 'max:10'], 'description' => ['nullable', 'string', 'max:5000'], 'items' => ['required', 'array', 'min:1'], 'items.*.product_id' => ['required', 'integer', 'exists:products,id'], 'items.*.quantity' => ['required', 'numeric', 'gt:0', 'max:999999999999.9999'], 'items.*.unit_price' => ['nullable', 'numeric', 'gte:0', 'max:999999999999.9999'], 'items.*.supplier_po_number' => ['nullable', 'string', 'max:150'], 'items.*.description' => ['nullable', 'string', 'max:5000']]); }
 }

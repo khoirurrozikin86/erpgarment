@@ -124,7 +124,7 @@ class PurchaseReturnController extends Controller
             'items' => $purchaseReturn->items->map(fn ($item) => [
                 'code' => $item->product?->code ?? '—',
                 'name' => $item->product?->name ?? __('ui.modules.item_deleted'),
-                'quantity' => number_format((float) $item->quantity, 4, ',', '.'),
+                'quantity' => \App\Support\DisplayNumber::format((float) $item->quantity, 4),
                 'unit' => $item->product?->unit?->symbol ?: $item->product?->unit?->name ?: '—',
                 'unit_price' => (float) $item->unit_price,
                 'line_total' => (float) $item->line_total,

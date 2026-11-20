@@ -106,15 +106,15 @@ class ProductController extends Controller
     public function variants(Product $product): JsonResponse
     {
         abort_if($product->parent_product_id, 404);
-        $rows = Product::where(fn ($q) => $q->whereKey($product->id)->orWhere('parent_product_id', $product->id))
+        $rows = $product->variants()
             ->with(['stock', 'unit'])->orderBy('color')->orderBy('size')->get();
         return response()->json([
             'label' => $product->code.' — '.$product->name,
             'create_url' => auth()->user()->can('products.create') && $product->is_active && $product->product_type === 'stock'
                 ? route('super.products.variants.store', $product) : null,
-            'total' => $rows->sum(fn ($row) => (float) ($row->stock?->quantity ?? 0)),
+            'total' => (float) ($product->stock?->quantity ?? 0) + $rows->sum(fn ($row) => (float) ($row->stock?->quantity ?? 0)),
             'items' => $rows->map(fn ($row) => [
-                'code' => $product->code, 'sku_code' => $row->parent_product_id ? $row->code : null, 'color' => $row->color ?: '—', 'size' => $row->size ?: '—',
+                'code' => $product->code, 'sku_code' => $row->code, 'color' => $row->color ?: '—', 'size' => $row->size ?: '—',
                 'quantity' => (float) ($row->stock?->quantity ?? 0),
                 'unit' => $row->unit?->symbol ?: $row->unit?->name,
                 'stock_card_url' => auth()->user()->can('stock-card.view') ? route('super.stock-card.index', ['product_id' => $row->id]) : null,
@@ -155,7 +155,7 @@ class ProductController extends Controller
                         : '');
             })
 
-            ->addColumn('global_stock', fn (Product $product) => number_format((float) ($product->stock?->quantity ?? 0) + $product->variants->sum(fn ($v) => (float) ($v->stock?->quantity ?? 0)), 4, ',', '.'))
+            ->addColumn('global_stock', fn (Product $product) => \App\Support\DisplayNumber::format((float) ($product->stock?->quantity ?? 0) + $product->variants->sum(fn ($v) => (float) ($v->stock?->quantity ?? 0)), 4))
             ->addColumn('variants_button', fn (Product $product) => '<button type="button" class="btn btn-sm btn-outline-primary view-item-variants" data-url="'.e(route('super.products.variants', $product)).'">'.e(__('variants.variant')).' ('.$product->variants->count().')</button>')
 
             ->addColumn('item_status', fn (Product $product) => $product->is_active

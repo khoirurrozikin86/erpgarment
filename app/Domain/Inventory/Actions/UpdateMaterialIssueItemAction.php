@@ -43,7 +43,7 @@ class UpdateMaterialIssueItemAction
 
                 $product = Product::query()->lockForUpdate()->findOrFail($item->product_id);
                 if (!$product->track_stock || (float) $stock->quantity + 0.0000001 < $quantity) {
-                    throw ValidationException::withMessages(['stock' => __('ui.workflow.material_issue_insufficient_stock', ['item' => $product->name, 'available' => number_format((float) $stock->quantity, 4, ',', '.')])]);
+                    throw ValidationException::withMessages(['stock' => __('ui.workflow.material_issue_insufficient_stock', ['item' => $product->name, 'available' => \App\Support\DisplayNumber::format((float) $stock->quantity, 4)])]);
                 }
                 $lots = InventoryLot::query()->where('product_id', $product->id)->where('current_quantity', '>', 0)
                     ->orderBy('received_at')->orderBy('id')->lockForUpdate()->get();

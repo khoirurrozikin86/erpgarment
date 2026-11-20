@@ -34,10 +34,10 @@
                     <dt>{{ __('ui.workflow.size') }}</dt><dd class="mb-0">{{ $order->line_size ?: '—' }}</dd>
                 </div>
                 <div class="col-sm-3">
-                    <dt>{{ __('ui.finished_goods.receive_from_packing') }}</dt><dd class="mb-0">{{ number_format((float) $entry->input_quantity, 4, ',', '.') }} PCS</dd>
+                    <dt>{{ __('ui.finished_goods.receive_from_packing') }}</dt><dd class="mb-0">{{ \App\Support\DisplayNumber::format((float) $entry->input_quantity, 4) }} PCS</dd>
                 </div>
                 <div class="col-sm-3">
-                    <dt>{{ __('ui.finished_goods.finished_good_quantity') }}</dt><dd class="mb-0">{{ number_format((float) $entry->good_quantity, 4, ',', '.') }} PCS</dd>
+                    <dt>{{ __('ui.finished_goods.finished_good_quantity') }}</dt><dd class="mb-0">{{ \App\Support\DisplayNumber::format((float) $entry->good_quantity, 4) }} PCS</dd>
                 </div>
             </dl>
             <div class="table-responsive">
@@ -58,7 +58,7 @@
                                 <td>{{ $material['code'] ?? '—' }}</td>
                                 <td>{{ $material['name'] ?? '—' }}</td>
                                 <td>{{ $material['unit'] ?? '—' }}</td>
-                                <td class="text-end">{{ $material['consumption_per_piece'] === null ? '—' : number_format($material['consumption_per_piece'], 4, ',', '.') }}</td>
+                                <td class="text-end">{{ $material['consumption_per_piece'] === null ? '—' : \App\Support\DisplayNumber::format($material['consumption_per_piece'], 4) }}</td>
                             </tr>
                         @empty
                             <tr><td colspan="5" class="text-center text-muted">{{ __('variants.finished_materials_empty') }}</td></tr>

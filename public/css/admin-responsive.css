@@ -170,3 +170,61 @@
         padding: .5rem .65rem;
     }
 }
+
+/* Compact screen typography for all modules using the admin layout. */
+.admin-layout {
+    font-size: 13px;
+    line-height: 1.4;
+}
+
+.admin-layout :is(.page-content, .modal) :is(h1, .h1) { font-size: 1.5rem; }
+.admin-layout :is(.page-content, .modal) :is(h2, .h2) { font-size: 1.25rem; }
+.admin-layout :is(.page-content, .modal) :is(h3, .h3) { font-size: 1.125rem; }
+.admin-layout :is(.page-content, .modal) :is(h4, .h4) { font-size: 1rem; }
+.admin-layout :is(.page-content, .modal) :is(h5, .h5, .modal-title) { font-size: .9375rem; }
+.admin-layout :is(.page-content, .modal) :is(h6, .h6, .card-title) { font-size: .8125rem; }
+
+.admin-layout :is(.page-content, .modal) :is(.table, .dataTables_wrapper, .pagination) {
+    font-size: 12px;
+}
+
+.admin-layout :is(.page-content, .modal) .table > :not(caption) > * > * {
+    padding: .3rem .45rem;
+    line-height: 1.3;
+}
+
+.admin-layout :is(.page-content, .modal) .table thead th {
+    font-size: 11px;
+    white-space: normal;
+}
+
+.admin-layout :is(.page-content, .modal) :is(.form-label, .col-form-label, .form-check-label) {
+    font-size: 12px;
+}
+
+.admin-layout :is(.page-content, .modal) .form-label {
+    margin-bottom: .25rem;
+}
+
+.admin-layout :is(.sidebar .nav-link, .navbar .nav-link, .footer) {
+    font-size: 12px;
+}
+
+@media (min-width: 768px) {
+    .admin-layout .page-wrapper .page-content {
+        padding: 16px;
+    }
+
+    .admin-layout :is(.page-content, .modal) :is(.card-header, .card-footer, .modal-header, .modal-footer) {
+        padding: .65rem .85rem;
+    }
+
+    .admin-layout :is(.page-content, .modal) :is(.card-body, .modal-body) {
+        padding: .85rem;
+    }
+
+    .admin-layout :is(.page-content, .modal) :is(.form-control, .form-select, .btn, .page-link) {
+        font-size: 12px;
+        padding-block: .3rem;
+    }
+}

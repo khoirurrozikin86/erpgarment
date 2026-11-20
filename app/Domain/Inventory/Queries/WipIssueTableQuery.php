@@ -25,6 +25,6 @@ class WipIssueTableQuery
                 $query->whereHas('category', fn (Builder $category) => $category->where('code', 'WIP')->orWhereRaw('LOWER(name) = ?', ['barang setengah jadi']))
                     ->orWhere('garment_item_type', 'work_in_process');
             })
-            ->with('unit:id,name,symbol')->select(['id', 'code', 'name', 'unit_id', 'category_id'])->orderBy('name');
+            ->with('unit:id,name,symbol')->select(['id', 'code', 'name', 'unit_id', 'category_id', 'parent_product_id', 'color', 'size'])->orderBy('name');
     }
 }

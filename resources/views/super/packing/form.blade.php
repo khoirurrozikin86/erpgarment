@@ -22,30 +22,30 @@
         @if ($entry)
             @method('PUT')
         @endif
-        <div class="card-header bg-white">
-            <h5 class="mb-0">{{ __('ui.packing.form_title') }}</h5>
-        </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label" for="packingNumber">{{ __('ui.packing.number') }}</label>
-                    <input id="packingNumber" class="form-control form-control-sm" value="{{ $packingNumber }}" readonly>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label" for="packingDate">{{ __('ui.packing.date') }}</label>
+        <div class="card-header d-flex justify-content-between align-items-center gap-2">
+    <h5 class="mb-0">{{ __('ui.packing.form_title') }}</h5>
+    <a class="btn btn-outline-secondary btn-sm" href="{{ route('super.packing.index') }}">{{ __('ui.common.back') }}</a>
+</div>
+<div class="card-body">
+            <h6 class="text-primary mb-3">{{ __('ui.common.document_details') }}</h6><div class="row gx-lg-5 gy-2"><div class="col-lg-6">
+<div class="row gx-3 gy-1 align-items-center mb-2"><label class="col-sm-4 col-form-label col-form-label-sm" for="packingNumber">{{ __('ui.packing.number') }}</label><div class="col-sm-8">
+                    <input id="packingNumber" class="form-control form-control-sm" value="{{ $packingNumber }}" readonly></div></div>
+<div class="row gx-3 gy-1 align-items-center mb-2"><label class="col-sm-4 col-form-label col-form-label-sm" for="packingDate">{{ __('ui.packing.date') }}</label><div class="col-sm-8">
                     <input type="date" name="packing_date" id="packingDate" class="form-control form-control-sm"
-                        value="{{ $entry?->processed_at?->toDateString() ?? now()->toDateString() }}" required>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label" for="packingMoLabel">{{ __('ui.packing.mo') }}</label>
+                        value="{{ $entry?->processed_at?->toDateString() ?? now()->toDateString() }}" required></div></div>
+</div><div class="col-lg-6">
+<div class="row gx-3 gy-1 align-items-center mb-2"><label class="col-sm-4 col-form-label col-form-label-sm" for="packingMoLabel">{{ __('ui.packing.mo') }}</label><div class="col-sm-8">
                     <div class="input-group input-group-sm">
-                        <input id="packingMoLabel" class="form-control" value="{{ $order?->number }}" readonly>
+                        <input id="packingMoLabel" class="form-control form-control-sm" value="{{ $order?->number }}" readonly>
                         @if (!$entry)
                             <button type="button" id="choosePackingMo" class="btn btn-outline-primary">{{ __('ui.common.search') }}</button>
                         @endif
                     </div>
-                    <input type="hidden" name="production_order_id" id="packingMoId" value="{{ $order?->id }}">
-                </div>
+                    <input type="hidden" name="production_order_id" id="packingMoId" value="{{ $order?->id }}"></div></div>
+</div></div>
+<hr class="my-3">
+<h6 class="text-primary mb-3">{{ __('ui.common.item_details') }}</h6>
+<div class="row gx-lg-5 gy-2"><div class="col-lg-6">
                 @foreach ([
                     'packingProduct' => [__('ui.packing.product_code'), $product ? $order->stageProductCode('packing').' — '.$product->variant_display_name : null],
                     'packingStyle' => [__('ui.packing.style'), $order?->model_style],
@@ -53,24 +53,27 @@
                     'packingPoBuyer' => [__('ui.packing.po_buyer'), $order?->buyer_po_number],
                     'packingAvailable' => [__('ui.packing.sewing_reception'), $available],
                 ] as $id => [$label, $value])
-                    <div class="{{ $id === 'packingProduct' ? 'col-md-4' : 'col-md-2' }}">
-                        <label class="form-label" for="{{ $id }}">{{ $label }}</label>
+                    <div class="row gx-3 gy-1 align-items-center mb-2">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="{{ $id }}">{{ $label }}</label>
+<div class="col-sm-8">
                         <input id="{{ $id }}" class="form-control form-control-sm" value="{{ $value }}" readonly>
-                    </div>
+                    </div></div>
                 @endforeach
+</div><div class="col-lg-6">
                 @foreach ([
                     'input_quantity' => ['packingQty', __('ui.packing.quantity'), $entry?->input_quantity, '0.0001'],
                     'rejected_quantity' => ['packingReject', __('ui.packing.rejected'), $entry?->rejected_quantity ?? 0, '0'],
                     'send_to_finished_goods' => ['packingFinished', __('ui.packing.send_to_finished_goods'), $entry?->good_quantity ?? 0, '0'],
                 ] as $name => [$id, $label, $value, $min])
-                    <div class="col-md-4">
-                        <label class="form-label" for="{{ $id }}">{{ $label }}</label>
+                    <div class="row gx-3 gy-1 align-items-center mb-2">
+                        <label class="col-sm-4 col-form-label col-form-label-sm" for="{{ $id }}">{{ $label }}</label>
+<div class="col-sm-8">
                         <input type="number" name="{{ $name }}" id="{{ $id }}" step="0.0001" min="{{ $min }}"
                             @if ($name === 'input_quantity' && $available !== null) max="{{ $available }}" @endif
                             value="{{ $value }}" class="form-control form-control-sm text-end" required>
-                    </div>
+                    </div></div>
                 @endforeach
-            </div>
+            </div></div>
         </div>
         <div class="card-footer d-flex justify-content-end gap-2 py-2">
             <a class="btn btn-light btn-sm" href="{{ route('super.packing.index') }}">{{ __('ui.common.cancel') }}</a>
@@ -80,7 +83,7 @@
 
     @foreach ([
         ['packingMoModal', 'packingMoTable', __('ui.packing.select_mo'), [
-            __('ui.packing.mo'), __('ui.packing.po_buyer'), __('ui.packing.style'), __('ui.packing.product_code'),
+            __('ui.packing.mo'), __('ui.packing.po_buyer'), __('ui.packing.style'), __('ui.gsn.parent_code'), __('ui.gsn.sku_code'), __('ui.wip_issue.category'),
             __('ui.packing.product_name'), __('ui.packing.sewing_reception'), __('ui.workflow.color'),
             __('ui.workflow.size'), __('ui.workflow.order_quantity'), __('ui.common.action'),
         ]],
@@ -122,7 +125,7 @@
                         {data: 'number', name: 'number'},
                         {data: 'buyer_po_number', name: 'buyer_po_number'},
                         {data: 'style', orderable: false, searchable: false},
-                        {data: 'product_code', orderable: false, searchable: false},
+                        {data: 'parent_code', orderable: false, searchable: false}, {data: 'sku_code', orderable: false, searchable: false}, {data: 'category_label', orderable: false, searchable: false},
                         {data: 'product_name', orderable: false, searchable: false},
                         {data: 'available_sewing_quantity', className: 'text-end'},
                         {data: 'color', name: 'outputProduct.color'},

@@ -318,9 +318,9 @@
             const recalculate = () => {
                 if ($('#mo_use_matrix').prop('checked')) {
                     const total = [...document.querySelectorAll('.mo-size-quantity')].reduce((sum, input) => sum + Math.max(0, Number(input.value) || 0), 0);
-                    $('#planned_quantity').val(total.toFixed(4));
+                    $('#planned_quantity').val(Number(total.toFixed(4)));
                 }
-                $('#total_price_display').val((Number($('#planned_quantity').val() || 0) * Number($('#price_per_unit').val() || 0)).toFixed(4));
+                $('#total_price_display').val(Number((Number($('#planned_quantity').val() || 0) * Number($('#price_per_unit').val() || 0)).toFixed(4)));
             };
             $('#planned_quantity,#price_per_unit').on('input', recalculate);
             const picker = document.getElementById('finishedGoodPicker');

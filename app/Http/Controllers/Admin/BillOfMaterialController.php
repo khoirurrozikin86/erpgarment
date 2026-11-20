@@ -30,7 +30,7 @@ class BillOfMaterialController extends Controller
                 ->orWhere(fn ($legacy) => $legacy->whereNull('style_code')->whereHas(
                     'product', fn ($product) => $product->whereRaw('LOWER(style_code) = ?', [mb_strtolower($code)])
                 ))))
-            ->with(['product', 'items.product.unit', 'items.product.category'])->latest('id')->get();
+            ->with(['product', 'items.product.unit', 'items.product.parentProduct:id,code', 'items.product.category'])->latest('id')->get();
 
         return view('super.boms.index', compact('boms'));
     }
@@ -134,7 +134,7 @@ class BillOfMaterialController extends Controller
     {
         $product = $this->findFinishedGood($product);
         $bills = BillOfMaterial::query()->where('company_id', $company->id())
-            ->where(fn ($q) => $q->where('product_id', $product->id)->when(filled($product->style_code), fn ($query) => $query->orWhere(fn ($style) => $style->whereNull('product_id')->where('style_code', $product->style_code))))->with('items.product.unit', 'creator')
+            ->where(fn ($q) => $q->where('product_id', $product->id)->when(filled($product->style_code), fn ($query) => $query->orWhere(fn ($style) => $style->whereNull('product_id')->where('style_code', $product->style_code))))->with('items.product.unit', 'items.product.parentProduct:id,code', 'creator')
             ->orderByDesc('version')->get();
 
         return view('super.boms.detail', compact('product', 'bills'));
@@ -164,7 +164,7 @@ class BillOfMaterialController extends Controller
 
     public function edit(BillOfMaterial $bom, CompanyContext $company): View
     {
-        $bom = $this->findForCompany($bom, $company->id())->load('items.product.unit');
+        $bom = $this->findForCompany($bom, $company->id())->load('items.product.unit', 'items.product.parentProduct:id,code');
         return view('super.boms.form', ['bom' => $bom, 'products' => $this->products(), 'finishedGoods' => collect([$bom->product])->filter(), 'styles' => $this->orderStyles($company->id()), 'components' => $bom->items]);
     }
 
@@ -217,7 +217,7 @@ class BillOfMaterialController extends Controller
         abort_unless($item->bill_of_material_id === $bom->id, 404);
         $item->delete();
 
-        return redirect()->route('super.boms.edit', $bom)->with('success', 'Rincian material BOM berhasil dihapus.');
+        return redirect()->route('super.boms.edit', $bom)->with('success', __('variants.bom_item_deleted'));
     }
 
     private function validated(Request $request, int $companyId, ?BillOfMaterial $bom = null): array
@@ -278,8 +278,8 @@ class BillOfMaterialController extends Controller
     private function products()
     {
         return $this->materialProducts()
-            ->with(['unit:id,name,symbol', 'category:id,name'])
-            ->orderBy('name')->get(['id', 'code', 'name', 'unit_id', 'category_id', 'garment_item_type', 'color', 'size']);
+            ->with(['unit:id,name,symbol', 'category:id,name', 'parentProduct:id,code'])
+            ->orderBy('name')->get(['id', 'code', 'name', 'unit_id', 'category_id', 'garment_item_type', 'color', 'size', 'parent_product_id']);
     }
 
     private function materialProducts(): \Illuminate\Database\Eloquent\Builder

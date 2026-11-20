@@ -236,11 +236,11 @@
                 </x-sidebar-group>
             @endcanany
 
-            @canany(['subcontractors.view', 'subcontract-contracts.view', 'subcontract-semi-finished.view', 'subcontract-material-issues.view', 'subcontract-wip-issues.view', 'subcontract-receipts.view'])
+            @canany(['subcontract-contracts.view', 'subcontract-semi-finished.view', 'subcontract-material-issues.view', 'subcontract-wip-issues.view', 'subcontract-receipts.view'])
                 <x-sidebar-group :label="__('ui.nav.subcontract_group')" icon="briefcase">
-                    @canany(['subcontractors.view', 'subcontract-contracts.view'])
-                        <li class="nav-item"><a href="{{ route('super.subcontract.index') }}" class="nav-link {{ request()->routeIs('super.subcontract.index', 'super.subcontract.subcontractors.*', 'super.subcontract.contracts.*') ? 'active' : '' }}"><i class="link-icon" data-feather="briefcase"></i><span class="link-title">{{ __('ui.nav.subcontract_master_contracts') }}</span></a></li>
-                    @endcanany
+                    @can('subcontract-contracts.view')
+                        <li class="nav-item"><a href="{{ route('super.subcontract.index') }}" class="nav-link {{ request()->routeIs('super.subcontract.index', 'super.subcontract.subcontractors.*', 'super.subcontract.contracts.*') ? 'active' : '' }}"><i class="link-icon" data-feather="briefcase"></i><span class="link-title">{{ __('ui.subcontract.contracts_title') }}</span></a></li>
+                    @endcan
                     @can('subcontract-semi-finished.view')
                         <li class="nav-item"><a href="{{ route('super.subcontract.semi-finished.index') }}" class="nav-link {{ request()->routeIs('super.subcontract.semi-finished.*') ? 'active' : '' }}"><i class="link-icon" data-feather="layers"></i><span class="link-title">{{ __('ui.nav.subcontract_semi_finished') }}</span></a></li>
                     @endcan

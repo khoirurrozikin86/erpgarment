@@ -10,46 +10,134 @@
 @endsection
 
 @section('content')
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div><h4 class="page-title mb-1">{{ __('ui.workflow.receipt_create_title') }}</h4><span class="text-muted">{{ __('ui.workflow.receipt_create_subtitle') }}</span></div>
-        <a href="{{ route('super.goods-receipts.index') }}" class="btn btn-outline-secondary btn-sm"><i data-feather="arrow-left" class="icon-sm me-1"></i>{{ __('ui.common.back') }}</a>
-    </div>
+    <div class="card">
+        <div class="card-header d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <h5 class="mb-0">{{ __('ui.workflow.receipt_create_title') }}</h5>
+            <a href="{{ route('super.goods-receipts.index') }}" class="btn btn-outline-secondary btn-sm">
+                <i data-feather="arrow-left" class="icon-sm me-1" aria-hidden="true"></i>{{ __('ui.common.back') }}
+            </a>
+        </div>
 
-    <form id="goodsReceiptForm">
-        @csrf
-        <div class="card mb-3"><div class="card-header d-flex justify-content-between align-items-center">
-            <h6 class="mb-0">{{ __('ui.workflow.receipt_document') }}</h6>
-            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#selectPurchaseOrderModal"><i data-feather="search" class="icon-sm me-1"></i>{{ __('ui.workflow.search_po') }}</button>
-        </div><div class="card-body">
+        <form id="goodsReceiptForm">
+            @csrf
             <input type="hidden" name="purchase_order_id" id="purchase_order_id">
-            <div class="row">
-                <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.common.po_number') }}</label><input id="selected_po_number" class="form-control" readonly placeholder="{{ __('ui.workflow.choose_po_to_receive') }}"></div>
-                <div class="col-md-4 mb-3"><label class="form-label" for="received_at">{{ __('ui.common.receipt_date') }}</label><input type="datetime-local" name="received_at" id="received_at" class="form-control" value="{{ now()->format('Y-m-d\TH:i') }}" required></div>
-                <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.common.supplier') }}</label><input id="selected_supplier" class="form-control" readonly placeholder="{{ __('ui.workflow.auto_from_po') }}"></div>
-                <div class="col-md-4 mb-3"><label class="form-label" for="invoice_number">{{ __('ui.common.invoice_number') }}</label><input name="invoice_number" id="invoice_number" class="form-control" maxlength="100"></div>
-                <div class="col-md-4 mb-3"><label class="form-label" for="invoice_date">{{ __('ui.common.invoice_date') }}</label><input type="date" name="invoice_date" id="invoice_date" class="form-control" value="{{ now()->toDateString() }}"></div>
-                <div class="col-md-4 mb-3"><label class="form-label" for="currency">{{ __('ui.common.currency') }}</label><input name="currency" id="currency" class="form-control text-uppercase" value="USD" maxlength="10" required></div>
-                <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.workflow.material_order') }}</label><input id="selected_mo_number" class="form-control" readonly placeholder="—"></div>
-                <div class="col-md-4 mb-3"><label class="form-label">{{ __('ui.workflow.style') }}</label><input id="selected_style" class="form-control" readonly placeholder="—"></div>
-                <div class="col-12"><hr class="my-1"><div class="small fw-semibold text-muted mb-2">{{ __('ui.workflow.customs_document') }}</div></div>
-                <div class="col-md-4 mb-3"><label class="form-label" for="customs_document_code">{{ __('ui.workflow.customs_document_code') }}</label><select name="customs_document_code" id="customs_document_code" class="form-select"><option value="">{{ __('ui.common.optional') }}</option>@foreach (['2.3', '2.7', '2.6.2', '4.0'] as $documentCode)<option value="{{ $documentCode }}">{{ $documentCode }}</option>@endforeach</select></div>
-                <div class="col-md-4 mb-3"><label class="form-label" for="customs_document_number">{{ __('ui.workflow.customs_document_number') }}</label><input name="customs_document_number" id="customs_document_number" class="form-control" maxlength="100"></div>
-                <div class="col-md-4 mb-3"><label class="form-label" for="customs_document_date">{{ __('ui.workflow.customs_document_date') }}</label><input type="date" name="customs_document_date" id="customs_document_date" class="form-control"></div>
-            </div>
-        </div></div>
+            <div class="card-body">
+                <section aria-labelledby="receipt-document-title">
+                    <h6 id="receipt-document-title" class="text-primary mb-3">{{ __('ui.workflow.receipt_document') }}</h6>
+                    <div class="row g-3 g-xl-4">
+                        <div class="col-lg-6">
+                            <div class="row g-2 align-items-center mb-2">
+                                <label class="col-md-4 col-form-label col-form-label-sm" for="selected_po_number">{{ __('ui.common.po_number') }}</label>
+                                <div class="col-md-8">
+                                    <div class="input-group input-group-sm">
+                                        <input id="selected_po_number" class="form-control" readonly placeholder="{{ __('ui.workflow.choose_po_to_receive') }}">
+                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#selectPurchaseOrderModal">
+                                            <i data-feather="search" class="icon-sm me-1" aria-hidden="true"></i>{{ __('ui.workflow.search_po') }}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row g-2 align-items-center mb-2">
+                                <label class="col-md-4 col-form-label col-form-label-sm" for="received_at">{{ __('ui.common.receipt_date') }}</label>
+                                <div class="col-md-8">
+                                    <input type="datetime-local" name="received_at" id="received_at" class="form-control form-control-sm" value="{{ now()->format('Y-m-d\TH:i') }}" required>
+                                </div>
+                            </div>
+                            <div class="row g-2 align-items-center mb-2">
+                                <label class="col-md-4 col-form-label col-form-label-sm" for="selected_supplier">{{ __('ui.common.supplier') }}</label>
+                                <div class="col-md-8">
+                                    <input id="selected_supplier" class="form-control form-control-sm" readonly placeholder="{{ __('ui.workflow.auto_from_po') }}">
+                                </div>
+                            </div>
+                            <div class="row g-2 align-items-center mb-2">
+                                <label class="col-md-4 col-form-label col-form-label-sm" for="currency">{{ __('ui.common.currency') }}</label>
+                                <div class="col-md-8">
+                                    <input name="currency" id="currency" class="form-control form-control-sm text-uppercase" value="USD" maxlength="10" required>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="row g-2 align-items-center mb-2">
+                                <label class="col-md-4 col-form-label col-form-label-sm" for="invoice_number">{{ __('ui.common.invoice_number') }}</label>
+                                <div class="col-md-8">
+                                    <input name="invoice_number" id="invoice_number" class="form-control form-control-sm" maxlength="100">
+                                </div>
+                            </div>
+                            <div class="row g-2 align-items-center mb-2">
+                                <label class="col-md-4 col-form-label col-form-label-sm" for="invoice_date">{{ __('ui.common.invoice_date') }}</label>
+                                <div class="col-md-8">
+                                    <input type="date" name="invoice_date" id="invoice_date" class="form-control form-control-sm" value="{{ now()->toDateString() }}">
+                                </div>
+                            </div>
+                            <div class="row g-2 align-items-center mb-2">
+                                <label class="col-md-4 col-form-label col-form-label-sm" for="selected_mo_number">{{ __('ui.workflow.material_order') }}</label>
+                                <div class="col-md-8">
+                                    <input id="selected_mo_number" class="form-control form-control-sm" readonly placeholder="—">
+                                </div>
+                            </div>
+                            <div class="row g-2 align-items-center mb-2">
+                                <label class="col-md-4 col-form-label col-form-label-sm" for="selected_style">{{ __('ui.workflow.style') }}</label>
+                                <div class="col-md-8">
+                                    <input id="selected_style" class="form-control form-control-sm" readonly placeholder="—">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
 
-        <div class="card mb-3"><div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
-            <h6 class="mb-0">{{ __('ui.workflow.received_items') }}</h6>
-            <button type="button" id="fillReceiptQuantities" class="btn btn-outline-primary btn-sm" disabled>{{ __('ui.workflow.fill_receipt_quantities') }}</button>
-        </div><div class="card-body">
-            <div class="table-responsive"><table class="table table-bordered align-middle">
-                <thead><tr><th>{{ __('ui.workflow.item_code') }} / {{ __('ui.common.item') }}</th><th>{{ __('ui.workflow.style') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th class="text-end">{{ __('ui.workflow.ordered') }}</th><th class="text-end">{{ __('ui.workflow.received_previously') }}</th><th class="text-end">{{ __('ui.common.remaining') }}</th><th class="text-end">{{ __('ui.common.unit_price') }}</th><th style="min-width:330px">{{ __('ui.workflow.receive_now') }} / {{ __('ui.workflow.lot_roll') }}</th><th class="text-end">{{ __('ui.common.total') }}</th></tr></thead>
-                <tbody id="receiptItems"><tr><td colspan="10" class="text-center text-muted py-4">{{ __('ui.workflow.choose_po_load_items') }}</td></tr></tbody>
-            </table></div>
-            <div class="mb-3"><label class="form-label" for="notes">{{ __('ui.common.notes') }}</label><textarea name="notes" id="notes" class="form-control" rows="2" maxlength="5000" placeholder="{{ __('ui.workflow.receipt_notes_placeholder') }}"></textarea></div>
-        </div></div>
-        <div class="d-flex justify-content-end gap-2"><a href="{{ route('super.goods-receipts.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('ui.common.cancel') }}</a><button type="submit" id="submitReceipt" class="btn btn-primary btn-sm" disabled><i data-feather="check" class="icon-sm me-1"></i>{{ __('ui.workflow.save_receipt') }}</button></div>
-    </form>
+                <section class="border-top mt-3 pt-3" aria-labelledby="receipt-customs-title">
+                    <h6 id="receipt-customs-title" class="text-primary mb-3">{{ __('ui.workflow.customs_document') }}</h6>
+                    <div class="row g-3 g-xl-4">
+                        <div class="col-lg-6">
+                            <div class="row g-2 align-items-center mb-2">
+                                <label class="col-md-4 col-form-label col-form-label-sm" for="customs_document_code">{{ __('ui.workflow.customs_document_code') }}</label>
+                                <div class="col-md-8">
+                                    <select name="customs_document_code" id="customs_document_code" class="form-select form-select-sm"><option value="">{{ __('ui.common.optional') }}</option>@foreach (['2.3', '2.7', '2.6.2', '4.0'] as $documentCode)<option value="{{ $documentCode }}">{{ $documentCode }}</option>@endforeach</select>
+                                </div>
+                            </div>
+                            <div class="row g-2 align-items-center mb-2">
+                                <label class="col-md-4 col-form-label col-form-label-sm" for="customs_document_number">{{ __('ui.workflow.customs_document_number') }}</label>
+                                <div class="col-md-8">
+                                    <input name="customs_document_number" id="customs_document_number" class="form-control form-control-sm" maxlength="100">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="row g-2 align-items-center mb-2">
+                                <label class="col-md-4 col-form-label col-form-label-sm" for="customs_document_date">{{ __('ui.workflow.customs_document_date') }}</label>
+                                <div class="col-md-8">
+                                    <input type="date" name="customs_document_date" id="customs_document_date" class="form-control form-control-sm">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="border-top mt-3 pt-3" aria-labelledby="receipt-items-title">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                        <h6 id="receipt-items-title" class="text-primary mb-0">{{ __('ui.workflow.received_items') }}</h6>
+                        <button type="button" id="fillReceiptQuantities" class="btn btn-outline-primary btn-sm" disabled>{{ __('ui.workflow.fill_receipt_quantities') }}</button>
+                    </div>
+                    <div class="table-responsive"><table class="table table-bordered align-middle">
+                        <thead><tr><th>{{ __('ui.workflow.item_code') }} / {{ __('ui.common.item') }}</th><th>{{ __('ui.workflow.style') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th class="text-end">{{ __('ui.workflow.ordered') }}</th><th class="text-end">{{ __('ui.workflow.received_previously') }}</th><th class="text-end">{{ __('ui.common.remaining') }}</th><th class="text-end">{{ __('ui.common.unit_price') }}</th><th style="min-width:330px">{{ __('ui.workflow.receive_now') }} / {{ __('ui.workflow.lot_roll') }}</th><th class="text-end">{{ __('ui.common.total') }}</th></tr></thead>
+                        <tbody id="receiptItems"><tr><td colspan="10" class="text-center text-muted py-4">{{ __('ui.workflow.choose_po_load_items') }}</td></tr></tbody>
+                    </table></div>
+                    <div class="row g-2 align-items-start mt-2">
+                        <label class="col-md-2 col-form-label col-form-label-sm" for="notes">{{ __('ui.common.notes') }}</label>
+                        <div class="col-md-10">
+                            <textarea name="notes" id="notes" class="form-control form-control-sm" rows="2" maxlength="5000" placeholder="{{ __('ui.workflow.receipt_notes_placeholder') }}"></textarea>
+                        </div>
+                    </div>
+                </section>
+            </div>
+            <div class="card-footer d-flex flex-wrap justify-content-end gap-2">
+                <a href="{{ route('super.goods-receipts.index') }}" class="btn btn-outline-secondary btn-sm">{{ __('ui.common.cancel') }}</a>
+                <button type="submit" id="submitReceipt" class="btn btn-primary btn-sm" disabled>
+                    <i data-feather="save" class="icon-sm me-1" aria-hidden="true"></i>{{ __('ui.workflow.save_receipt') }}
+                </button>
+            </div>
+        </form>
+    </div>
 
     <div class="modal fade" id="selectPurchaseOrderModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content">
@@ -132,14 +220,14 @@
                     const [first, ...otherLots] = entries.find('.receipt-quantity').get();
                     const otherQuantity = otherLots.reduce((sum, input) => sum + Number(input.value || 0), 0);
                     const remaining = Number(entries.data('remaining'));
-                    first.value = Math.max(0, remaining - otherQuantity).toFixed(4);
+                    first.value = Number(Math.max(0, remaining - otherQuantity).toFixed(4));
                     recalculateItemTotal(entries.closest('tr'));
                 });
             });
             function recalculateItemTotal(row) {
                 const quantity = row.find('.receipt-quantity').toArray().reduce((total, input) => total + Number(input.value || 0), 0);
                 const price = Number(row.find('.receipt-item-total').data('unit-price') || 0);
-                row.find('.receipt-item-total').text((quantity * price).toLocaleString('id-ID', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                row.find('.receipt-item-total').text((quantity * price).toLocaleString('id-ID', { minimumFractionDigits: 0, maximumFractionDigits: 2 }));
             }
             $(document).on('input', '.receipt-quantity', function() { recalculateItemTotal($(this).closest('tr')); });
 

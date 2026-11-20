@@ -49,8 +49,8 @@ class StockController extends Controller
             'lot_number' => $lot->lot_number,
             'received_at' => $lot->received_at?->format('d/m/Y H:i') ?? '—',
             'supplier' => $lot->supplier?->name ?? '—',
-            'initial_quantity' => number_format((float) $lot->initial_quantity, 4, ',', '.'),
-            'current_quantity' => number_format((float) $lot->current_quantity, 4, ',', '.'),
+            'initial_quantity' => \App\Support\DisplayNumber::format((float) $lot->initial_quantity, 4),
+            'current_quantity' => \App\Support\DisplayNumber::format((float) $lot->current_quantity, 4),
             'source_type' => $lot->source_type,
             'customs_documents' => $lot->receiptItems->map(fn ($item) => $item->goodsReceipt)
                 ->filter(fn ($receipt) => $receipt?->customs_document_number)

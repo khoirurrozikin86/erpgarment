@@ -12,7 +12,7 @@
 $(function() {
     const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('apHistoryModal'));
     const safe = value => $('<div>').text(value ?? '').html();
-    const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 2 }).format(Number(value || 0));
+    const money = value => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(Number(value || 0));
     const table = $('#ap-table').DataTable({
         processing: true, serverSide: true, responsive: true,
         ajax: { url: @json(route('super.account-payable.dt')), data: data => { data.from_date = $('#from_date').val(); data.to_date = $('#to_date').val(); } },

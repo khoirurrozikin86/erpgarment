@@ -1,6 +1,7 @@
 <?php
 
 return [
+    'no_item_variants' => 'Barang ini belum memiliki varian.',
     'master_style' => 'Master Style',
     'style_in_use' => 'Style masih digunakan oleh Production Order atau BOM.',
     'style_deleted' => 'Style berhasil dihapus.',
@@ -132,6 +133,8 @@ return [
     'bom_type_general' => 'Umum',
     'bom_selection_required' => 'Style ini memiliki beberapa BOM aktif. Pilih BOM yang sesuai, misalnya Fabric atau Aksesoris.',
     'bom_style_locked' => 'Style BOM yang sudah digunakan tidak dapat diganti.',
+    'bom_item_delete_confirm' => 'Hapus rincian material ini?',
+    'bom_item_deleted' => 'Rincian material BOM berhasil dihapus.',
     'bom_delete_confirm' => 'Hapus BOM dari daftar? MO dan MR yang sudah dibuat tetap tersimpan beserta riwayat kebutuhan bahannya.',
     'bom_manual_help' => 'Pilih master Style, lalu isi bahan dan consumption sesuai proses produksi. Nomor BOM dibuat otomatis saat disimpan.',
     'variant' => 'Varian',
@@ -163,6 +166,7 @@ return [
     'stock_card_all_skus' => 'Semua SKU',
     'raw_mo_production_summary' => 'Ringkasan Produksi MO',
     'raw_mo_production_quantity' => 'Qty Produksi',
+    'mr_bom_no_remaining_items' => 'Tidak ada sisa kebutuhan dari BOM ini. Kebutuhan sudah dicakup oleh Material Request aktif atau bahan yang telah dikeluarkan.',
     'raw_mo_no_active_bom_materials' => 'Belum ada kebutuhan bahan dari BOM aktif untuk MO dan jenis BOM yang dipilih.',
     'inventory_global_closing' => 'Saldo Akhir Induk',
     'inventory_minimum_balance' => 'Batas Minimum',
