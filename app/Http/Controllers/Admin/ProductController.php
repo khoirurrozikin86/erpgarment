@@ -4,12 +4,14 @@ namespace App\Http\Controllers\Admin;
 
 use App\Domain\Products\Queries\ProductTableQuery;
 use App\Domain\Products\Services\ProductService;
+use App\Domain\Products\Services\ProductVariantService;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ProductStoreRequest;
 use App\Http\Requests\Admin\ProductUpdateRequest;
 use App\Models\Category;
 use App\Models\Product;
 use App\Models\Unit;
+use App\Models\VariantDimension;
 use App\Exports\ProductsExport;
 use App\Imports\ProductsImport;
 use Maatwebsite\Excel\Facades\Excel;
@@ -19,6 +21,7 @@ use Illuminate\Validation\ValidationException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 use App\Domain\Products\Services\ProductImageService;
 
@@ -47,8 +50,11 @@ class ProductController extends Controller
         return view('super.products.index', compact(
             'parentProducts',
             'categories',
-            'units'
-        ));
+            'units',
+        ) + [
+            'variantColors' => VariantDimension::options('color')->pluck('code'),
+            'variantSizes' => VariantDimension::options('size')->pluck('code'),
+        ]);
     }
 
     public function export()
@@ -58,7 +64,11 @@ class ProductController extends Controller
 
     public function template()
     {
-        return Excel::download(new ProductsTemplateExport(), 'template-barang.xlsx');
+        $units = Unit::where('is_active', true)->orderBy('name')->orderBy('code')->get(['code', 'name']);
+
+        $categories = Category::where('is_active', true)->orderBy('name')->orderBy('code')->get(['code', 'name']);
+
+        return Excel::download(new ProductsTemplateExport($units, $categories), 'template-barang.xlsx');
     }
 
     public function import(Request $request)
@@ -100,14 +110,31 @@ class ProductController extends Controller
             ->with(['stock', 'unit'])->orderBy('color')->orderBy('size')->get();
         return response()->json([
             'label' => $product->code.' — '.$product->name,
+            'create_url' => auth()->user()->can('products.create') && $product->is_active && $product->product_type === 'stock'
+                ? route('super.products.variants.store', $product) : null,
             'total' => $rows->sum(fn ($row) => (float) ($row->stock?->quantity ?? 0)),
             'items' => $rows->map(fn ($row) => [
-                'code' => $product->code, 'color' => $row->color ?: '—', 'size' => $row->size ?: '—',
+                'code' => $product->code, 'sku_code' => $row->parent_product_id ? $row->code : null, 'color' => $row->color ?: '—', 'size' => $row->size ?: '—',
                 'quantity' => (float) ($row->stock?->quantity ?? 0),
                 'unit' => $row->unit?->symbol ?: $row->unit?->name,
                 'stock_card_url' => auth()->user()->can('stock-card.view') ? route('super.stock-card.index', ['product_id' => $row->id]) : null,
             ]),
         ]);
+    }
+
+    public function storeVariant(Request $request, Product $product, ProductVariantService $variants): JsonResponse
+    {
+        abort_if($product->parent_product_id, 404);
+        $data = $request->validate([
+            'color' => ['required_without:size', 'nullable', 'string', 'max:100'],
+            'size' => ['required_without:color', 'nullable', 'string', 'max:100'],
+        ]);
+
+        $color = filled($data['color'] ?? null) ? VariantDimension::resolve('color', $data['color'], 'color', 1) : '';
+        $size = filled($data['size'] ?? null) ? VariantDimension::resolve('size', $data['size'], 'size', 1) : null;
+        $variant = DB::transaction(fn () => $variants->resolve($product->id, $color, $size));
+
+        return response()->json(['code' => $variant->code]);
     }
 
     public function dt(ProductTableQuery $query): JsonResponse

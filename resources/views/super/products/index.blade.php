@@ -311,6 +311,7 @@
                 const button = $(this).prop('disabled', true);
                 $.getJSON(button.attr('data-url')).done(result => {
                     const headings = [
+                        @json(__('variants.stock_parent_code')), @json(__('variants.stock_sku')),
                         @json(__('ui.workflow.color')), @json(__('ui.workflow.size')),
                         @json(__('ui.common.unit')), @json(__('ui.common.quantity')),
                         @json(__('ui.common.action'))
@@ -320,6 +321,8 @@
                     const format = new Intl.NumberFormat(@json(app()->getLocale()), {maximumFractionDigits: 4});
                     result.items.forEach(item => {
                         const row = $('<tr>').append(
+                            $('<td>').text(item.code),
+                            $('<td>').text(item.sku_code ?? '—'),
                             $('<td>').text(item.color),
                             $('<td>').text(item.size),
                             $('<td>').text(item.unit || '—'),
@@ -337,7 +340,64 @@
                     const total = $('<p class="small text-muted mt-2 mb-0">')
                         .text(@json(__('variants.global_stock')) + ' ' + format.format(result.total));
                     content.append(total);
-                    Swal.fire({titleText: result.label, html: content[0], width: 720});
+                    if (!result.create_url) {
+                        Swal.fire({titleText: result.label, html: content[0], width: 840});
+                        return;
+                    }
+
+                    const dimensions = [
+                        {key: 'color', label: @json(__('ui.workflow.color')), options: @json($variantColors)},
+                        {key: 'size', label: @json(__('ui.workflow.size')), options: @json($variantSizes)},
+                    ];
+                    const fields = $('<div class="row g-2 mt-2 text-start">');
+                    const selects = {};
+                    dimensions.forEach(({key, label, options}) => {
+                        const id = 'product-variant-' + key;
+                        const select = $('<select class="form-select form-select-sm">').attr('id', id)
+                            .append(new Option('—', ''));
+                        options.forEach(code => select.append(new Option(code, code)));
+                        selects[key] = select;
+                        fields.append($('<div class="col-sm-6">').append(
+                            $('<label class="form-label">').attr('for', id).text(label), select
+                        ));
+                    });
+                    const dialog = $('<div>').append(content, fields);
+
+                    Swal.fire({
+                        titleText: result.label,
+                        html: dialog[0],
+                        width: 840,
+                        showCancelButton: true,
+                        cancelButtonText: @json(__('ui.common.close')),
+                        confirmButtonText: @json(__('variants.create_sku')),
+                        showLoaderOnConfirm: true,
+                        allowOutsideClick: () => !Swal.isLoading(),
+                        preConfirm: async () => {
+                            const color = selects.color.val();
+                            const size = selects.size.val();
+                            if (!color && !size) {
+                                Swal.showValidationMessage(@json(__('variants.select_sku_dimension')));
+                                return false;
+                            }
+                            try {
+                                return await $.ajax({
+                                    url: result.create_url,
+                                    type: 'POST',
+                                    data: {_token: @json(csrf_token()), color, size},
+                                    headers: {Accept: 'application/json'},
+                                });
+                            } catch (xhr) {
+                                const errors = xhr.responseJSON?.errors;
+                                const message = errors ? Object.values(errors).flat()[0] : xhr.responseJSON?.message;
+                                Swal.showValidationMessage($('<div>').text(message || @json(__('ui.workflow.failure'))).html());
+                                return false;
+                            }
+                        },
+                    }).then(response => {
+                        if (!response.isConfirmed) return;
+                        table.ajax.reload(null, false);
+                        Swal.fire({icon: 'success', titleText: @json(__('variants.sku_ready')), text: response.value.code});
+                    });
                 }).fail(() => Swal.fire({icon: 'error', text: @json(__('ui.workflow.failure'))}))
                     .always(() => button.prop('disabled', false));
             });

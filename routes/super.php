@@ -1145,6 +1145,7 @@ Route::middleware(['auth'])
                     ->name('dt');
 
                 Route::middleware('permission:products.view')->get('/{product}/variants', [ProductController::class, 'variants'])->name('variants');
+                Route::middleware('permission:products.create')->post('/{product}/variants', [ProductController::class, 'storeVariant'])->name('variants.store');
 
                 Route::middleware('permission:products.view')
                     ->get('/export', [ProductController::class, 'export'])

@@ -20,7 +20,7 @@ class ProductVariantService
     }
 
     // Caller owns the transaction: lock the root before looking up or creating children.
-    public function resolve(int $productId, string $color, ?string $size): Product
+    public function resolve(int $productId, string $color, ?string $size, ?string $requestedCode = null): Product
     {
         $selected = Product::findOrFail($productId);
         $parent = Product::lockForUpdate()->findOrFail($selected->parent_product_id ?: $selected->id);
@@ -32,21 +32,30 @@ class ProductVariantService
         }
         $dimensions = [mb_strtolower($color), mb_strtolower($size ?? '')];
         if (($parent->color || $parent->size) && $dimensions === [mb_strtolower(trim($parent->color ?? '')), mb_strtolower(trim($parent->size ?? ''))]) {
+            if ($requestedCode !== null && strcasecmp($parent->code, $requestedCode) !== 0) {
+                throw ValidationException::withMessages(['code' => __('variants.sku_code_mismatch', ['code' => $parent->code])]);
+            }
             return $parent;
         }
         $key = hash('sha256', json_encode($dimensions));
         $variant = $parent->variants()->where('variant_key', $key)->first();
         if ($variant) {
             if (!$variant->is_active) throw ValidationException::withMessages(['order_color' => __('variants.inactive')]);
+            if ($requestedCode !== null && strcasecmp($variant->code, $requestedCode) !== 0) {
+                throw ValidationException::withMessages(['code' => __('variants.sku_code_mismatch', ['code' => $variant->code])]);
+            }
             return $variant;
         }
         $suffix = strtoupper(substr(Str::slug($color . '-' . $size), 0, 15));
+        if ($requestedCode !== null && Product::query()->where('code', $requestedCode)->exists()) {
+            throw ValidationException::withMessages(['code' => __('variants.sku_code_used', ['code' => $requestedCode])]);
+        }
         $attributes = $parent->only([
             'name', 'category_id', 'unit_id', 'product_type', 'garment_item_type',
             'purchase_price', 'min_stock', 'max_stock', 'reorder_point', 'track_stock', 'is_available',
         ]);
         $attributes += [
-            'code' => substr($parent->code, 0, 24) . '-' . $suffix . '-' . strtoupper(substr($key, 0, 8)),
+            'code' => $requestedCode ?? substr($parent->code, 0, 24) . '-' . $suffix . '-' . strtoupper(substr($key, 0, 8)),
             'parent_product_id' => $parent->id, 'color' => $color, 'size' => $size, 'is_active' => true,
         ];
         return app(CreateProductAction::class)(ProductData::fromArray($attributes));

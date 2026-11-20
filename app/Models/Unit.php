@@ -25,6 +25,11 @@ class Unit extends Model
         ];
     }
 
+    public function importLabel(): string
+    {
+        return $this->name.' ['.$this->code.']';
+    }
+
     public function products(): HasMany
     {
         return $this->hasMany(Product::class);

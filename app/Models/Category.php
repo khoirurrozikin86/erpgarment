@@ -28,4 +28,8 @@ class Category extends Model
     {
         return $this->hasMany(Product::class);
     }
+    public function importLabel(): string
+    {
+        return $this->name.' ['.$this->code.']';
+    }
 }
