@@ -45,7 +45,7 @@
         <div class="card-body table-responsive">
             <table class="table table-sm table-bordered align-middle mb-0">
                 <thead><tr>
-                    <th>{{ __('variants.stock_sku') }}</th>
+                    <th>{{ __('variants.stock_parent_code') }}</th><th>{{ __('variants.stock_sku') }}</th>
                     <th>{{ __('ui.workflow.color') }}</th>
                     <th>{{ __('ui.workflow.size') }}</th>
                     <th class="text-end">{{ __('ui.common.opening_period_balance') }}</th>
@@ -60,7 +60,7 @@
 
     <div class="card"><div class="card-body"><div class="table-responsive">
         <table id="stock-card-table" class="table table-bordered table-hover align-middle w-100">
-            <thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.workflow.recorded_at') }}</th><th>{{ __('variants.stock_sku') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th>{{ __('ui.workflow.document_number') }}</th><th>{{ __('ui.workflow.lot_roll') }}</th><th>{{ __('ui.common.type') }}</th><th class="text-end">{{ __('ui.common.enter') }}</th><th class="text-end">{{ __('ui.common.exit') }}</th><th class="text-end">{{ __('ui.common.balance') }}</th><th>{{ __('ui.common.unit') }}</th><th>{{ __('ui.common.notes') }}</th></tr></thead>
+            <thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.workflow.recorded_at') }}</th><th>{{ __('variants.stock_parent_code') }}</th><th>{{ __('variants.stock_sku') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th>{{ __('ui.workflow.document_number') }}</th><th>{{ __('ui.workflow.lot_roll') }}</th><th>{{ __('ui.common.type') }}</th><th class="text-end">{{ __('ui.common.enter') }}</th><th class="text-end">{{ __('ui.common.exit') }}</th><th class="text-end">{{ __('ui.common.balance') }}</th><th>{{ __('ui.common.unit') }}</th><th>{{ __('ui.common.notes') }}</th></tr></thead>
         </table>
     </div></div></div>
 
@@ -95,6 +95,7 @@
                 columns: [
                     { data: 'id', orderable: false, searchable: false, render: (data, type, row, meta) => meta.row + meta.settings._iDisplayStart + 1 },
                     { data: 'created_at', name: 'created_at', render: data => data ? new Date(data).toLocaleString('id-ID') : '—' },
+                    { data: 'parent_code', orderable: false, searchable: false },
                     { data: 'sku_code', orderable: false, searchable: false },
                     { data: 'sku_color', orderable: false, searchable: false },
                     { data: 'sku_size', orderable: false, searchable: false },
@@ -189,6 +190,7 @@
 
                     if (summary.details) {
                         const rows = summary.details.map(sku => `<tr>
+                            <td>${safe(sku.parent_code)}</td>
                             <td>${safe(sku.code)}</td>
                             <td>${safe(sku.color ?? '—')}</td>
                             <td>${safe(sku.size ?? '—')}</td>

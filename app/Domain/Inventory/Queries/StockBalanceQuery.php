@@ -77,7 +77,7 @@ class StockBalanceQuery
     private function status(float $quantity, float $threshold): string
     {
         return match (true) {
-            $threshold > 0 && $quantity <= 0 => 'out_of_stock',
+            $quantity <= 0 => 'out_of_stock',
             $threshold > 0 && $quantity <= $threshold => 'low_stock',
             default => 'safe_stock',
         };

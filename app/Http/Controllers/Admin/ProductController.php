@@ -131,9 +131,9 @@ class ProductController extends Controller
             ->addColumn('global_stock', fn (Product $product) => number_format((float) ($product->stock?->quantity ?? 0) + $product->variants->sum(fn ($v) => (float) ($v->stock?->quantity ?? 0)), 4, ',', '.'))
             ->addColumn('variants_button', fn (Product $product) => '<button type="button" class="btn btn-sm btn-outline-primary view-item-variants" data-url="'.e(route('super.products.variants', $product)).'">'.e(__('variants.variant')).' ('.$product->variants->count().')</button>')
 
-            ->addColumn('availability', fn (Product $product) => $product->is_available
-                ? '<span class="badge bg-success">Masih Ada</span>'
-                : '<span class="badge bg-secondary">Tidak Ada</span>')
+            ->addColumn('item_status', fn (Product $product) => $product->is_active
+                ? '<span class="badge bg-success">'.e(__('ui.common.active')).'</span>'
+                : '<span class="badge bg-secondary">'.e(__('ui.common.inactive')).'</span>')
 
             ->addColumn('actions', function (Product $product) {
                 $actions = [
@@ -188,7 +188,7 @@ class ProductController extends Controller
                 )->render();
             })
 
-            ->rawColumns(['availability', 'actions', 'variants_button'])
+            ->rawColumns(['item_status', 'actions', 'variants_button'])
 
             ->toJson();
     }

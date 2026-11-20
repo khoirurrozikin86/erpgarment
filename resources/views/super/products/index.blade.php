@@ -78,7 +78,7 @@
                                 <th>{{ __('ui.common.item_name') }}</th>
                                 <th>{{ __('ui.common.unit') }}</th>
                                 <th>{{ __('variants.global_stock') }}</th>
-                                <th>Available</th>
+                                <th>{{ __('ui.common.status') }}</th>
                                 <th width="70">{{ __('ui.common.actions') }}</th>
                             </tr>
                         </thead>
@@ -194,10 +194,10 @@
                             <input type="hidden" id="size" name="size">
                             <div class="col-12 mb-3"><small class="text-muted">{{ __('variants.item_parent_hint') }}</small></div>
                             <div class="col-md-6 mb-3">
-                                <label class="form-label" for="is_available">Available</label>
-                                <select class="form-select" id="is_available" name="is_available" required>
-                                    <option value="1">Masih Ada</option>
-                                    <option value="0">Tidak Ada</option>
+                                <label class="form-label" for="is_active">{{ __('ui.common.status') }}</label>
+                                <select class="form-select" id="is_active" name="is_active" required>
+                                    <option value="1">{{ __('ui.common.active') }}</option>
+                                    <option value="0">{{ __('ui.common.inactive') }}</option>
                                 </select>
                             </div>
                         </div>
@@ -210,7 +210,7 @@
                         <input type="hidden" id="max_stock" name="max_stock" value="0">
                         <input type="hidden" id="reorder_point" name="reorder_point" value="0">
                         <input type="hidden" id="track_stock" name="track_stock" value="1">
-                        <input type="hidden" id="is_active" name="is_active" value="1">
+                        <input type="hidden" id="is_available" name="is_available" value="1">
                     </div>
 
                     <div class="modal-footer">
@@ -392,8 +392,8 @@
                         }
                     },
                     {
-                        data: 'availability',
-                        name: 'is_available',
+                        data: 'item_status',
+                        name: 'is_active',
                         orderable: true,
                         searchable: false,
                         className: 'text-center'

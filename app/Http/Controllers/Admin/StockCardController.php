@@ -68,6 +68,7 @@ class StockCardController extends Controller
             $filters['to_date'] ?? now()->toDateString(),
             (bool) ($filters['family'] ?? false),
         ))
+            ->addColumn('parent_code', fn (StockMovement $movement) => $movement->product?->parentProduct?->code ?? $movement->product?->code ?? '—')
             ->addColumn('sku_code', fn (StockMovement $movement) => $movement->product?->code ?? '—')
             ->addColumn('sku_color', fn (StockMovement $movement) => $movement->product?->color ?? '—')
             ->addColumn('sku_size', fn (StockMovement $movement) => $movement->product?->size ?? '—')

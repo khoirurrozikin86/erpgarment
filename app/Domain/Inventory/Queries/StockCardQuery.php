@@ -79,7 +79,7 @@ class StockCardQuery
             ->with('stock:id,product_id,quantity')
             ->where(fn (Builder $items) => $items->whereKey($parent->id)->orWhere('parent_product_id', $parent->id))
             ->get()->map(fn (Product $sku) => [
-                'id' => $sku->id, 'code' => $sku->code, 'color' => $sku->color, 'size' => $sku->size,
+                'id' => $sku->id, 'parent_code' => $parent->code, 'code' => $sku->code, 'color' => $sku->color, 'size' => $sku->size,
                 'opening_balance' => (float) ($sku->opening_balance ?? 0),
                 'quantity_in' => (float) ($sku->quantity_in ?? 0),
                 'quantity_out' => abs((float) ($sku->quantity_out ?? 0)),
