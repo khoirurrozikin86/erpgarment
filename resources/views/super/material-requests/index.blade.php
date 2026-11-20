@@ -20,28 +20,30 @@
     </style>
     @if(!$isCreatePage)
     <div class="row">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="mobile-list-header d-flex justify-content-between align-items-center mb-3">
             <div>
                 <h4 class="page-title mb-1">{{ __('ui.common.material_request') }}</h4>
                 <span class="text-muted">{{ __('ui.workflow.mr_subtitle') }}</span>
             </div>
-            <div class="d-flex gap-2">
+            <div class="mobile-list-actions d-flex flex-wrap gap-2">
                 @can('material-requests.view')
                     <a href="{{ route('super.material-requests.export') }}" id="exportMaterialRequests" class="btn btn-outline-success btn-sm">
-                        <i data-feather="download" class="icon-sm me-1"></i>{{ __('ui.common.export_excel') }}</a>
+                        <i data-feather="download" class="icon-sm me-1"></i>
+                        <span class="mobile-list-action-label">{{ __('ui.common.export_excel') }}</span></a>
                 @endcan
                 @can('material-requests.create')
-                    <a class="btn btn-primary btn-sm" href="{{ route('super.material-requests.create') }}"><i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.workflow.create_request') }}</a>
+                    <a class="btn btn-primary btn-sm" href="{{ route('super.material-requests.create') }}"><i data-feather="plus" class="icon-sm me-1"></i>
+                        <span class="mobile-list-action-label">{{ __('ui.workflow.create_request') }}</span></a>
                 @endcan
             </div>
         </div>
 
         <div class="col-12">
-            @include('super.purchasing.date-filter')
+            @include('super.purchasing.date-filter', ['compactActions' => true])
             <div class="card">
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table id="material-requests-table" class="table table-bordered table-hover align-middle w-100">
+                        <table id="material-requests-table" class="mobile-list-table table table-bordered table-hover align-middle w-100">
                             <thead>
                                 <tr>
                                     <th width="50">{{ __('ui.common.no') }}</th>
@@ -687,7 +689,7 @@
                     { data: 'items_count', orderable: false, searchable: false, className: 'text-center' },
                     { data: 'status_label', name: 'status', searchable: false },
                     { data: 'purchase_status_label', name: 'purchase_status', searchable: false },
-                    { data: 'actions', orderable: false, searchable: false, className: 'text-end' }
+                    { data: 'actions', orderable: false, searchable: false, className: 'text-end mobile-list-row-actions' }
                 ],
                 order: [[1, 'desc']],
                 drawCallback: function() { if (window.feather) feather.replace(); }

@@ -69,30 +69,34 @@
         #material-orders-table th.mo-action-column { z-index: 3; }
         #material-orders-table .mo-action-column .mo-merged-detail { justify-content: flex-end; }
     </style>
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div class="mobile-list-header d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <div>
             <h4 class="page-title mb-1">{{ __('ui.workflow.material_order') }}</h4>
             <p class="text-muted mb-0">{{ __('ui.workflow.material_order_subtitle') }}</p>
         </div>
-        <div class="d-flex flex-wrap gap-2">
+        <div class="mobile-list-actions d-flex flex-wrap gap-2">
             @can('production-orders.create')
-                <a class="btn btn-outline-secondary btn-sm" href="{{ route('super.material-orders.full-import-template') }}"><i data-feather="download" class="icon-sm me-1"></i>{{ __('variants.full_import_template') }}</a>
-                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#moFullImportModal">{{ __('variants.full_import') }}</button>
+                <a class="btn btn-outline-secondary btn-sm" href="{{ route('super.material-orders.full-import-template') }}"><i data-feather="file-text" class="icon-sm me-1"></i>
+                        <span class="mobile-list-action-label">{{ __('variants.full_import_template') }}</span></a>
+                <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#moFullImportModal"><i data-feather="upload" class="icon-sm me-1"></i>
+                        <span class="mobile-list-action-label">{{ __('variants.full_import') }}</span></button>
             @endcan
 
             @can('production-orders.view')
-                <a href="{{ route('super.material-orders.export') }}" id="exportMaterialOrders" class="btn btn-outline-success btn-sm"><i data-feather="download" class="icon-sm me-1"></i>{{ __('ui.common.export_excel') }}</a>
+                <a href="{{ route('super.material-orders.export') }}" id="exportMaterialOrders" class="btn btn-outline-success btn-sm"><i data-feather="download" class="icon-sm me-1"></i>
+                        <span class="mobile-list-action-label">{{ __('ui.common.export_excel') }}</span></a>
             @endcan
             @can('production-orders.create')
-                <a class="btn btn-primary btn-sm" href="{{ route('super.material-orders.create') }}"><i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.workflow.material_order_admin') }}</a>
+                <a class="btn btn-primary btn-sm" href="{{ route('super.material-orders.create') }}"><i data-feather="plus" class="icon-sm me-1"></i>
+                        <span class="mobile-list-action-label">{{ __('ui.workflow.material_order_admin') }}</span></a>
             @endcan
         </div>
     </div>
-    @include('super.purchasing.date-filter')
+    @include('super.purchasing.date-filter', ['compactActions' => true])
     <div class="card border-0 shadow-sm material-orders-card">
         <div class="card-body">
             <div class="table-responsive">
-                <table id="material-orders-table" class="table table-hover align-middle text-nowrap w-100 mb-0">
+                <table id="material-orders-table" class="mobile-list-table table table-hover align-middle text-nowrap w-100 mb-0">
                     <thead class="table-light">
                         <tr>
                             <th>{{ __('ui.common.no') }}</th>

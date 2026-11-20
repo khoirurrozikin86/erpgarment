@@ -9,9 +9,9 @@
                 <label class="form-label mb-1" for="to_date">{{ __('ui.common.to_date') }}</label>
                 <input type="date" id="to_date" class="form-control form-control-sm" value="{{ now()->toDateString() }}">
             </div>
-            <div class="col-sm-2 col-md-auto">
-                <button type="button" id="applyDateFilter" class="btn btn-sm btn-primary"><i data-feather="filter" class="icon-sm me-1"></i>Filter</button>
-                <button type="button" id="todayDateFilter" class="btn btn-sm btn-outline-secondary" title="Tampilkan data hari ini"><i data-feather="rotate-ccw" class="icon-sm"></i> Hari Ini</button>
+            <div class="{{ ($compactActions ?? false) ? 'col-sm-auto mobile-list-actions d-flex flex-wrap gap-2' : 'col-sm-2 col-md-auto' }}">
+                <button type="button" id="applyDateFilter" class="btn btn-sm btn-primary"><i data-feather="filter" class="icon-sm me-1"></i><span class="mobile-list-action-label">Filter</span></button>
+                <button type="button" id="todayDateFilter" class="btn btn-sm btn-outline-secondary" title="Tampilkan data hari ini"><i data-feather="rotate-ccw" class="icon-sm me-1"></i><span class="mobile-list-action-label">Hari Ini</span></button>
             </div>
         </div>
     </div>

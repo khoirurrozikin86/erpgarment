@@ -1,8 +1,8 @@
 {{-- resources/views/partials/_navbar.blade.php --}}
 <nav class="navbar">
-    <a href="#" class="sidebar-toggler">
-        <i data-feather="menu"></i>
-    </a>
+    <button type="button" class="sidebar-toggler navbar-sidebar-toggle" aria-label="{{ __('ui.nav.toggle_sidebar') }}" aria-controls="admin-sidebar">
+        <span class="navbar-sidebar-icon" aria-hidden="true"></span>
+    </button>
 
     <div class="navbar-content">
         {{-- Search --}}

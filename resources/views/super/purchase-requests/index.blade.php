@@ -13,29 +13,31 @@
 
 @section('content')
     <div class="row">
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="mobile-list-header d-flex justify-content-between align-items-center mb-3">
             <div>
                 <h4 class="page-title mb-1">{{ __('ui.common.purchase_request') }}</h4>
                 <span class="text-muted">{{ __('ui.workflow.pr_subtitle') }}</span>
             </div>
-            <div class="d-flex gap-2">
+            <div class="mobile-list-actions d-flex flex-wrap gap-2">
                 @can('purchase-requests.view')
                     <a href="{{ route('super.purchase-requests.export') }}" id="exportPurchaseRequests" class="btn btn-outline-success btn-sm">
-                        <i data-feather="download" class="icon-sm me-1"></i>{{ __('ui.common.export_excel') }}</a>
+                        <i data-feather="download" class="icon-sm me-1"></i>
+                        <span class="mobile-list-action-label">{{ __('ui.common.export_excel') }}</span></a>
                 @endcan
                 @can('purchase-requests.create')
                     <a href="{{ route('super.purchase-requests.create') }}" class="btn btn-primary btn-sm">
-                        <i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.workflow.create_purchase_request') }}</a>
+                        <i data-feather="plus" class="icon-sm me-1"></i>
+                        <span class="mobile-list-action-label">{{ __('ui.workflow.create_purchase_request') }}</span></a>
                 @endcan
             </div>
         </div>
 
         <div class="col-12">
-            @include('super.purchasing.date-filter')
+            @include('super.purchasing.date-filter', ['compactActions' => true])
             <div class="card">
                 <div class="card-body">
                     <div class="table-responsive">
-                        <table id="purchase-requests-table" class="table table-bordered table-hover align-middle w-100">
+                        <table id="purchase-requests-table" class="mobile-list-table table table-bordered table-hover align-middle w-100">
                             <thead><tr>
                                 <th width="50">{{ __('ui.common.no') }}</th><th>{{ __('ui.common.pr_number') }}</th><th>{{ __('ui.common.request_date') }}</th><th>{{ __('ui.common.mr_number') }}</th><th>{{ __('ui.workflow.buyer_po_no') }}</th><th>{{ __('ui.nav.styles') }} / {{ __('ui.workflow.color') }} / {{ __('ui.workflow.size') }} / {{ __('ui.workflow.order_quantity') }}</th><th>{{ __('ui.workflow.items_needed') }}</th><th>{{ __('ui.common.supplier') }}</th>
                                 <th>{{ __('ui.common.requester') }}</th><th>{{ __('ui.common.estimated_total') }}</th><th>{{ __('ui.common.status') }}</th><th width="130" class="text-end">{{ __('ui.common.action') }}</th>
@@ -85,7 +87,7 @@
                     { data: 'requester_name', name: 'requester_name', orderable: false, searchable: false },
                     { data: 'total_amount', name: 'total_amount', searchable: false, className: 'text-end', render: data => money(data) },
                     { data: 'status_label', name: 'status', searchable: false },
-                    { data: 'actions', orderable: false, searchable: false, className: 'text-end' }
+                    { data: 'actions', orderable: false, searchable: false, className: 'text-end mobile-list-row-actions' }
                 ],
                 order: [[1, 'desc']],
                 drawCallback: function() { if (window.feather) feather.replace(); }

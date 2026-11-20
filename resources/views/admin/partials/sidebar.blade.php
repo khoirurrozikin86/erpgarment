@@ -1,4 +1,4 @@
-<nav class="sidebar">
+<nav class="sidebar" id="admin-sidebar">
     @php
         $companyContext = app(\App\Domain\Companies\Services\CompanyContext::class);
         $activeCompany = $companyContext->has() ? $companyContext->get() : null;

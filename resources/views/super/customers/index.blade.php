@@ -10,16 +10,20 @@
 @endsection
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="mobile-list-header d-flex justify-content-between align-items-center mb-4">
     <div><h4 class="mb-1">{{ __('ui.common.customer') }}</h4><p class="text-muted mb-0">{{ __('ui.master.customer_subtitle') }}</p></div>
-    <div class="d-flex gap-2">
+    <div class="mobile-list-actions d-flex flex-wrap gap-2">
         @can('customers.view')
-            <a href="{{ route('super.customers.template') }}" class="btn btn-outline-secondary"><i data-feather="file-text" class="icon-sm me-1"></i>{{ __('ui.master.template') }}</a>
-            <a href="{{ route('super.customers.export') }}" class="btn btn-success"><i data-feather="download" class="icon-sm me-1"></i>{{ __('ui.common.export_excel') }}</a>
+            <a href="{{ route('super.customers.template') }}" class="btn btn-outline-secondary"><i data-feather="file-text" class="icon-sm me-1"></i>
+                        <span class="mobile-list-action-label">{{ __('ui.master.template') }}</span></a>
+            <a href="{{ route('super.customers.export') }}" class="btn btn-success"><i data-feather="download" class="icon-sm me-1"></i>
+                        <span class="mobile-list-action-label">{{ __('ui.common.export_excel') }}</span></a>
         @endcan
         @can('customers.create')
-            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#customerImportModal"><i data-feather="upload" class="icon-sm me-1"></i>{{ __('ui.master.import_excel') }}</button>
-            <button type="button" class="btn btn-primary" id="btn-add-customer"><i data-feather="plus" class="icon-sm me-1"></i>{{ __('ui.master.add_customer') }}</button>
+            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#customerImportModal"><i data-feather="upload" class="icon-sm me-1"></i>
+                        <span class="mobile-list-action-label">{{ __('ui.master.import_excel') }}</span></button>
+            <button type="button" class="btn btn-primary" id="btn-add-customer"><i data-feather="plus" class="icon-sm me-1"></i>
+                        <span class="mobile-list-action-label">{{ __('ui.master.add_customer') }}</span></button>
         @endcan
     </div>
 </div>
@@ -27,7 +31,7 @@
     <div class="alert alert-success">{{ session('customer_import_success') }}</div>
 @endif
 <div class="card"><div class="card-body"><div class="table-responsive">
-    <table id="customers-table" class="table table-bordered table-hover align-middle w-100">
+    <table id="customers-table" class="mobile-list-table table table-bordered table-hover align-middle w-100">
         <thead><tr>
             <th>{{ __('ui.common.no') }}</th><th>{{ __('ui.common.code') }}</th><th>{{ __('ui.common.customer') }}</th>
             <th>{{ __('ui.common.address') }}</th><th>{{ __('ui.common.contact_person') }}</th><th>{{ __('ui.common.phone') }}</th>
@@ -78,7 +82,7 @@ $(function () {
             {data: 'email', name: 'email', render: data => data || '-'},
             {data: 'fax', name: 'fax', render: data => data || '-'},
             {data: 'country', name: 'country', render: data => data || '-'},
-            {data: 'actions', orderable: false, searchable: false, className: 'text-center'}
+            {data: 'actions', orderable: false, searchable: false, className: 'text-center mobile-list-row-actions'}
         ], drawCallback: function () { if (typeof feather !== 'undefined') feather.replace(); }
     });
 

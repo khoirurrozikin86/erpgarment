@@ -332,10 +332,33 @@
             color: #53627a !important;
         }
 
-        .sidebar-toggler {
+        .sidebar-header .sidebar-toggler {
             flex-shrink: 0;
             width: 24px;
             margin-left: 5px;
+        }
+
+        .navbar .navbar-sidebar-toggle {
+            flex: 0 0 71px;
+            justify-content: center;
+            padding: 0;
+            background: transparent;
+            color: #50665a;
+            border: 0;
+            border-inline-end: 1px solid #e9ecef;
+        }
+
+        .navbar-sidebar-icon {
+            width: 20px;
+            height: 14px;
+            border-block: 2px solid currentColor;
+            display: grid;
+            align-items: center;
+        }
+
+        .navbar-sidebar-icon::before {
+            content: "";
+            border-top: 2px solid currentColor;
         }
 
         /* Keep long menu labels inside the expanded sidebar. */
@@ -425,6 +448,22 @@
 
     <script>
         if (window.jQuery && $.fn.dataTable) {
+            $(document).on('init.dt', '.mobile-list-table', function(event, settings) {
+                const wrapper = settings.nTableWrapper.parentElement;
+                if (wrapper.classList.contains('table-responsive')) {
+                    $(this).wrap('<div class="table-responsive"></div>');
+                    wrapper.classList.remove('table-responsive');
+                }
+            });
+
+            $(document).on('draw.dt', '.mobile-list-table', function() {
+                this.querySelectorAll('tbody [data-bs-toggle="dropdown"]').forEach(button => {
+                    bootstrap.Dropdown.getOrCreateInstance(button, {
+                        popperConfig: config => ({ ...config, strategy: 'fixed' })
+                    });
+                });
+            });
+
             $.extend(true, $.fn.dataTable.defaults, {
                 language: {
                     processing: @json(__('ui.common.data_processing')),

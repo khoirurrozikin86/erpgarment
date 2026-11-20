@@ -21,7 +21,7 @@
 @section('content')
     <div class="row">
 
-        <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="mobile-list-header d-flex justify-content-between align-items-center mb-3">
             <div>
                 <h4 class="mb-1">{{ __('ui.common.item') }}</h4>
                 <p class="text-muted mb-0">
@@ -29,21 +29,25 @@
                 </p>
             </div>
 
-            <div class="d-flex flex-wrap gap-2">
+            <div class="mobile-list-actions d-flex flex-wrap gap-2">
                 @can('products.view')
                     <a href="{{ route('super.products.export') }}" class="btn btn-outline-success">
-                        <i class="fas fa-file-export me-1"></i>{{ __('ui.common.export_excel') }}</a>
+                        <i class="fas fa-file-export me-1"></i>
+                        <span class="mobile-list-action-label">{{ __('ui.common.export_excel') }}</span></a>
                     <a href="{{ route('super.products.template') }}" class="btn btn-outline-secondary">
-                        <i class="fas fa-download me-1"></i> {{ __('ui.master.template') }}
+                        <i class="fas fa-download me-1"></i>
+                        <span class="mobile-list-action-label">{{ __('ui.master.template') }}</span>
                     </a>
                 @endcan
                 @can('products.create')
                     <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
                         data-bs-target="#productImportModal">
-                        <i class="fas fa-file-import me-1"></i> {{ __('ui.workflow.import_items') }}
+                        <i class="fas fa-file-import me-1"></i>
+                        <span class="mobile-list-action-label">{{ __('ui.workflow.import_items') }}</span>
                     </button>
                     <button type="button" class="btn btn-primary" id="btn-add-product">
-                        <i class="fas fa-plus me-1"></i>{{ __('ui.common.add_item') }}</button>
+                        <i class="fas fa-plus me-1"></i>
+                        <span class="mobile-list-action-label">{{ __('ui.common.add_item') }}</span></button>
                 @endcan
             </div>
         </div>
@@ -64,7 +68,7 @@
             <div class="card-body">
 
                 <div class="table-responsive">
-                    <table id="products-table" class="table table-bordered table-hover align-middle w-100">
+                    <table id="products-table" class="mobile-list-table table table-bordered table-hover align-middle w-100">
 
                         <thead>
                             <tr>
@@ -399,7 +403,7 @@
                         name: 'actions',
                         orderable: false,
                         searchable: false,
-                        className: 'text-center'
+                        className: 'text-center mobile-list-row-actions'
                     }
                 ],
 
