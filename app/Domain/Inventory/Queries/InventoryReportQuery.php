@@ -47,7 +47,7 @@ class InventoryReportQuery
         $counts = DB::query()->fromSub($parents, 'inventory_totals')
             ->selectRaw('COUNT(*) as products')
             ->selectRaw('SUM(CASE WHEN activity > 0 THEN 1 ELSE 0 END) as moved_products')
-            ->selectRaw('SUM(CASE WHEN threshold > 0 AND closing <= 0 THEN 1 ELSE 0 END) as out_of_stock')
+            ->selectRaw('SUM(CASE WHEN closing <= 0 THEN 1 ELSE 0 END) as out_of_stock')
             ->selectRaw('SUM(CASE WHEN threshold > 0 AND closing > 0 AND closing <= threshold THEN 1 ELSE 0 END) as low_stock')
             ->first();
 
@@ -106,7 +106,7 @@ class InventoryReportQuery
     private function status(float $balance, float $threshold): string
     {
         return match (true) {
-            $threshold > 0 && $balance <= 0 => 'out_of_stock',
+            $balance <= 0 => 'out_of_stock',
             $threshold > 0 && $balance <= $threshold => 'low_stock',
             default => 'safe_stock',
         };

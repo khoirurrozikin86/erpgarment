@@ -84,22 +84,10 @@ class RawMaterialOrderController extends Controller
         return DataTables::eloquent($query->documents($company->id(), $filters['from_date'] ?? now()->startOfMonth()->toDateString(), $filters['to_date'] ?? now()->toDateString()))
             ->addColumn('order_date', fn (RawMaterialOrderDocument $document) => $document->order_date?->format('Y-m-d'))
             ->addColumn('mo_number', fn (RawMaterialOrderDocument $document) => $document->production_order_number ?: 'Manual')
-            ->addColumn('item_details', function (RawMaterialOrderDocument $document) use ($groups) {
-                return $groups->group($this->documentItems($document, $groups))->map(function (array $item) {
-                    $code = e($item['sku_code'] ?? $item['parent_code'] ?? '—');
-                    $name = e($item['name'] ?? '—');
-                    $dimensions = e(implode(' / ', [$item['color'] ?: '—', $item['size'] ?: '—']));
-                    $category = e(collect($item['categories'])->map(fn ($type) => __('variants.bom_type_'.$type))->implode(', '));
-                    $format = fn ($quantity) => rtrim(rtrim(number_format($quantity, 4, ',', '.'), '0'), ',');
-                    $quantity = $format($item['quantity']);
-                    $issued = $format(collect($item['sources'])->sum('issued_quantity'));
-                    $unit = e($item['unit'] ?? '');
-
-                    return '<span class="d-block"><strong>'.$code.'</strong> — '.$name
-                        .'<span class="text-muted"> · '.$category.' · '.$dimensions.'</span>'
-                        .' · '.$quantity.' '.$unit.' ('.e(__('ui.raw_material_order.sent_quantity')).' '.$issued.')</span>';
-                })->implode('');
-            })
+            ->addColumn('item_details', fn (RawMaterialOrderDocument $document) => view(
+                'super.raw-material-orders.item-details',
+                ['items' => $groups->group($this->documentItems($document, $groups))]
+            )->render())
             ->addColumn('actions', function (RawMaterialOrderDocument $document) {
                 $print = e(route('super.raw-material-orders.pdf', $document));
                 $edit = e(route('super.raw-material-orders.edit', $document));

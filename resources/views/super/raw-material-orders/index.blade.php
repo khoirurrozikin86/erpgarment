@@ -16,7 +16,7 @@
 </div>
 @include('super.purchasing.date-filter')
 <div class="card"><div class="card-body"><div class="table-responsive"><table id="rawMaterialOrdersTable" class="table table-bordered table-hover align-middle w-100">
-    <thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.common.action') }}</th><th>{{ __('ui.raw_material_order.number') }}</th><th>{{ __('ui.raw_material_order.date') }}</th><th>{{ __('ui.raw_material_order.mo_number') }}</th><th>Detail Barang</th></tr></thead>
+    <thead><tr><th>{{ __('ui.common.no') }}</th><th>{{ __('ui.common.action') }}</th><th>{{ __('ui.raw_material_order.number') }}</th><th>{{ __('ui.raw_material_order.date') }}</th><th>{{ __('ui.raw_material_order.mo_number') }}</th><th>{{ __('ui.raw_material_order.item_details') }}</th></tr></thead>
 </table></div></div></div>
 
 <div class="modal fade" id="rawMoPickerModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-scrollable"><div class="modal-content">
