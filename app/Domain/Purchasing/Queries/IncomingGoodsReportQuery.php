@@ -16,6 +16,7 @@ class IncomingGoodsReportQuery
         return GoodsReceiptItem::query()->with([
             'goodsReceipt.supplier',
             'product.unit',
+            'product.category:id,name',
             'product.parentProduct:id,code',
             'purchaseOrderItem.purchaseRequestItem.materialRequestItem:id,color,size',
         ])
@@ -30,6 +31,7 @@ class IncomingGoodsReportQuery
             ->when($filters['search'] ?? null, function (Builder $query, string $search) {
                 $query->where(function (Builder $query) use ($search) {
                     $query->whereHas('product', fn (Builder $q) => $q->where('code', 'like', "%{$search}%")->orWhere('name', 'like', "%{$search}%"))
+                        ->orWhereHas('product.category', fn (Builder $q) => $q->where('name', 'like', "%{$search}%")->orWhere('code', 'like', "%{$search}%"))
                         ->orWhereHas('product.parentProduct', fn (Builder $q) => $q->where('code', 'like', "%{$search}%"))
                         ->orWhereHas('goodsReceipt', fn (Builder $q) => $q->where('number', 'like', "%{$search}%")->orWhere('customs_document_number', 'like', "%{$search}%"))
                         ->orWhereHas('goodsReceipt.supplier', fn (Builder $q) => $q->where('name', 'like', "%{$search}%"));

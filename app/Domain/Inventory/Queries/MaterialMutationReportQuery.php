@@ -36,7 +36,8 @@ class MaterialMutationReportQuery
     protected function search(Builder $products, string $pattern): Builder
     {
         return $products->where('code', 'like', $pattern)->orWhere('name', 'like', $pattern)
-            ->orWhereHas('parentProduct', fn (Builder $parent) => $parent->where('code', 'like', $pattern));
+            ->orWhereHas('parentProduct', fn (Builder $parent) => $parent->where('code', 'like', $pattern))
+            ->orWhereHas('category', fn (Builder $category) => $category->where('name', 'like', $pattern)->orWhere('code', 'like', $pattern));
     }
 
     protected function products(array $filters): Builder

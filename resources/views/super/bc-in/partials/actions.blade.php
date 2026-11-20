@@ -1,4 +1,8 @@
 <div class="d-flex gap-1 text-nowrap">
+    <button type="button" class="btn btn-outline-secondary btn-sm"
+        data-bc-detail="{{ route('super.'.($direction ?? 'bc-in').'.'.$module.'.detail', $item->document_id) }}">
+        {{ __('ui.common.view_detail') }}
+    </button>
     @can($module.'.update')
         <a class="btn btn-outline-primary btn-sm" href="{{ route('super.'.($direction ?? 'bc-in').'.'.$module.'.edit', $item->document_id) }}" title="{{ __('ui.common.edit') }}"><i data-feather="edit-2" class="icon-sm"></i></a>
     @endcan

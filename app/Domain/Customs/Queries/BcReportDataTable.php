@@ -20,11 +20,11 @@ class BcReportDataTable
         if (in_array($report, ['material-mutation', 'finished-goods-mutation'], true)) {
             $parentCode = 'COALESCE((SELECT parent.code FROM products parent WHERE parent.id = products.parent_product_id), products.code)';
             $variantColumns = $report === 'finished-goods-mutation' ? ['products.color', 'products.size'] : [null, null];
-            return [null, $parentCode, 'products.code', 'products.name', ...$variantColumns, null, null, 'opening_balance', null, null, null, null, 'counted_quantity', 'count_difference', 'count_number'];
+            return [null, $parentCode, 'products.code', 'products.name', $document('name', 'products', 'category_id', 'categories'), ...$variantColumns, null, null, 'opening_balance', null, null, null, null, 'counted_quantity', 'count_difference', 'count_number'];
         }
         if (in_array($report, ['reject-scrap-mutation', 'capital-goods-mutation'], true)) {
             // Formula-derived balances remain display-only, using the original report values().
-            return [null, 'products.code', 'products.name', null, null, 'opening_balance', null, null, null, null, 'counted_quantity', 'count_difference', 'count_number'];
+            return [null, 'products.code', 'products.name', $document('name', 'products', 'category_id', 'categories'), null, null, 'opening_balance', null, null, null, null, 'counted_quantity', 'count_difference', 'count_number'];
         }
         return match ($report) {
             'incoming' => [null,
@@ -34,11 +34,13 @@ class BcReportDataTable
                 $document('number', 'goods_receipt_items', 'goods_receipt_id', 'goods_receipts'),
                 $document('received_at', 'goods_receipt_items', 'goods_receipt_id', 'goods_receipts'),
                 null, null, 'COALESCE((SELECT parent.code FROM products sku JOIN products parent ON parent.id = sku.parent_product_id WHERE sku.id = goods_receipt_items.product_id), '.$product('code', 'goods_receipt_items').')',
-                $product('code', 'goods_receipt_items'), $product('name', 'goods_receipt_items'), null, null, null,
+                $product('code', 'goods_receipt_items'), $product('name', 'goods_receipt_items'),
+                '(SELECT category.name FROM products item JOIN categories category ON category.id = item.category_id WHERE item.id = goods_receipt_items.product_id)',
+                null, null, null,
                 'goods_receipt_items.quantity', 'goods_receipt_items.unit_price', 'goods_receipt_items.line_total',
                 $document('currency', 'goods_receipt_items', 'goods_receipt_id', 'goods_receipts')],
-            'outgoing' => [null, null, null, null, 'number', 'document_date', 'recipient', null, 'parent_code', 'sku_code', 'item_name', 'color', 'size', 'unit', 'quantity', 'unit_price', 'total_amount'],
-            'wip-position' => [null, 'mo_number', 'style_code', "CONCAT(code, '/', position)", 'name', 'color', 'size', 'planned_quantity', 'symbol', 'quantity', null],
+            'outgoing' => [null, null, null, null, 'number', 'document_date', 'recipient', null, 'parent_code', 'sku_code', 'item_name', 'category_name', 'color', 'size', 'unit', 'quantity', 'unit_price', 'total_amount'],
+            'wip-position' => [null, 'mo_number', 'style_code', "CONCAT(code, '/', position)", 'name', 'category_name', 'color', 'size', 'planned_quantity', 'symbol', 'quantity', null],
             'production-plan' => [null, 'number', 'po_date', $product('code', 'production_orders', 'output_product_id'), $product('name', 'production_orders', 'output_product_id'), $product('color', 'production_orders', 'output_product_id'), $product('size', 'production_orders', 'output_product_id'), 'planned_quantity', 'report_rejected', 'report_produced', 'report_shipped'],
             'daily-production-status' => [
                 $document('name', 'production_orders', 'customer_id', 'customers'), 'number', 'buyer_po_number',

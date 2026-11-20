@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Admin;
 use App\Domain\Companies\Services\CompanyContext;
+use App\Domain\Customs\Queries\BcItemPresentation;
 use App\Domain\Customs\Actions\SaveBc262Action;
 use App\Domain\Customs\Queries\Bc262Query;
 use App\Exports\Bc262Export;
@@ -23,10 +24,12 @@ class Bc262Controller extends Controller {
  public function edit(CustomsDocument $document,CompanyContext $c){$this->scope($document,$c);return $this->form($document);}
  private function scope(CustomsDocument $d,CompanyContext $c):void {abort_unless((int)$d->company_id===$c->id()&&$d->document_type==='BC 2.6.2',404);}
  private function form(?CustomsDocument $document){
-  $document?->load('items');$suppliers=Supplier::orderBy('name')->get(['id','name']);$importers=collect();$subcontractors=Subcontractor::where('company_id',app(CompanyContext::class)->id())->where('is_active',true)->orderBy('name')->get(['id','name']);$suppliers=$suppliers->map(fn($p)=>(object)['id'=>'s:'.$p->id,'name'=>$p->name])->concat($subcontractors->map(fn($p)=>(object)['id'=>'x:'.$p->id,'name'=>$p->name]));
+  $document?->load('items');$suppliers=Supplier::orderBy('name')->get(['id','code','name']);$importers=collect();$subcontractors=Subcontractor::where('company_id',app(CompanyContext::class)->id())->where('is_active',true)->orderBy('name')->get(['id','name']);$suppliers=$suppliers->map(fn($p)=>(object)['id'=>'s:'.$p->id,'code'=>$p->code,'name'=>$p->name])->concat($subcontractors->map(fn($p)=>(object)['id'=>'x:'.$p->id,'name'=>$p->name]));
   $lines=array_values(old('items',$document?->items->map->only(['product_id','subcontract_receipt_item_id','goods_receipt_item_id','equipment_receipt_item_id','receipt_number','receipt_date','quantity','unit_price','cif','country_code','hs_code'])->all()??[]));
   foreach($lines as &$line)if(($line['receipt_date']??null) instanceof \DateTimeInterface)$line['receipt_date']=$line['receipt_date']->format('Y-m-d');unset($line);
-  $products=Product::with('unit')->whereIn('id',collect($lines)->pluck('product_id')->filter())->get()->mapWithKeys(fn($p)=>[$p->id=>['id'=>$p->id,'code'=>$p->code,'name'=>$p->name,'unit'=>$p->unit?->symbol?:$p->unit?->name]]);
+  $supplierId = (int) old('supplier_id', $document?->supplier_id);
+  $lines = BcItemPresentation::lines($lines, app(CompanyContext::class)->id(), $supplierId ?: null);
+  $products = BcItemPresentation::products($lines);
   return view('super.bc262.form',compact('document','suppliers','importers','lines','products'));
  }
  private function validated(Request $r,CompanyContext $c,?CustomsDocument $d):array {
@@ -48,11 +51,10 @@ class Bc262Controller extends Controller {
  public function store(Request $r,CompanyContext $c,SaveBc262Action $a){$data=$this->validated($r,$c,null);$d=$a->save(null,$data,$c->id(),$r->user()->id,$r->input('intent')==='all');return redirect()->route('super.bc-in.bc262.edit',$d)->with('success',__('bc262.saved'));}
  public function update(Request $r,CustomsDocument $document,CompanyContext $c,SaveBc262Action $a){$this->scope($document,$c);$a->save($document,$this->validated($r,$c,$document),$c->id(),$r->user()->id,$r->input('intent')==='all');return back()->with('success',__('bc262.saved'));}
  public function destroy(Request $r,CustomsDocument $document,CompanyContext $c,SaveBc262Action $a){$this->scope($document,$c);$a->delete($document,$c->id(),$r->user()->id);return redirect()->route('super.bc-in.bc262.index')->with('success',__('bc262.deleted'));}
- public function products(Request $r){$f=$r->validate(['search'=>['nullable','string','max:100']]);$search=$f['search']??'';return response()->json(Product::where('is_active',true)->with('unit')->when($search,fn($q)=>$q->where(fn($q)=>$q->where('code','like',"%{$search}%")->orWhere('name','like',"%{$search}%")))->orderBy('code')->limit(50)->get()->map(fn($p)=>['id'=>$p->id,'code'=>$p->code,'name'=>$p->name,'unit'=>$p->unit?->symbol?:$p->unit?->name]));}
  public function grns(Request $r,CompanyContext $c){
   $party=$r->validate(['counterparty'=>['required','regex:/^[sx]:[0-9]+$/'],'search'=>['nullable','string','max:100']]);[$kind,$id]=explode(':',$party['counterparty']);
   if($kind==='s'){$r->merge(['supplier_id'=>$id]);return app(Bc23Controller::class)->grns($r,$c);}
   $search=$party['search']??'';
-  $items=SubcontractMaterialIssueItem::with(['document','product.unit'])->whereHas('document',fn($q)=>$q->where('company_id',$c->id())->where('subcontractor_id',$id)->where('issue_kind','receipt')->where('status','confirmed'))->when($search,fn($q)=>$q->whereHas('product',fn($q)=>$q->where('code','like',"%{$search}%")->orWhere('name','like',"%{$search}%")))->latest('id')->limit(50)->get()->filter(fn($i)=>$i->product)->map(fn($i)=>['id'=>$i->product_id,'code'=>$i->product->code,'name'=>$i->product->name,'unit'=>$i->product->unit?->symbol?:$i->product->unit?->name,'subcontract_receipt_item_id'=>$i->id,'receipt_number'=>$i->document->number,'receipt_date'=>$i->document->issue_date->toDateString(),'quantity'=>$i->quantity,'unit_price'=>0]);return response()->json($items->values());
+  $items=SubcontractMaterialIssueItem::with(['document','product.unit','product.parentProduct:id,code'])->whereHas('document',fn($q)=>$q->where('company_id',$c->id())->where('subcontractor_id',$id)->where('issue_kind','receipt')->where('status','confirmed'))->when($search,fn($q)=>$q->whereHas('product',fn($q)=>$q->where('code','like',"%{$search}%")->orWhere('name','like',"%{$search}%")))->latest('id')->limit(50)->get()->filter(fn($i)=>$i->product)->map(fn($i)=>[...BcItemPresentation::product($i->product),'subcontract_receipt_item_id'=>$i->id,'receipt_number'=>$i->document->number,'receipt_date'=>$i->document->issue_date->toDateString(),'quantity'=>$i->quantity,'unit_price'=>0]);return response()->json($items->values());
  }
 }

@@ -20,7 +20,7 @@
                 @endif
             </td>
         @endforeach
-        <td class="item-name">{{ $item->item_name }}</td>
+        <td class="item-name">{{ $item->item_name }}</td><td>{{ $item->category_name ?? '—' }}</td>
         <td>{{ $item->color ?? '—' }}</td>
         <td>{{ $item->size ?? '—' }}</td>
         <td>{{ $item->unit }}</td>

@@ -328,7 +328,7 @@
             @endcanany
 
             <li class="nav-item nav-category" data-sidebar-section>{{ __('ui.nav.sidebar_inventory_finance') }}</li>
-            @canany(['stocks.view', 'stock-card.view', 'stock-opnames.view'])
+            @canany(['stocks.view', 'stock-card.view', 'stock-opnames.view', 'inventory-report.view'])
                 <x-sidebar-group :label="__('ui.nav.inventory')" icon="package">
                     @can('stocks.view')
                         <li class="nav-item"><a href="{{ route('super.stocks.index') }}" class="nav-link {{ request()->routeIs('super.stocks.*') ? 'active' : '' }}"><i class="link-icon" data-feather="archive"></i><span class="link-title">{{ __('ui.nav.stocks') }}</span></a></li>
@@ -339,28 +339,19 @@
                     @can('stock-card.view')
                         <li class="nav-item"><a href="{{ route('super.stock-card.index') }}" class="nav-link {{ request()->routeIs('super.stock-card.*') ? 'active' : '' }}"><i class="link-icon" data-feather="layers"></i><span class="link-title">{{ __('ui.nav.stock_card') }}</span></a></li>
                     @endcan
-                </x-sidebar-group>
-            @endcanany
-
-            @canany(['purchase-report.view', 'inventory-report.view', 'cash-bank-report.view', 'profit-loss.view'])
-                <x-sidebar-group :label="__('ui.report_menu.operational')" icon="bar-chart-2">
-                    @can('purchase-report.view')
-                        <li class="nav-item"><a href="{{ route('super.reports.purchase.index') }}" class="nav-link {{ request()->routeIs('super.reports.purchase.*') ? 'active' : '' }}"><i class="link-icon" data-feather="shopping-cart"></i><span class="link-title">{{ __('ui.nav.purchase_report') }}</span></a></li>
-                    @endcan
                     @can('inventory-report.view')
                         <li class="nav-item"><a href="{{ route('super.reports.inventory.index') }}" class="nav-link {{ request()->routeIs('super.reports.inventory.*') ? 'active' : '' }}"><i class="link-icon" data-feather="package"></i><span class="link-title">{{ __('ui.nav.inventory_report') }}</span></a></li>
                     @endcan
-                    @can('cash-bank-report.view')
-                        <li class="nav-item"><a href="{{ route('super.reports.cash-bank.index') }}" class="nav-link {{ request()->routeIs('super.reports.cash-bank.*') ? 'active' : '' }}"><i class="link-icon" data-feather="dollar-sign"></i><span class="link-title">{{ __('ui.nav.cash_bank_report') }}</span></a></li>
-                    @endcan
-
-                    @can('profit-loss.view')
-                        <li class="nav-item"><a href="{{ route('super.profit-loss.index') }}" class="nav-link {{ request()->routeIs('super.profit-loss.*') ? 'active' : '' }}"><i class="link-icon" data-feather="trending-up"></i><span class="link-title">{{ __('ui.nav.profit_loss') }}</span></a></li>
-                    @endcan
                 </x-sidebar-group>
             @endcanany
 
-            @canany(['chart-of-accounts.view', 'journal.view', 'account-payable.view', 'cash-bank.view'])
+            @can('purchase-report.view')
+                <x-sidebar-group :label="__('ui.report_menu.operational')" icon="bar-chart-2">
+                    <li class="nav-item"><a href="{{ route('super.reports.purchase.index') }}" class="nav-link {{ request()->routeIs('super.reports.purchase.*') ? 'active' : '' }}"><i class="link-icon" data-feather="shopping-cart"></i><span class="link-title">{{ __('ui.nav.purchase_report') }}</span></a></li>
+                </x-sidebar-group>
+            @endcan
+
+            @canany(['chart-of-accounts.view', 'journal.view', 'account-payable.view', 'cash-bank.view', 'cash-bank-report.view', 'profit-loss.view'])
                 <x-sidebar-group :label="__('ui.nav.accounting')" icon="book-open">
                     @can('chart-of-accounts.view')
                         <li class="nav-item"><a href="{{ route('super.chart-of-accounts.index') }}" class="nav-link {{ request()->routeIs('super.chart-of-accounts.*') ? 'active' : '' }}"><i class="link-icon" data-feather="list"></i><span class="link-title">{{ __('ui.nav.chart_of_accounts') }}</span></a></li>
@@ -373,6 +364,12 @@
                     @endcan
                     @can('cash-bank.view')
                         <li class="nav-item"><a href="{{ route('super.cash-bank.index') }}" class="nav-link {{ request()->routeIs('super.cash-bank.*') ? 'active' : '' }}"><i class="link-icon" data-feather="briefcase"></i><span class="link-title">{{ __('ui.nav.cash_bank') }}</span></a></li>
+                    @endcan
+                    @can('cash-bank-report.view')
+                        <li class="nav-item"><a href="{{ route('super.reports.cash-bank.index') }}" class="nav-link {{ request()->routeIs('super.reports.cash-bank.*') ? 'active' : '' }}"><i class="link-icon" data-feather="dollar-sign"></i><span class="link-title">{{ __('ui.nav.cash_bank_report') }}</span></a></li>
+                    @endcan
+                    @can('profit-loss.view')
+                        <li class="nav-item"><a href="{{ route('super.profit-loss.index') }}" class="nav-link {{ request()->routeIs('super.profit-loss.*') ? 'active' : '' }}"><i class="link-icon" data-feather="trending-up"></i><span class="link-title">{{ __('ui.nav.profit_loss') }}</span></a></li>
                     @endcan
                 </x-sidebar-group>
             @endcanany

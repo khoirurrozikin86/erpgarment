@@ -15,7 +15,7 @@
             <input type="hidden" name="search" id="report-export-search" value="">
         </form>
         <div class="table-responsive"><table id="bc-report-table" class="table table-bordered table-striped align-middle wip-table">
-            <thead><tr><th>{{ __('bc_reports.no') }}</th><th>{{ __('bc_reports.planning_no') }}</th><th>{{ __('bc_reports.style') }}</th><th>{{ __('bc_reports.item_code') }}</th><th>{{ __('bc_reports.item_name') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th>{{ __('bc_reports.order_quantity') }}</th><th>{{ __('bc_reports.item_unit') }}</th><th>{{ __('bc_reports.item_quantity') }}</th><th>{{ __('bc_reports.remarks') }}</th></tr></thead>
+            <thead><tr><th>{{ __('bc_reports.no') }}</th><th>{{ __('bc_reports.planning_no') }}</th><th>{{ __('bc_reports.style') }}</th><th>{{ __('bc_reports.item_code') }}</th><th>{{ __('bc_reports.item_name') }}</th><th>{{ __('ui.common.category') }}</th><th>{{ __('ui.workflow.color') }}</th><th>{{ __('ui.workflow.size') }}</th><th>{{ __('bc_reports.order_quantity') }}</th><th>{{ __('bc_reports.item_unit') }}</th><th>{{ __('bc_reports.item_quantity') }}</th><th>{{ __('bc_reports.remarks') }}</th></tr></thead>
             <tbody></tbody>
         </table></div>
         <p class="small text-muted mt-3 mb-0">{{ __('bc_reports.quantities_show_positions_through_the_end_date_including_earlier_balances_r') }}</p>

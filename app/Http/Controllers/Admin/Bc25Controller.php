@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers\Admin;
 use App\Domain\Companies\Services\CompanyContext;
+use App\Domain\Customs\Queries\BcItemPresentation;
 use App\Domain\Customs\Actions\SaveBc25Action;
 use App\Domain\Customs\Queries\Bc25Query;
 use App\Exports\Bc25Export;
@@ -23,10 +24,12 @@ class Bc25Controller extends Controller {
  public function edit(CustomsDocument $document,CompanyContext $c){$this->scope($document,$c);return $this->form($document);}
  private function scope(CustomsDocument $d,CompanyContext $c):void {abort_unless((int)$d->company_id===$c->id()&&$d->document_type==='BC 2.5',404);}
  private function form(?CustomsDocument $document){
-  $document?->load('items');$customers=Customer::orderBy('name')->get(['id','name']);$exporters=Exporter::orderBy('name')->get(['id','name']);
+  $document?->load('items');$customers=Customer::orderBy('name')->get(['id','code','name']);$exporters=Exporter::orderBy('name')->get(['id','tax_number','name']);
   $lines=array_values(old('items',$document?->items->map->only(['product_id','goods_sent_note_item_id','shipment_number','shipment_date','quantity','unit_price','item_per_unit','hs_code'])->all()??[]));
   foreach($lines as &$line)if(($line['shipment_date']??null) instanceof \DateTimeInterface)$line['shipment_date']=$line['shipment_date']->format('Y-m-d');unset($line);
-  $products=Product::with('unit')->whereIn('id',collect($lines)->pluck('product_id')->filter())->get()->mapWithKeys(fn($p)=>[$p->id=>['id'=>$p->id,'code'=>$p->code,'name'=>$p->name,'unit'=>$p->unit?->symbol?:$p->unit?->name]]);
+  $supplierId = (int) old('supplier_id', $document?->supplier_id);
+  $lines = BcItemPresentation::lines($lines, app(CompanyContext::class)->id(), $supplierId ?: null);
+  $products = BcItemPresentation::products($lines);
   return view('super.bc25.form',compact('document','customers','exporters','lines','products'));
  }
  private function validated(Request $r,CompanyContext $c,?CustomsDocument $d):array {
@@ -48,9 +51,8 @@ class Bc25Controller extends Controller {
  public function store(Request $r,CompanyContext $c,SaveBc25Action $a){$data=$this->validated($r,$c,null);$d=$a->save(null,$data,$c->id(),$r->user()->id,$r->input('intent')==='all');return redirect()->route('super.bc-out.bc25.edit',$d)->with('success',__('bc25.saved'));}
  public function update(Request $r,CustomsDocument $document,CompanyContext $c,SaveBc25Action $a){$this->scope($document,$c);$a->save($document,$this->validated($r,$c,$document),$c->id(),$r->user()->id,$r->input('intent')==='all');return back()->with('success',__('bc25.saved'));}
  public function destroy(Request $r,CustomsDocument $document,CompanyContext $c,SaveBc25Action $a){$this->scope($document,$c);$a->delete($document,$c->id(),$r->user()->id);return redirect()->route('super.bc-out.bc25.index')->with('success',__('bc25.deleted'));}
- public function products(Request $r){$f=$r->validate(['search'=>['nullable','string','max:100']]);$search=$f['search']??'';return response()->json(Product::where('is_active',true)->with('unit')->when($search,fn($q)=>$q->where(fn($q)=>$q->where('code','like',"%{$search}%")->orWhere('name','like',"%{$search}%")))->orderBy('code')->limit(50)->get()->map(fn($p)=>['id'=>$p->id,'code'=>$p->code,'name'=>$p->name,'unit'=>$p->unit?->symbol?:$p->unit?->name]));}
  public function gsns(Request $r,CompanyContext $c){
   $f=$r->validate(['customer_id'=>['required','integer','exists:customers,id'],'search'=>['nullable','string','max:100']]);$search=$f['search']??'';
-  $items=GoodsSentNoteItem::with(['note','product.unit'])->where('customer_id',$f['customer_id'])->whereHas('note',fn($q)=>$q->where('company_id',$c->id())->whereNotNull('approved_at'))->when($search,fn($q)=>$q->where(fn($q)=>$q->whereHas('note',fn($q)=>$q->where('number','like',"%{$search}%"))->orWhereHas('product',fn($q)=>$q->where('code','like',"%{$search}%")->orWhere('name','like',"%{$search}%"))))->latest('id')->limit(50)->get()->filter(fn($i)=>$i->product)->map(fn($i)=>['id'=>$i->product_id,'code'=>$i->product->code,'name'=>$i->product->name,'unit'=>$i->product->unit?->symbol?:$i->product->unit?->name,'goods_sent_note_item_id'=>$i->id,'shipment_number'=>$i->note->number,'shipment_date'=>$i->note->sent_date->toDateString(),'quantity'=>$i->quantity,'unit_price'=>0]);return response()->json($items->values());
+  $items=GoodsSentNoteItem::with(['note', 'product.unit', 'product.parentProduct:id,code', 'productionOrder:id,order_color,order_size'])->where('customer_id',$f['customer_id'])->whereHas('note',fn($q)=>$q->where('company_id',$c->id())->whereNotNull('approved_at'))->when($search,fn($q)=>$q->where(fn($q)=>$q->whereHas('note',fn($q)=>$q->where('number','like',"%{$search}%"))->orWhereHas('product',fn($q)=>$q->where('code','like',"%{$search}%")->orWhere('name','like',"%{$search}%"))))->latest('id')->limit(50)->get()->filter(fn($i)=>$i->product)->map(fn($i)=>[...BcItemPresentation::product($i->product),'color'=>$i->productionOrder?->order_color ?? $i->product->color,'size'=>$i->productionOrder?->order_size ?? $i->product->size,'goods_sent_note_item_id'=>$i->id,'shipment_number'=>$i->note->number,'shipment_date'=>$i->note->sent_date->toDateString(),'quantity'=>$i->quantity,'unit_price'=>0]);return response()->json($items->values());
  }
 }
